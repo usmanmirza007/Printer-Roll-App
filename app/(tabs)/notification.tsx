@@ -1,5 +1,7 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
+import { triggerVisitEndPushNotification } from '@/constants/NotificationService';
+import { useAuth } from '@/context/AuthContext';
 import {
   generateAutomaticNotifications,
   loadCustomers,
@@ -30,6 +32,7 @@ export default function NotificationsScreen() {
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
 
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [activeFilter, setActiveFilter] = useState<'All' | 'visit_reminder' | 'stock_alert'>('All');
   const [refreshing, setRefreshing] = useState(false);
@@ -82,9 +85,22 @@ export default function NotificationsScreen() {
 
   const handleVisitDone = async (customerId?: string) => {
     if (!customerId) return;
-    const result = await recordCustomerVisit(customerId);
+    const token = (user as any)?.stsTokenManager?.accessToken;
+    const result = await recordCustomerVisit(customerId, user?.uid, token);
     setNotifications(result.notifications);
     Alert.alert('Visit Logged!', 'Shop visit marked complete and next reminder scheduled.');
+  };
+
+  const handleTestPushNotification = async () => {
+    const token = (user as any)?.stsTokenManager?.accessToken;
+    const nextDate = new Date().toISOString().split('T')[0];
+    await triggerVisitEndPushNotification(
+      'Test Shop Visit',
+      nextDate,
+      user?.uid,
+      token
+    );
+    Alert.alert('Push Sent', 'Test push notification sent successfully!');
   };
 
   const renderNotifCard = ({ item }: { item: AppNotification }) => {
@@ -188,7 +204,7 @@ export default function NotificationsScreen() {
       {/* Header Bar */}
       <View style={[styles.headerBox, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
         <View style={styles.headerRow}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={[styles.headerTitle, { color: theme.text }]}>
               Reminders & Notifications
             </Text>
@@ -197,11 +213,21 @@ export default function NotificationsScreen() {
             </Text>
           </View>
 
-          {unreadCount > 0 && (
-            <TouchableOpacity style={[styles.markAllBtn, { backgroundColor: theme.surface }]} onPress={handleMarkAllRead}>
-              <Text style={[styles.markAllText, { color: theme.tint }]}>Mark All Read</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
+              style={[styles.markAllBtn, { backgroundColor: theme.surface, marginRight: 6 }]}
+              onPress={handleTestPushNotification}
+            >
+              <Ionicons name="notifications-outline" size={14} color={theme.tint} />
+              <Text style={[styles.markAllText, { color: theme.tint, marginLeft: 3 }]}>Test Push</Text>
             </TouchableOpacity>
-          )}
+
+            {unreadCount > 0 && (
+              <TouchableOpacity style={[styles.markAllBtn, { backgroundColor: theme.surface }]} onPress={handleMarkAllRead}>
+                <Text style={[styles.markAllText, { color: theme.tint }]}>Mark Read</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
 
         {/* Filter Pills */}
@@ -277,7 +303,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   headerTitle: { fontSize: 17, fontWeight: '700' },
   headerSub: { fontSize: 12, marginTop: 2 },
-  markAllBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  markAllBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6 },
   markAllText: { fontSize: 12, fontWeight: '600' },
   pillRow: { flexDirection: 'row', marginTop: 10 },
   pill: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, marginRight: 6 },

@@ -13,13 +13,13 @@ import { getStorage } from "firebase/storage";
 
 // --- keep your same config here ---
 const firebaseConfig = {
-  apiKey: "AIzaSyAm30Bqf2FzDuXT-hWmmSRqqBmNqRIjw84",
-  authDomain: "MyApp.firebaseapp.com",
-  projectId: "MyApp",
-  storageBucket: "MyApp.firebasestorage.app",
-  messagingSenderId: "955713384188",
-  appId: "1:955713384188:web:1ed3328749c874f26ef179",
-  measurementId: "G-J8SLX65PFH",
+  apiKey: "AIzaSyA8ROVWQm-tOozj6EV-B0V0I6eidyHoRr0",
+  authDomain: "printer-app-169a3.firebaseapp.com",
+  projectId: "printer-app-169a3",
+  storageBucket: "printer-app-169a3.firebasestorage.app",
+  messagingSenderId: "44971042835",
+  appId: "1:44971042835:web:98aa76241934e1c52677e6",
+  measurementId: "G-3YG1DDHP97"
 };
 
 // Ensure a single app instance across hot reloads

@@ -1,5 +1,6 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
 import {
   generateAutomaticNotifications,
   loadCustomers,
@@ -125,6 +126,8 @@ export default function CustomersScreen() {
     });
   };
 
+  const { user } = useAuth();
+
   const handleLogVisit = async (customerId: string, shopName: string) => {
     Alert.alert(
       'Log Visit',
@@ -134,7 +137,8 @@ export default function CustomersScreen() {
         {
           text: 'Mark Done',
           onPress: async () => {
-            const result = await recordCustomerVisit(customerId);
+            const token = (user as any)?.stsTokenManager?.accessToken;
+            const result = await recordCustomerVisit(customerId, user?.uid, token);
             setCustomers(result.customers);
           },
         },

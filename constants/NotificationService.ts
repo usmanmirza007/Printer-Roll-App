@@ -1,5 +1,6 @@
 import notifee, { AndroidBadgeIconType, AndroidImportance } from '@notifee/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+// @ts-ignore
 import messaging from '@react-native-firebase/messaging';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
@@ -121,8 +122,44 @@ export async function sendPushNotification(accesssToken: string, title: string, 
     const result = await response.json();
     console.log('Register Result:', result);
 
-  } catch (err) {
+} catch (err) {
     console.error(':x: Register Error:', err);
+  }
+}
+
+/**
+ * Trigger local notification and FCM push call when customer visit time ends or is completed
+ */
+export async function triggerVisitEndPushNotification(
+  shopName: string,
+  nextVisitDate: string,
+  uid?: string,
+  accessToken?: string
+) {
+  const title = `Visit Logged: ${shopName}`;
+  const body = `Next visit scheduled for ${nextVisitDate}. Thermal roll order status updated.`;
+
+  try {
+    // 1. Display local notification via Notifee
+    await notifee.displayNotification({
+      title,
+      body,
+      android: {
+        channelId: 'default',
+        importance: AndroidImportance.HIGH,
+        pressAction: { id: 'default' },
+      },
+      ios: {
+        foregroundPresentationOptions: { alert: true, badge: true, sound: true },
+      },
+    });
+
+    // 2. If user UID and access token are available, call backend push API
+    if (uid && accessToken) {
+      await sendPushNotification(accessToken, title, body, uid);
+    }
+  } catch (err) {
+    console.error('Error triggering visit end push notification:', err);
   }
 }
 

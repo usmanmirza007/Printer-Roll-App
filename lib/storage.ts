@@ -1,10 +1,20 @@
+import { triggerVisitEndPushNotification } from '@/constants/NotificationService';
+import {
+  deleteCustomerFromFirestore,
+  deleteRollFromFirestore,
+  getCustomersFromFirestore,
+  getNotificationsFromFirestore,
+  getRollsFromFirestore,
+  saveCustomerToFirestore,
+  saveNotificationToFirestore,
+  saveRollToFirestore,
+} from '@/lib/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppNotification, Customer, SalesOrder, ThermalRoll } from './types';
 
 const CUSTOMERS_KEY = '@thermal_roll_customers_v1';
 const ROLLS_KEY = '@thermal_roll_rolls_v1';
 const NOTIFICATIONS_KEY = '@thermal_roll_notifications_v1';
-const ORDERS_KEY = '@thermal_roll_orders_v1';
 
 // Helper to get formatted date string (YYYY-MM-DD)
 export const getTodayDateString = (offsetDays: number = 0): string => {
@@ -20,9 +30,9 @@ export const DEFAULT_ROLLS: ThermalRoll[] = [
     title: '40 Meter Thermal Roll',
     meterLength: 40,
     paperWidth: '80mm Standard POS',
-    purchaseRate: 120,   // 40 meter purches rate 120
-    wholesaleRate: 140,  // wholesale rate is 140
-    stockCount: 50,      // stuck is 50 item available
+    purchaseRate: 120,
+    wholesaleRate: 140,
+    stockCount: 50,
     minStockAlert: 15,
     description: 'High sensitivity thermal paper roll for POS receipt printers.',
   },
@@ -94,7 +104,7 @@ export const DEFAULT_CUSTOMERS: Customer[] = [
     status: 'Delivered',
     createdDate: getTodayDateString(-10),
     revisitDays: 3,
-    nextVisitDate: getTodayDateString(0), // Due today!
+    nextVisitDate: getTodayDateString(0),
     lastVisitDate: getTodayDateString(-3),
     notes: 'Busy restaurant terminal. Pays cash on delivery.',
     totalRollsOrdered: 120,
@@ -130,7 +140,7 @@ export const DEFAULT_CUSTOMERS: Customer[] = [
     status: 'Follow-up Required',
     createdDate: getTodayDateString(-1),
     revisitDays: 7,
-    nextVisitDate: getTodayDateString(0), // Due today!
+    nextVisitDate: getTodayDateString(0),
     lastVisitDate: getTodayDateString(-7),
     notes: 'Requested sample roll testing on counter printer.',
     totalRollsOrdered: 30,
@@ -171,122 +181,101 @@ export const DEFAULT_NOTIFICATIONS: AppNotification[] = [
   },
 ];
 
-// Load customers
+// Load customers from Firestore with AsyncStorage cache fallback
 export const loadCustomers = async (): Promise<Customer[]> => {
   try {
-    const data = await AsyncStorage.getItem(CUSTOMERS_KEY);
-    if (!data) {
-      await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(DEFAULT_CUSTOMERS));
-      return DEFAULT_CUSTOMERS;
-    }
-    return JSON.parse(data);
+    const firestoreData = await getCustomersFromFirestore();
+    await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(firestoreData));
+    return firestoreData;
   } catch (error) {
     console.error('Error loading customers:', error);
-    return DEFAULT_CUSTOMERS;
+    const cached = await AsyncStorage.getItem(CUSTOMERS_KEY);
+    return cached ? JSON.parse(cached) : DEFAULT_CUSTOMERS;
   }
 };
 
-// Save customer (add or edit)
+// Save customer (add or edit) in Firestore
 export const saveCustomer = async (customer: Customer): Promise<Customer[]> => {
   try {
-    const customers = await loadCustomers();
-    const index = customers.findIndex((c) => c.id === customer.id);
-    let updated: Customer[];
-    if (index >= 0) {
-      updated = [...customers];
-      updated[index] = customer;
-    } else {
-      updated = [customer, ...customers];
-    }
+    const updated = await saveCustomerToFirestore(customer);
     await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updated));
     await generateAutomaticNotifications(updated, await loadRolls());
     return updated;
   } catch (error) {
     console.error('Error saving customer:', error);
-    return [];
+    return await loadCustomers();
   }
 };
 
-// Delete customer
+// Delete customer in Firestore
 export const deleteCustomer = async (id: string): Promise<Customer[]> => {
   try {
-    const customers = await loadCustomers();
-    const updated = customers.filter((c) => c.id !== id);
+    const updated = await deleteCustomerFromFirestore(id);
     await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Error deleting customer:', error);
-    return [];
+    return await loadCustomers();
   }
 };
 
-// Load Thermal Rolls
+// Load Thermal Rolls from Firestore
 export const loadRolls = async (): Promise<ThermalRoll[]> => {
   try {
-    const data = await AsyncStorage.getItem(ROLLS_KEY);
-    if (!data) {
-      await AsyncStorage.setItem(ROLLS_KEY, JSON.stringify(DEFAULT_ROLLS));
-      return DEFAULT_ROLLS;
-    }
-    return JSON.parse(data);
+    const firestoreData = await getRollsFromFirestore();
+    await AsyncStorage.setItem(ROLLS_KEY, JSON.stringify(firestoreData));
+    return firestoreData;
   } catch (error) {
     console.error('Error loading rolls:', error);
-    return DEFAULT_ROLLS;
+    const cached = await AsyncStorage.getItem(ROLLS_KEY);
+    return cached ? JSON.parse(cached) : DEFAULT_ROLLS;
   }
 };
 
-// Save Thermal Roll (add or edit)
+// Save Thermal Roll in Firestore
 export const saveRoll = async (roll: ThermalRoll): Promise<ThermalRoll[]> => {
   try {
-    const rolls = await loadRolls();
-    const index = rolls.findIndex((r) => r.id === roll.id);
-    let updated: ThermalRoll[];
-    if (index >= 0) {
-      updated = [...rolls];
-      updated[index] = roll;
-    } else {
-      updated = [roll, ...rolls];
-    }
+    const updated = await saveRollToFirestore(roll);
     await AsyncStorage.setItem(ROLLS_KEY, JSON.stringify(updated));
     await generateAutomaticNotifications(await loadCustomers(), updated);
     return updated;
   } catch (error) {
     console.error('Error saving roll:', error);
-    return [];
+    return await loadRolls();
   }
 };
 
-// Delete roll
+// Delete roll in Firestore
 export const deleteRoll = async (id: string): Promise<ThermalRoll[]> => {
   try {
-    const rolls = await loadRolls();
-    const updated = rolls.filter((r) => r.id !== id);
+    const updated = await deleteRollFromFirestore(id);
     await AsyncStorage.setItem(ROLLS_KEY, JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Error deleting roll:', error);
-    return [];
+    return await loadRolls();
   }
 };
 
-// Load Notifications
+// Load Notifications from Firestore
 export const loadNotifications = async (): Promise<AppNotification[]> => {
   try {
-    const data = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-    if (!data) {
-      await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(DEFAULT_NOTIFICATIONS));
-      return DEFAULT_NOTIFICATIONS;
-    }
-    return JSON.parse(data);
+    const firestoreData = await getNotificationsFromFirestore();
+    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(firestoreData));
+    return firestoreData;
   } catch (error) {
     console.error('Error loading notifications:', error);
-    return DEFAULT_NOTIFICATIONS;
+    const cached = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
+    return cached ? JSON.parse(cached) : DEFAULT_NOTIFICATIONS;
   }
 };
 
 // Save Notifications list
 export const saveNotifications = async (notifications: AppNotification[]): Promise<void> => {
   try {
+    for (const notif of notifications) {
+      await saveNotificationToFirestore(notif);
+    }
     await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
   } catch (error) {
     console.error('Error saving notifications:', error);
@@ -309,8 +298,12 @@ export const markAllNotificationsRead = async (): Promise<AppNotification[]> => 
   return updated;
 };
 
-// Record visit completed for a customer -> automatically updates nextVisitDate
-export const recordCustomerVisit = async (customerId: string): Promise<{ customers: Customer[]; notifications: AppNotification[] }> => {
+// Record visit completed for a customer -> updates nextVisitDate & triggers Push Notification!
+export const recordCustomerVisit = async (
+  customerId: string,
+  userUid?: string,
+  accessToken?: string
+): Promise<{ customers: Customer[]; notifications: AppNotification[] }> => {
   const customers = await loadCustomers();
   const custIndex = customers.findIndex((c) => c.id === customerId);
   if (custIndex === -1) return { customers, notifications: await loadNotifications() };
@@ -325,9 +318,7 @@ export const recordCustomerVisit = async (customerId: string): Promise<{ custome
     nextVisitDate: nextVisitStr,
   };
 
-  const newCustomers = [...customers];
-  newCustomers[custIndex] = updatedCust;
-  await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(newCustomers));
+  const newCustomers = await saveCustomerToFirestore(updatedCust);
 
   // Add confirmation notification
   const notifs = await loadNotifications();
@@ -342,8 +333,11 @@ export const recordCustomerVisit = async (customerId: string): Promise<{ custome
     priority: 'low',
   };
 
+  await saveNotificationToFirestore(visitNotif);
   const updatedNotifs = [visitNotif, ...notifs];
-  await saveNotifications(updatedNotifs);
+
+  // Trigger Push Notification for visit time end / completion
+  await triggerVisitEndPushNotification(cust.shopName, nextVisitStr, userUid, accessToken);
 
   return { customers: newCustomers, notifications: updatedNotifs };
 };
@@ -358,7 +352,7 @@ export const generateAutomaticNotifications = async (
   let changed = false;
 
   // 1. Check Customer Revisit Dates
-  customers.forEach((cust) => {
+  for (const cust of customers) {
     if (cust.nextVisitDate && cust.nextVisitDate <= todayStr) {
       const existing = notifs.find(
         (n) => n.customerId === cust.id && n.type === 'visit_reminder' && n.message.includes(cust.nextVisitDate)
@@ -375,14 +369,15 @@ export const generateAutomaticNotifications = async (
           isRead: false,
           priority: isOverdue ? 'high' : 'medium',
         };
+        await saveNotificationToFirestore(newNotif);
         notifs = [newNotif, ...notifs];
         changed = true;
       }
     }
-  });
+  }
 
   // 2. Check Low Stock Alerts
-  rolls.forEach((roll) => {
+  for (const roll of rolls) {
     if (roll.stockCount <= roll.minStockAlert) {
       const existing = notifs.find(
         (n) => n.rollId === roll.id && n.type === 'stock_alert' && !n.isRead
@@ -398,14 +393,11 @@ export const generateAutomaticNotifications = async (
           isRead: false,
           priority: 'high',
         };
+        await saveNotificationToFirestore(newNotif);
         notifs = [newNotif, ...notifs];
         changed = true;
       }
     }
-  });
-
-  if (changed) {
-    await saveNotifications(notifs);
   }
 
   return notifs;

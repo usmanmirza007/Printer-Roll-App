@@ -1,15 +1,11 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
+import { useAuth } from '@/context/AuthContext';
+import { seedInitialFirestoreData } from '@/lib/firestore';
 import {
-  DEFAULT_CUSTOMERS,
-  DEFAULT_NOTIFICATIONS,
-  DEFAULT_ROLLS,
   getTodayDateString,
   loadCustomers,
   loadRolls,
-  saveCustomer,
-  saveNotifications,
-  saveRoll,
 } from '@/lib/storage';
 import { Customer, ThermalRoll } from '@/lib/types';
 import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
@@ -30,8 +26,10 @@ export default function DashboardScreen() {
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
 
+  const { user, logout } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
+  const [reseeding, setReseeding] = useState(false);
 
   const fetchData = async () => {
     const custs = await loadCustomers();
@@ -74,29 +72,38 @@ export default function DashboardScreen() {
     Alert.alert('Copied!', 'Customer list copied to clipboard.');
   };
 
-  const handleResetData = () => {
+  const handleResetFirestoreData = () => {
     Alert.alert(
-      'Reset Demo Data',
-      'This will reset customers and thermal rolls back to initial default state. Proceed?',
+      'Reset Firestore Data',
+      'This will re-seed default customers and thermal rolls into Firebase Firestore. Proceed?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Reset Data',
+          text: 'Reset Firestore',
           style: 'destructive',
           onPress: async () => {
-            await saveNotifications(DEFAULT_NOTIFICATIONS);
-            for (const c of DEFAULT_CUSTOMERS) {
-              await saveCustomer(c);
-            }
-            for (const r of DEFAULT_ROLLS) {
-              await saveRoll(r);
-            }
+            setReseeding(true);
+            await seedInitialFirestoreData();
             await fetchData();
-            Alert.alert('Reset Complete', 'Default data restored!');
+            setReseeding(false);
+            Alert.alert('Reset Complete', 'Firestore default collections restored!');
           },
         },
       ]
     );
+  };
+
+  const handleLogout = () => {
+    Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign Out',
+        style: 'destructive',
+        onPress: async () => {
+          await logout();
+        },
+      },
+    ]);
   };
 
   return (
@@ -104,16 +111,25 @@ export default function DashboardScreen() {
       style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.scrollContent}
     >
-      {/* Sales App Card Banner */}
+      {/* User Account Card */}
       <View style={[styles.profileCard, { backgroundColor: theme.tint }]}>
         <View style={styles.avatarCircle}>
-          <MaterialCommunityIcons name="printer-pos" size={26} color={theme.tint} />
+          <MaterialCommunityIcons name="account" size={28} color={theme.tint} />
         </View>
 
         <View style={{ marginLeft: 12, flex: 1 }}>
-          <Text style={styles.profileName}>Thermal Roll Direct Sales</Text>
-          <Text style={styles.profileSub}>Shop Visit & Supply Management</Text>
+          <Text style={styles.profileName}>
+            {user?.displayName || user?.email?.split('@')[0] || 'Sales Executive'}
+          </Text>
+          <Text style={styles.profileSub}>{user?.email || 'Firebase Authenticated'}</Text>
+          <Text style={[styles.profileSub, { fontSize: 10, opacity: 0.8 }]}>
+            UID: {user?.uid ? user.uid.substring(0, 12) + '...' : 'Guest'}
+          </Text>
         </View>
+
+        <TouchableOpacity style={styles.logoutBadge} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={18} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
 
       {/* Metric Cards Grid */}
@@ -162,7 +178,7 @@ export default function DashboardScreen() {
 
       {/* Quick Tools */}
       <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-        <Text style={[styles.cardTitle, { color: theme.tint }]}>Quick Tools</Text>
+        <Text style={[styles.cardTitle, { color: theme.tint }]}>Quick Tools & Firebase Controls</Text>
 
         <TouchableOpacity style={[styles.toolBtn, { borderBottomColor: theme.border }]} onPress={handleCopyCustomerList}>
           <Feather name="copy" size={16} color={theme.text} />
@@ -171,10 +187,17 @@ export default function DashboardScreen() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.toolBtn, { borderBottomColor: 'transparent' }]} onPress={handleResetData}>
-          <Feather name="refresh-cw" size={16} color={Palette.danger} />
+        <TouchableOpacity style={[styles.toolBtn, { borderBottomColor: theme.border }]} onPress={handleResetFirestoreData} disabled={reseeding}>
+          <Feather name="refresh-cw" size={16} color={Palette.warning} />
+          <Text style={[styles.toolBtnText, { color: Palette.warning }]}>
+            {reseeding ? 'Re-seeding Firestore...' : 'Reset & Seed Firestore Data'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.toolBtn, { borderBottomColor: 'transparent' }]} onPress={handleLogout}>
+          <Feather name="log-out" size={16} color={Palette.danger} />
           <Text style={[styles.toolBtnText, { color: Palette.danger }]}>
-            Reset Demo Data
+            Sign Out Account
           </Text>
         </TouchableOpacity>
       </View>
@@ -193,15 +216,20 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileName: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
   profileSub: { fontSize: 12, color: '#E0E7FF', marginTop: 1 },
+  logoutBadge: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 14 },
   kpiCard: {
     width: '48%',
