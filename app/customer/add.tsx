@@ -1,7 +1,8 @@
 import { useColorScheme } from '@/components/useColorScheme';
+import Colors, { Palette } from '@/constants/Colors';
 import { getTodayDateString, loadCustomers, saveCustomer } from '@/lib/storage';
 import { Customer, CustomerStatus, MarketCategory } from '@/lib/types';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -49,6 +50,8 @@ const REVISIT_OPTIONS = [
 export default function AddOrEditCustomerScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = Colors[isDark ? 'dark' : 'light'];
+
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
 
@@ -153,62 +156,62 @@ export default function AddOrEditCustomerScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F3F4F6' }]}
+        style={[styles.container, { backgroundColor: theme.background }]}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Screen Header */}
+        {/* Header */}
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={isDark ? '#F9FAFB' : '#111827'} />
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: isDark ? '#F9FAFB' : '#111827' }]}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>
             {isEditMode ? 'Edit Customer Record' : 'Add New Customer'}
           </Text>
         </View>
 
         {/* Section 1: Shop & Contact Info */}
-        <View style={[styles.card, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <Text style={styles.sectionHeader}>🏬 Shop & Contact Details</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.sectionHeader, { color: theme.tint }]}>Shop & Contact Details</Text>
 
-          <Text style={styles.inputLabel}>Shop / Business Name *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Shop / Business Name *</Text>
           <TextInput
-            style={[styles.input, { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' }]}
-            placeholder="e.g. Al-Shafi Pharmacy / Savour Foods"
-            placeholderTextColor="#9CA3AF"
+            style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+            placeholder="e.g. Al-Shafi Pharmacy"
+            placeholderTextColor={theme.textSecondary}
             value={shopName}
             onChangeText={setShopName}
           />
 
-          <Text style={styles.inputLabel}>Customer / Contact Person Name *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Customer / Contact Person *</Text>
           <TextInput
-            style={[styles.input, { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' }]}
+            style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
             placeholder="e.g. Dr. Tariq Mahmood"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.textSecondary}
             value={name}
             onChangeText={setName}
           />
 
-          <Text style={styles.inputLabel}>Phone / WhatsApp Number *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Phone / WhatsApp Number *</Text>
           <TextInput
-            style={[styles.input, { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' }]}
+            style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
             placeholder="e.g. +92 300 1234567"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.textSecondary}
             keyboardType="phone-pad"
             value={phone}
             onChangeText={setPhone}
           />
 
-          <Text style={styles.inputLabel}>Shop Location / Address *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Shop Location / Address *</Text>
           <TextInput
-            style={[styles.input, { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' }]}
-            placeholder="e.g. Main Commercial Market, G-9 Markaz"
-            placeholderTextColor="#9CA3AF"
+            style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+            placeholder="e.g. Main Commercial Market, Sector G-9"
+            placeholderTextColor={theme.textSecondary}
             value={location}
             onChangeText={setLocation}
           />
 
           {/* Market Category Selector */}
-          <Text style={styles.inputLabel}>Market Category *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Market Category *</Text>
           <View style={styles.pillsWrap}>
             {CATEGORIES.map((cat) => {
               const active = category === cat;
@@ -218,15 +221,15 @@ export default function AddOrEditCustomerScreen() {
                   style={[
                     styles.pill,
                     active
-                      ? { backgroundColor: '#4F46E5' }
-                      : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                      ? { backgroundColor: theme.tint }
+                      : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
                   ]}
                   onPress={() => setCategory(cat)}
                 >
                   <Text
                     style={[
                       styles.pillText,
-                      { color: active ? '#FFF' : isDark ? '#D1D5DB' : '#374151' },
+                      { color: active ? '#FFFFFF' : theme.textSecondary },
                     ]}
                   >
                     {cat}
@@ -238,10 +241,10 @@ export default function AddOrEditCustomerScreen() {
         </View>
 
         {/* Section 2: Thermal Roll & Rate Pricing */}
-        <View style={[styles.card, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <Text style={styles.sectionHeader}>📜 Thermal Roll Requirement & Pricing</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.sectionHeader, { color: theme.tint }]}>Thermal Roll Requirement & Rates</Text>
 
-          <Text style={styles.inputLabel}>Required Roll Type *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Required Roll Type *</Text>
           <View style={styles.pillsWrap}>
             {ROLL_TYPES.map((rt) => {
               const active = rollType === rt;
@@ -251,15 +254,15 @@ export default function AddOrEditCustomerScreen() {
                   style={[
                     styles.pill,
                     active
-                      ? { backgroundColor: '#0284C7' }
-                      : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                      ? { backgroundColor: theme.tint }
+                      : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
                   ]}
                   onPress={() => setRollType(rt)}
                 >
                   <Text
                     style={[
                       styles.pillText,
-                      { color: active ? '#FFF' : isDark ? '#D1D5DB' : '#374151' },
+                      { color: active ? '#FFFFFF' : theme.textSecondary },
                     ]}
                   >
                     {rt}
@@ -270,30 +273,24 @@ export default function AddOrEditCustomerScreen() {
           </View>
 
           <View style={styles.rateRow}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel}>My Purchase Rate (Cost) *</Text>
+            <View style={{ flex: 1, marginRight: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Purchase Rate (Cost) *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 120"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="120"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
                 value={purchaseRate}
                 onChangeText={setPurchaseRate}
               />
             </View>
 
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel}>Customer Sale Rate *</Text>
+            <View style={{ flex: 1, marginLeft: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Customer Sale Rate *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 135"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="135"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
                 value={saleRate}
                 onChangeText={setSaleRate}
@@ -302,24 +299,19 @@ export default function AddOrEditCustomerScreen() {
           </View>
 
           {/* Profit Preview Banner */}
-          <View style={[styles.profitBanner, { backgroundColor: margin >= 0 ? '#10B98115' : '#EF444415' }]}>
-            <MaterialIcons
-              name={margin >= 0 ? 'trending-up' : 'trending-down'}
-              size={20}
-              color={margin >= 0 ? '#10B981' : '#EF4444'}
-            />
-            <Text style={[styles.profitText, { color: margin >= 0 ? '#047857' : '#B91C1C' }]}>
-              Profit Margin: <Text style={{ fontWeight: '800' }}>₨{margin}</Text> per roll
-              {pRate > 0 && ` (${((margin / pRate) * 100).toFixed(1)}% profit rate)`}
+          <View style={[styles.profitBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.profitText, { color: margin >= 0 ? Palette.success : Palette.danger }]}>
+              Profit Margin: <Text style={{ fontWeight: '700' }}>₨{margin}</Text> per roll
+              {pRate > 0 && ` (${((margin / pRate) * 100).toFixed(1)}%)`}
             </Text>
           </View>
         </View>
 
-        {/* Section 3: Status & Re-visit Feedback Reminder */}
-        <View style={[styles.card, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <Text style={styles.sectionHeader}>⏰ Order Status & Re-visit Feedback</Text>
+        {/* Section 3: Status & Re-visit Feedback */}
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.sectionHeader, { color: theme.tint }]}>Order Status & Visit Schedule</Text>
 
-          <Text style={styles.inputLabel}>Current Status *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Current Status *</Text>
           <View style={styles.pillsWrap}>
             {STATUSES.map((st) => {
               const active = status === st;
@@ -329,15 +321,15 @@ export default function AddOrEditCustomerScreen() {
                   style={[
                     styles.pill,
                     active
-                      ? { backgroundColor: '#D97706' }
-                      : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                      ? { backgroundColor: theme.tint }
+                      : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
                   ]}
                   onPress={() => setStatus(st)}
                 >
                   <Text
                     style={[
                       styles.pillText,
-                      { color: active ? '#FFF' : isDark ? '#D1D5DB' : '#374151' },
+                      { color: active ? '#FFFFFF' : theme.textSecondary },
                     ]}
                   >
                     {st}
@@ -347,11 +339,7 @@ export default function AddOrEditCustomerScreen() {
             })}
           </View>
 
-          <Text style={styles.inputLabel}>Visit Feedback (Re-visit Reminder Cycle)</Text>
-          <Text style={styles.helperText}>
-            Some customers say "come after 7 days" or "come after 3 days". The app will automatically send you a visit reminder notification.
-          </Text>
-
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Visit Feedback (Cycle)</Text>
           <View style={styles.pillsWrap}>
             {REVISIT_OPTIONS.map((opt) => {
               const active = revisitDays === opt.days;
@@ -361,8 +349,8 @@ export default function AddOrEditCustomerScreen() {
                   style={[
                     styles.pill,
                     active
-                      ? { backgroundColor: '#10B981' }
-                      : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                      ? { backgroundColor: theme.tint }
+                      : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
                   ]}
                   onPress={() => {
                     setRevisitDays(opt.days);
@@ -372,7 +360,7 @@ export default function AddOrEditCustomerScreen() {
                   <Text
                     style={[
                       styles.pillText,
-                      { color: active ? '#FFF' : isDark ? '#D1D5DB' : '#374151' },
+                      { color: active ? '#FFFFFF' : theme.textSecondary },
                     ]}
                   >
                     {opt.label}
@@ -382,26 +370,23 @@ export default function AddOrEditCustomerScreen() {
             })}
           </View>
 
-          {/* Next Visit Date Scheduled Notice */}
-          <View style={styles.noticeBox}>
-            <Ionicons name="calendar-outline" size={18} color="#4F46E5" />
-            <Text style={styles.noticeText}>
-              Next scheduled visit reminder date:{' '}
-              <Text style={{ fontWeight: '800', color: '#4F46E5' }}>
-                {targetNextVisitDate}
-              </Text>
+          {/* Next Visit Date Notice */}
+          <View style={[styles.noticeBox, { backgroundColor: theme.surface }]}>
+            <Ionicons name="calendar-outline" size={16} color={theme.tint} />
+            <Text style={[styles.noticeText, { color: theme.text }]}>
+              Next Visit Scheduled: <Text style={{ fontWeight: '700', color: theme.tint }}>{targetNextVisitDate}</Text>
             </Text>
           </View>
 
-          <Text style={styles.inputLabel}>Customer Feedback & Notes</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Customer Feedback & Notes</Text>
           <TextInput
             style={[
               styles.input,
               styles.textArea,
-              { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
+              { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
             ]}
-            placeholder="e.g. Owner visits shop after 4pm. Wants cash receipts."
-            placeholderTextColor="#9CA3AF"
+            placeholder="Notes or owner preferences..."
+            placeholderTextColor={theme.textSecondary}
             multiline
             numberOfLines={3}
             value={notes}
@@ -411,13 +396,12 @@ export default function AddOrEditCustomerScreen() {
 
         {/* Save Button */}
         <TouchableOpacity
-          style={[styles.saveBtn, loading && { opacity: 0.7 }]}
+          style={[styles.saveBtn, { backgroundColor: theme.tint }, loading && { opacity: 0.7 }]}
           disabled={loading}
           onPress={handleSave}
         >
-          <Ionicons name="checkmark-circle" size={22} color="#FFFFFF" />
           <Text style={styles.saveBtnText}>
-            {loading ? 'Saving...' : isEditMode ? 'Update Customer Record' : 'Save Customer Record'}
+            {loading ? 'Saving...' : isEditMode ? 'Update Customer' : 'Save Customer Record'}
           </Text>
         </TouchableOpacity>
       </ScrollView>
@@ -426,131 +410,47 @@ export default function AddOrEditCustomerScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 16,
-    paddingBottom: 40,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-    marginTop: 8,
-  },
-  backBtn: {
-    padding: 6,
-    marginRight: 10,
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-  },
+  container: { flex: 1 },
+  scrollContent: { padding: 16, paddingBottom: 40 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, marginTop: 4 },
+  backBtn: { padding: 4, marginRight: 8 },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
   card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  sectionHeader: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#4F46E5',
+    borderRadius: 10,
+    padding: 14,
     marginBottom: 14,
-  },
-  inputLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#6B7280',
-    marginTop: 10,
-    marginBottom: 4,
-  },
-  input: {
-    height: 46,
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 15,
   },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-    paddingTop: 10,
-  },
-  pillsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 4,
-  },
+  sectionHeader: { fontSize: 15, fontWeight: '700', marginBottom: 12 },
+  inputLabel: { fontSize: 12, fontWeight: '600', marginTop: 10, marginBottom: 4 },
+  input: { height: 44, borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, fontSize: 14 },
+  textArea: { height: 70, textAlignVertical: 'top', paddingTop: 10 },
+  pillsWrap: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 2 },
   pill: {
     paddingHorizontal: 12,
-    paddingVertical: 7,
+    paddingVertical: 6,
     borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: 6,
+    marginBottom: 6,
   },
-  pillText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  rateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  profitBanner: {
+  pillText: { fontSize: 12, fontWeight: '600' },
+  rateRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  profitBanner: { padding: 10, borderRadius: 8, marginTop: 10, borderWidth: 1 },
+  profitText: { fontSize: 13 },
+  noticeBox: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 10,
     borderRadius: 8,
-    marginTop: 12,
-  },
-  profitText: {
-    fontSize: 13,
-    marginLeft: 8,
-  },
-  helperText: {
-    fontSize: 12,
-    color: '#9CA3AF',
-    marginBottom: 8,
-  },
-  noticeBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#4F46E510',
-    padding: 12,
-    borderRadius: 8,
     marginTop: 10,
-    marginBottom: 4,
   },
-  noticeText: {
-    fontSize: 13,
-    color: '#374151',
-    marginLeft: 8,
-    flex: 1,
-  },
+  noticeText: { fontSize: 13, marginLeft: 6 },
   saveBtn: {
-    backgroundColor: '#4F46E5',
-    flexDirection: 'row',
+    height: 48,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 52,
-    borderRadius: 12,
-    marginTop: 8,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 6,
   },
-  saveBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-    marginLeft: 8,
-  },
+  saveBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });

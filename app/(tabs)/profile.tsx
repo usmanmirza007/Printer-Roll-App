@@ -1,4 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
+import Colors, { Palette } from '@/constants/Colors';
 import {
   DEFAULT_CUSTOMERS,
   DEFAULT_NOTIFICATIONS,
@@ -27,6 +28,7 @@ import {
 export default function DashboardScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = Colors[isDark ? 'dark' : 'light'];
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
@@ -44,9 +46,7 @@ export default function DashboardScreen() {
     }, [])
   );
 
-  // Profit & Metrics Calculations
   const todayStr = getTodayDateString(0);
-
   const totalCustomers = customers.length;
   const visitDueToday = customers.filter(
     (c) => c.nextVisitDate && c.nextVisitDate <= todayStr
@@ -54,34 +54,30 @@ export default function DashboardScreen() {
 
   const totalStockItems = rolls.reduce((sum, r) => sum + r.stockCount, 0);
 
-  // Total Estimated Revenue & Profit Margin across active customer base
   let totalEstProfitPerCycle = 0;
   customers.forEach((c) => {
     const margin = c.saleRate - c.purchaseRate;
-    totalEstProfitPerCycle += margin * 20; // Avg 20 rolls per order cycle
+    totalEstProfitPerCycle += margin * 20;
   });
 
-  // Market Category Counts
   const categoryCounts: Record<string, number> = {};
   customers.forEach((c) => {
     categoryCounts[c.category] = (categoryCounts[c.category] || 0) + 1;
   });
 
-  // Copy Formatted Customer List to Clipboard
   const handleCopyCustomerList = () => {
     let text = `📦 THERMAL ROLL CUSTOMER LIST\n-------------------------------\n`;
     customers.forEach((c, idx) => {
       text += `${idx + 1}. ${c.shopName} (${c.category})\n   Contact: ${c.name} (${c.phone})\n   Req: ${c.rollType} | Rate: ₨${c.saleRate} | Status: ${c.status}\n   Next Visit: ${c.nextVisitDate}\n\n`;
     });
     Clipboard.setString(text);
-    Alert.alert('Copied!', 'Customer list formatted and copied to clipboard.');
+    Alert.alert('Copied!', 'Customer list copied to clipboard.');
   };
 
-  // Reset to Default Preset Data
   const handleResetData = () => {
     Alert.alert(
       'Reset Demo Data',
-      'This will reset all customers and roll categories back to default state (40m roll @ 120/140 rate, sample pharmacy, restaurant, cloth brand customers). Proceed?',
+      'This will reset customers and thermal rolls back to initial default state. Proceed?',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -96,7 +92,7 @@ export default function DashboardScreen() {
               await saveRoll(r);
             }
             await fetchData();
-            Alert.alert('Reset Complete', 'Default data restored successfully!');
+            Alert.alert('Reset Complete', 'Default data restored!');
           },
         },
       ]
@@ -105,86 +101,80 @@ export default function DashboardScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F3F4F6' }]}
+      style={[styles.container, { backgroundColor: theme.background }]}
       contentContainerStyle={styles.scrollContent}
     >
-      {/* Sales Business Profile Banner */}
-      <View style={[styles.profileCard, { backgroundColor: '#4F46E5' }]}>
+      {/* Sales App Card Banner */}
+      <View style={[styles.profileCard, { backgroundColor: theme.tint }]}>
         <View style={styles.avatarCircle}>
-          <MaterialCommunityIcons name="printer-pos" size={32} color="#4F46E5" />
+          <MaterialCommunityIcons name="printer-pos" size={26} color={theme.tint} />
         </View>
 
-        <View style={{ marginLeft: 14, flex: 1 }}>
-          <Text style={styles.profileName}>Thermal Roll Sales CRM</Text>
-          <Text style={styles.profileSub}>
-            Shop-by-Shop Direct Distribution System
-          </Text>
+        <View style={{ marginLeft: 12, flex: 1 }}>
+          <Text style={styles.profileName}>Thermal Roll Direct Sales</Text>
+          <Text style={styles.profileSub}>Shop Visit & Supply Management</Text>
         </View>
       </View>
 
-      {/* Main KPI Summary Metrics Grid */}
+      {/* Metric Cards Grid */}
       <View style={styles.kpiGrid}>
-        <View style={[styles.kpiCard, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <MaterialIcons name="people" size={24} color="#4F46E5" />
-          <Text style={[styles.kpiNumber, { color: isDark ? '#FFF' : '#111827' }]}>
-            {totalCustomers}
-          </Text>
-          <Text style={styles.kpiLabel}>Registered Shops</Text>
+        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <MaterialIcons name="storefront" size={22} color={theme.tint} />
+          <Text style={[styles.kpiNumber, { color: theme.text }]}>{totalCustomers}</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Registered Shops</Text>
         </View>
 
-        <View style={[styles.kpiCard, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <Ionicons name="time" size={24} color="#D97706" />
-          <Text style={[styles.kpiNumber, { color: '#D97706' }]}>{visitDueToday}</Text>
-          <Text style={styles.kpiLabel}>Visits Due Today</Text>
+        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Ionicons name="time-outline" size={22} color={Palette.warning} />
+          <Text style={[styles.kpiNumber, { color: Palette.warning }]}>{visitDueToday}</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Visits Due Today</Text>
         </View>
 
-        <View style={[styles.kpiCard, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <MaterialCommunityIcons name="receipt" size={24} color="#10B981" />
-          <Text style={[styles.kpiNumber, { color: '#10B981' }]}>{totalStockItems}</Text>
-          <Text style={styles.kpiLabel}>In-Stock Rolls</Text>
+        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <MaterialCommunityIcons name="receipt" size={22} color={Palette.success} />
+          <Text style={[styles.kpiNumber, { color: Palette.success }]}>{totalStockItems}</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total In-Stock</Text>
         </View>
 
-        <View style={[styles.kpiCard, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <MaterialCommunityIcons name="currency-usd" size={24} color="#2563EB" />
-          <Text style={[styles.kpiNumber, { color: '#2563EB' }]}>
-            ₨{totalEstProfitPerCycle}
-          </Text>
-          <Text style={styles.kpiLabel}>Est. Cycle Profit</Text>
+        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <MaterialCommunityIcons name="currency-usd" size={22} color={theme.tint} />
+          <Text style={[styles.kpiNumber, { color: theme.text }]}>₨{totalEstProfitPerCycle}</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Est. Cycle Profit</Text>
         </View>
       </View>
 
-      {/* Market Category Breakdown */}
-      <View style={[styles.card, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-        <Text style={styles.cardTitle}>📊 Customer Market Breakdown</Text>
+      {/* Market Distribution */}
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Text style={[styles.cardTitle, { color: theme.tint }]}>Customer Market Distribution</Text>
 
         <View style={styles.catGrid}>
           {Object.entries(categoryCounts).map(([cat, count]) => (
-            <View key={cat} style={styles.catChip}>
-              <Text style={styles.catChipName}>{cat}:</Text>
-              <Text style={styles.catChipCount}>{count} shops</Text>
+            <View key={cat} style={[styles.catChip, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.catChipName, { color: theme.text }]}>{cat}:</Text>
+              <Text style={[styles.catChipCount, { color: theme.textSecondary }]}>{count} shops</Text>
             </View>
           ))}
           {Object.keys(categoryCounts).length === 0 && (
-            <Text style={{ color: '#9CA3AF', fontSize: 13 }}>No customers registered yet.</Text>
+            <Text style={{ color: theme.textSecondary, fontSize: 13 }}>No customers registered yet.</Text>
           )}
         </View>
       </View>
 
       {/* Quick Tools */}
-      <View style={[styles.card, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-        <Text style={styles.cardTitle}>⚡ Quick Business Actions</Text>
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Text style={[styles.cardTitle, { color: theme.tint }]}>Quick Tools</Text>
 
-        <TouchableOpacity style={styles.toolBtn} onPress={handleCopyCustomerList}>
-          <Feather name="copy" size={18} color="#4F46E5" />
-          <Text style={[styles.toolBtnText, { color: isDark ? '#FFF' : '#111827' }]}>
-            Export Customer List (Copy to Clipboard)
+        <TouchableOpacity style={[styles.toolBtn, { borderBottomColor: theme.border }]} onPress={handleCopyCustomerList}>
+          <Feather name="copy" size={16} color={theme.text} />
+          <Text style={[styles.toolBtnText, { color: theme.text }]}>
+            Export Customer Directory (Clipboard)
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.toolBtn} onPress={handleResetData}>
-          <Feather name="refresh-cw" size={18} color="#EF4444" />
-          <Text style={[styles.toolBtnText, { color: '#EF4444' }]}>
-            Reset Demo Data to Initial State
+        <TouchableOpacity style={[styles.toolBtn, { borderBottomColor: 'transparent' }]} onPress={handleResetData}>
+          <Feather name="refresh-cw" size={16} color={Palette.danger} />
+          <Text style={[styles.toolBtnText, { color: Palette.danger }]}>
+            Reset Demo Data
           </Text>
         </TouchableOpacity>
       </View>
@@ -198,69 +188,54 @@ const styles = StyleSheet.create({
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    padding: 14,
+    borderRadius: 12,
+    marginBottom: 14,
   },
   avatarCircle: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  profileName: { fontSize: 18, fontWeight: '800', color: '#FFFFFF' },
-  profileSub: { fontSize: 12, color: '#E0E7FF', marginTop: 2 },
-  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 16 },
+  profileName: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  profileSub: { fontSize: 12, color: '#E0E7FF', marginTop: 1 },
+  kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 14 },
   kpiCard: {
     width: '48%',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 10,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    borderWidth: 1,
   },
-  kpiNumber: { fontSize: 20, fontWeight: '800', marginTop: 6 },
-  kpiLabel: { fontSize: 12, color: '#6B7280', marginTop: 2, textAlign: 'center' },
+  kpiNumber: { fontSize: 18, fontWeight: '700', marginTop: 4 },
+  kpiLabel: { fontSize: 11, marginTop: 1, textAlign: 'center' },
   card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
   },
-  cardTitle: { fontSize: 15, fontWeight: '700', color: '#4F46E5', marginBottom: 12 },
+  cardTitle: { fontSize: 14, fontWeight: '700', marginBottom: 10 },
   catGrid: { flexDirection: 'row', flexWrap: 'wrap' },
   catChip: {
     flexDirection: 'row',
-    backgroundColor: '#4F46E510',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-    marginRight: 8,
-    marginBottom: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 6,
+    marginBottom: 6,
   },
-  catChipName: { fontSize: 12, fontWeight: '700', color: '#4338CA' },
-  catChipCount: { fontSize: 12, color: '#6366F1', marginLeft: 4 },
+  catChipName: { fontSize: 12, fontWeight: '600' },
+  catChipCount: { fontSize: 12, marginLeft: 4 },
   toolBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB20',
   },
-  toolBtnText: { fontSize: 14, fontWeight: '600', marginLeft: 10 },
+  toolBtnText: { fontSize: 13, fontWeight: '600', marginLeft: 8 },
 });

@@ -1,4 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
+import Colors, { Palette } from '@/constants/Colors';
 import { loadRolls, saveRoll } from '@/lib/storage';
 import { ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,6 +20,8 @@ import {
 export default function AddOrEditRollScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = Colors[isDark ? 'dark' : 'light'];
+
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
 
@@ -92,93 +95,78 @@ export default function AddOrEditRollScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F3F4F6' }]}
+        style={[styles.container, { backgroundColor: theme.background }]}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Header Navigation */}
+        {/* Header */}
         <View style={styles.headerRow}>
           <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={isDark ? '#F9FAFB' : '#111827'} />
+            <Ionicons name="arrow-back" size={24} color={theme.text} />
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: isDark ? '#F9FAFB' : '#111827' }]}>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>
             {isEditMode ? 'Edit Thermal Roll' : 'Add Roll Category'}
           </Text>
         </View>
 
         {/* Card Form */}
-        <View style={[styles.card, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-          <Text style={styles.sectionHeader}>📜 Roll Specification</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.sectionHeader, { color: theme.tint }]}>Roll Specification</Text>
 
-          <Text style={styles.inputLabel}>Roll Title *</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Roll Title *</Text>
           <TextInput
-            style={[
-              styles.input,
-              { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-            ]}
+            style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
             placeholder="e.g. 40 Meter Thermal Roll"
-            placeholderTextColor="#9CA3AF"
+            placeholderTextColor={theme.textSecondary}
             value={title}
             onChangeText={setTitle}
           />
 
           <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel}>Meter Length *</Text>
+            <View style={{ flex: 1, marginRight: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Meter Length *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 40"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="40"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
                 value={meterLength}
                 onChangeText={setMeterLength}
               />
             </View>
 
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel}>Paper Width *</Text>
+            <View style={{ flex: 1, marginLeft: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Paper Width *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 80mm Standard POS"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="80mm Standard POS"
+                placeholderTextColor={theme.textSecondary}
                 value={paperWidth}
                 onChangeText={setPaperWidth}
               />
             </View>
           </View>
 
-          <Text style={[styles.sectionHeader, { marginTop: 18 }]}>💰 Rates & Stock Availability</Text>
+          <Text style={[styles.sectionHeader, { color: theme.tint, marginTop: 16 }]}>Rates & Inventory Stock</Text>
 
           <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel}>Purchase Rate (Cost) *</Text>
+            <View style={{ flex: 1, marginRight: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Purchase Rate (Cost) *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 120"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="120"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
                 value={purchaseRate}
                 onChangeText={setPurchaseRate}
               />
             </View>
 
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel}>Wholesale Rate *</Text>
+            <View style={{ flex: 1, marginLeft: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Wholesale Rate *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 140"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="140"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
                 value={wholesaleRate}
                 onChangeText={setWholesaleRate}
@@ -187,37 +175,31 @@ export default function AddOrEditRollScreen() {
           </View>
 
           {/* Wholesale Profit Preview */}
-          <View style={[styles.profitBanner, { backgroundColor: margin >= 0 ? '#10B98115' : '#EF444415' }]}>
-            <Text style={[styles.profitText, { color: margin >= 0 ? '#047857' : '#B91C1C' }]}>
-              Standard Wholesale Profit: <Text style={{ fontWeight: '800' }}>₨{margin}</Text> per roll
+          <View style={[styles.profitBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <Text style={[styles.profitText, { color: margin >= 0 ? Palette.success : Palette.danger }]}>
+              Standard Wholesale Profit: <Text style={{ fontWeight: '700' }}>₨{margin}</Text> per roll
             </Text>
           </View>
 
-          <View style={[styles.row, { marginTop: 10 }]}>
-            <View style={{ flex: 1, marginRight: 8 }}>
-              <Text style={styles.inputLabel}>Available Stock Count *</Text>
+          <View style={[styles.row, { marginTop: 8 }]}>
+            <View style={{ flex: 1, marginRight: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Available Stock Count *</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 50"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="50"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
                 value={stockCount}
                 onChangeText={setStockCount}
               />
             </View>
 
-            <View style={{ flex: 1, marginLeft: 8 }}>
-              <Text style={styles.inputLabel}>Low Stock Alert Threshold</Text>
+            <View style={{ flex: 1, marginLeft: 6 }}>
+              <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Low Stock Alert Threshold</Text>
               <TextInput
-                style={[
-                  styles.input,
-                  { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
-                ]}
-                placeholder="e.g. 10"
-                placeholderTextColor="#9CA3AF"
+                style={[styles.input, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                placeholder="10"
+                placeholderTextColor={theme.textSecondary}
                 keyboardType="numeric"
                 value={minStockAlert}
                 onChangeText={setMinStockAlert}
@@ -225,15 +207,15 @@ export default function AddOrEditRollScreen() {
             </View>
           </View>
 
-          <Text style={styles.inputLabel}>Roll Description / Specs</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Description / Specifications</Text>
           <TextInput
             style={[
               styles.input,
               styles.textArea,
-              { color: isDark ? '#FFF' : '#000', borderColor: isDark ? '#374151' : '#D1D5DB' },
+              { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
             ]}
-            placeholder="e.g. High quality 55gsm thermal paper, dark print density."
-            placeholderTextColor="#9CA3AF"
+            placeholder="Paper weight, print quality notes..."
+            placeholderTextColor={theme.textSecondary}
             multiline
             numberOfLines={3}
             value={description}
@@ -243,11 +225,10 @@ export default function AddOrEditRollScreen() {
 
         {/* Save Button */}
         <TouchableOpacity
-          style={[styles.saveBtn, loading && { opacity: 0.7 }]}
+          style={[styles.saveBtn, { backgroundColor: theme.tint }, loading && { opacity: 0.7 }]}
           disabled={loading}
           onPress={handleSave}
         >
-          <Ionicons name="checkmark-circle" size={22} color="#FFFFFF" />
           <Text style={styles.saveBtnText}>
             {loading ? 'Saving...' : isEditMode ? 'Update Thermal Roll' : 'Save Roll Category'}
           </Text>
@@ -260,39 +241,28 @@ export default function AddOrEditRollScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, marginTop: 8 },
-  backBtn: { padding: 6, marginRight: 10 },
-  headerTitle: { fontSize: 20, fontWeight: '700' },
+  headerRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, marginTop: 4 },
+  backBtn: { padding: 4, marginRight: 8 },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
   card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 2,
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
   },
-  sectionHeader: { fontSize: 16, fontWeight: '700', color: '#4F46E5', marginBottom: 12 },
-  inputLabel: { fontSize: 13, fontWeight: '600', color: '#6B7280', marginTop: 10, marginBottom: 4 },
-  input: { height: 46, borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, fontSize: 15 },
-  textArea: { height: 74, textAlignVertical: 'top', paddingTop: 10 },
+  sectionHeader: { fontSize: 15, fontWeight: '700', marginBottom: 10 },
+  inputLabel: { fontSize: 12, fontWeight: '600', marginTop: 10, marginBottom: 4 },
+  input: { height: 44, borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, fontSize: 14 },
+  textArea: { height: 70, textAlignVertical: 'top', paddingTop: 10 },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
-  profitBanner: { padding: 10, borderRadius: 8, marginTop: 10 },
+  profitBanner: { padding: 10, borderRadius: 8, marginTop: 10, borderWidth: 1 },
   profitText: { fontSize: 13 },
   saveBtn: {
-    backgroundColor: '#4F46E5',
-    flexDirection: 'row',
+    height: 48,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    height: 52,
-    borderRadius: 12,
-    marginTop: 8,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 6,
   },
-  saveBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700', marginLeft: 8 },
+  saveBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 });

@@ -1,5 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import Colors, { Palette } from '@/constants/Colors';
 import { loadNotifications } from '@/lib/storage';
 import { AppNotification } from '@/lib/types';
 import { Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
@@ -9,6 +9,8 @@ import { StyleSheet, Text, View } from 'react-native';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = Colors[isDark ? 'dark' : 'light'];
   const [unreadCount, setUnreadCount] = useState<number>(0);
 
   const fetchUnreadCount = async () => {
@@ -29,33 +31,33 @@ export default function TabLayout() {
     }, [])
   );
 
-  const activeColor = '#4F46E5'; // Sleek Indigo accent
-  const inactiveColor = colorScheme === 'dark' ? '#9CA3AF' : '#6B7280';
-  const bgColor = colorScheme === 'dark' ? '#1F2937' : '#FFFFFF';
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: activeColor,
-        tabBarInactiveTintColor: inactiveColor,
+        tabBarActiveTintColor: theme.tint,
+        tabBarInactiveTintColor: theme.tabIconDefault,
         headerShown: true,
         headerStyle: {
-          backgroundColor: bgColor,
-          elevation: 2,
-          shadowOpacity: 0.1,
+          backgroundColor: theme.card,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: theme.border,
         },
         headerTitleStyle: {
           fontWeight: '700',
-          fontSize: 19,
-          color: colorScheme === 'dark' ? '#F9FAFB' : '#111827',
+          fontSize: 18,
+          color: theme.text,
         },
         tabBarStyle: {
-          backgroundColor: bgColor,
-          height: 64,
+          backgroundColor: theme.card,
+          height: 60,
           paddingBottom: 8,
           paddingTop: 6,
           borderTopWidth: 1,
-          borderTopColor: colorScheme === 'dark' ? '#374151' : '#E5E7EB',
+          borderTopColor: theme.border,
+          elevation: 0,
+          shadowOpacity: 0,
         },
       }}
     >
@@ -64,11 +66,11 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Customers',
-          headerTitle: 'Customer Records',
+          headerTitle: 'Customer Directory',
           tabBarIcon: ({ color, focused }) => (
             <MaterialIcons
               name={focused ? 'people' : 'people-outline'}
-              size={26}
+              size={25}
               color={color}
             />
           ),
@@ -79,29 +81,29 @@ export default function TabLayout() {
       <Tabs.Screen
         name="rolls"
         options={{
-          title: 'Roll Inventory',
-          headerTitle: 'Thermal Roll Catalog',
+          title: 'Stock Rolls',
+          headerTitle: 'Roll Stock Catalog',
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons
               name={focused ? 'receipt' : 'receipt-outline'}
-              size={26}
+              size={25}
               color={color}
             />
           ),
         }}
       />
 
-      {/* 3. Notifications & Reminders Tab */}
+      {/* 3. Notifications Tab */}
       <Tabs.Screen
         name="notification"
         options={{
-          title: 'Notifications',
+          title: 'Reminders',
           headerTitle: 'Reminders & Alerts',
           tabBarIcon: ({ color, focused }) => (
             <View style={styles.iconContainer}>
               <Ionicons
                 name={focused ? 'notifications' : 'notifications-outline'}
-                size={25}
+                size={24}
                 color={color}
               />
               {unreadCount > 0 && (
@@ -116,16 +118,16 @@ export default function TabLayout() {
         }}
       />
 
-      {/* 4. Dashboard / Profile Tab */}
+      {/* 4. Dashboard Tab */}
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Dashboard',
-          headerTitle: 'Business Overview',
+          headerTitle: 'Sales Overview',
           tabBarIcon: ({ color, focused }) => (
             <MaterialIcons
-              name={focused ? 'insights' : 'bar-chart'}
-              size={26}
+              name={focused ? 'bar-chart' : 'bar-chart'}
+              size={25}
               color={color}
             />
           ),
@@ -146,7 +148,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: -8,
     top: -4,
-    backgroundColor: '#EF4444',
+    backgroundColor: Palette.danger,
     borderRadius: 10,
     minWidth: 18,
     height: 18,

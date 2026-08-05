@@ -1,19 +1,67 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+const tintColorLight = '#2563EB'; // Professional Slate Blue
+const tintColorDark = '#38BDF8';  // Bright Sky Blue for Dark mode
+
+export const Palette = {
+  primary: '#2563EB',
+  primaryLight: '#EFF6FF',
+  primaryDark: '#1E40AF',
+
+  backgroundLight: '#F8FAFC',
+  backgroundDark: '#0F172A',
+
+  cardLight: '#FFFFFF',
+  cardDark: '#1E293B',
+
+  textPrimaryLight: '#0F172A',
+  textPrimaryDark: '#F8FAFC',
+
+  textSecondaryLight: '#64748B',
+  textSecondaryDark: '#94A3B8',
+
+  borderLight: '#E2E8F0',
+  borderDark: '#334155',
+
+  surfaceLight: '#F1F5F9',
+  surfaceDark: '#1E293B',
+
+  // Strict Semantic Colors (Used strictly for status logic only)
+  success: '#10B981',
+  successLight: '#ECFDF5',
+  successDark: '#064E3B',
+
+  warning: '#F59E0B',
+  warningLight: '#FFFBEB',
+  warningDark: '#78350F',
+
+  danger: '#EF4444',
+  dangerLight: '#FEF2F2',
+  dangerDark: '#7F1D1D',
+
+  grayBadge: '#E2E8F0',
+  grayBadgeText: '#475569',
+};
 
 export default {
   light: {
-    text: '#000',
-    background: '#fff',
+    text: Palette.textPrimaryLight,
+    textSecondary: Palette.textSecondaryLight,
+    background: Palette.backgroundLight,
+    card: Palette.cardLight,
+    border: Palette.borderLight,
     tint: tintColorLight,
-    tabIconDefault: '#ccc',
+    tabIconDefault: '#94A3B8',
     tabIconSelected: tintColorLight,
+    surface: Palette.surfaceLight,
   },
   dark: {
-    text: '#fff',
-    background: '#000',
+    text: Palette.textPrimaryDark,
+    textSecondary: Palette.textSecondaryDark,
+    background: Palette.backgroundDark,
+    card: Palette.cardDark,
+    border: Palette.borderDark,
     tint: tintColorDark,
-    tabIconDefault: '#ccc',
+    tabIconDefault: '#64748B',
     tabIconSelected: tintColorDark,
+    surface: Palette.surfaceDark,
   },
 };

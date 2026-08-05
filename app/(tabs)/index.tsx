@@ -1,4 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
+import Colors, { Palette } from '@/constants/Colors';
 import {
   generateAutomaticNotifications,
   loadCustomers,
@@ -6,7 +7,7 @@ import {
   recordCustomerVisit,
 } from '@/lib/storage';
 import { Customer, CustomerStatus, MarketCategory } from '@/lib/types';
-import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
@@ -47,6 +48,7 @@ const STATUS_FILTERS: (CustomerStatus | 'All')[] = [
 export default function CustomersScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = Colors[isDark ? 'dark' : 'light'];
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -77,7 +79,6 @@ export default function CustomersScreen() {
     setRefreshing(false);
   };
 
-  // Live Filter base on Search Query (Shop Name or Customer Name or Location), Category, and Status
   const filteredCustomers = useMemo(() => {
     return customers.filter((cust) => {
       const query = searchQuery.trim().toLowerCase();
@@ -98,7 +99,6 @@ export default function CustomersScreen() {
     });
   }, [customers, searchQuery, selectedCategory, selectedStatus]);
 
-  // Summary Metrics
   const totalCount = customers.length;
   const todayStr = new Date().toISOString().split('T')[0];
   const visitDueTodayCount = customers.filter(
@@ -106,18 +106,16 @@ export default function CustomersScreen() {
   ).length;
   const inProgressCount = customers.filter((c) => c.status === 'In Progress').length;
 
-  // Direct Call Helper
   const handleCall = (phone: string, name: string) => {
     Linking.openURL(`tel:${phone}`).catch(() => {
-      Alert.alert('Error', `Cannot initiate phone call to ${name}`);
+      Alert.alert('Error', `Cannot call ${name}`);
     });
   };
 
-  // Direct WhatsApp Helper
   const handleWhatsApp = (phone: string, shopName: string) => {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
     const msg = encodeURIComponent(
-      `Hello! Reaching out regarding your Thermal Printer Roll order for ${shopName}.`
+      `Hello! Contacting regarding Thermal Roll supply for ${shopName}.`
     );
     const url = `whatsapp://send?phone=${cleanPhone}&text=${msg}`;
     Linking.openURL(url).catch(() => {
@@ -127,11 +125,10 @@ export default function CustomersScreen() {
     });
   };
 
-  // Quick Visit Logger
   const handleLogVisit = async (customerId: string, shopName: string) => {
     Alert.alert(
-      'Confirm Visit',
-      `Mark shop visit completed today for "${shopName}"? Next visit will be scheduled automatically based on feedback cycle.`,
+      'Log Visit',
+      `Mark shop visit complete for "${shopName}" today?`,
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -139,197 +136,140 @@ export default function CustomersScreen() {
           onPress: async () => {
             const result = await recordCustomerVisit(customerId);
             setCustomers(result.customers);
-            Alert.alert('Success', `Visit logged for ${shopName}!`);
           },
         },
       ]
     );
   };
 
-  // Category Icon & Color mapping
-  const getCategoryBadge = (cat: MarketCategory) => {
-    let color = '#4F46E5';
-    let icon = 'storefront';
-    switch (cat) {
-      case 'Pharmacy':
-        color = '#059669';
-        icon = 'local-pharmacy';
-        break;
-      case 'Restaurant':
-        color = '#D97706';
-        icon = 'restaurant';
-        break;
-      case 'Fast Food':
-        color = '#DC2626';
-        icon = 'fastfood';
-        break;
-      case 'Cloth Brand':
-        color = '#9333EA';
-        icon = 'checkroom';
-        break;
-      case 'Supermarket':
-        color = '#2563EB';
-        icon = 'shopping-cart';
-        break;
-      case 'General Store':
-        color = '#0891B2';
-        icon = 'store';
-        break;
-      default:
-        color = '#4F46E5';
-        icon = 'business';
-    }
-    return { color, icon };
-  };
-
-  // Status Badge formatting
-  const getStatusBadgeStyle = (status: CustomerStatus) => {
-    switch (status) {
+  const getStatusStyle = (st: CustomerStatus) => {
+    switch (st) {
       case 'Delivered':
-        return { bg: isDark ? '#064E3B' : '#D1FAE5', text: '#065F46' };
+        return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857' };
       case 'In Progress':
-        return { bg: isDark ? '#1E3A8A' : '#DBEAFE', text: '#1E40AF' };
+        return { bg: isDark ? '#1E3A8A' : '#EFF6FF', text: isDark ? '#BFDBFE' : '#1D4ED8' };
       case 'Pending':
-        return { bg: isDark ? '#78350F' : '#FEF3C7', text: '#92400E' };
-      case 'Out for Delivery':
-        return { bg: isDark ? '#581C87' : '#F3E8FF', text: '#6B21A8' };
+        return { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#B45309' };
       case 'Follow-up Required':
-        return { bg: isDark ? '#831843' : '#FCE7F3', text: '#9D174D' };
-      case 'Cancelled':
-        return { bg: isDark ? '#7F1D1D' : '#FEE2E2', text: '#991B1B' };
+        return { bg: isDark ? '#7F1D1D' : '#FEF2F2', text: isDark ? '#FECACA' : '#B91C1C' };
       default:
-        return { bg: '#F3F4F6', text: '#374151' };
+        return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#CBD5E1' : '#475569' };
     }
   };
 
-  const renderCustomerItem = ({ item }: { item: Customer }) => {
+  const renderCustomerCard = ({ item }: { item: Customer }) => {
     const margin = item.saleRate - item.purchaseRate;
-    const catBadge = getCategoryBadge(item.category);
-    const statusStyle = getStatusBadgeStyle(item.status);
+    const statusStyle = getStatusStyle(item.status);
     const isDue = item.nextVisitDate && item.nextVisitDate <= todayStr;
 
     return (
       <TouchableOpacity
-        activeOpacity={0.85}
+        activeOpacity={0.8}
         style={[
           styles.card,
           {
-            backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
-            borderColor: isDue ? '#F59E0B' : isDark ? '#374151' : '#E5E7EB',
-            borderWidth: isDue ? 1.5 : 1,
+            backgroundColor: theme.card,
+            borderColor: isDue ? Palette.warning : theme.border,
           },
         ]}
         onPress={() => router.push(`/customer/${item.id}`)}
       >
-        {/* Top Header: Shop Name & Category */}
-        <View style={styles.cardHeader}>
+        {/* Top Header */}
+        <View style={styles.cardTop}>
           <View style={{ flex: 1 }}>
-            <View style={styles.titleRow}>
-              <Text
-                style={[
-                  styles.shopTitle,
-                  { color: isDark ? '#F9FAFB' : '#111827' },
-                ]}
-                numberOfLines={1}
-              >
+            <View style={styles.nameRow}>
+              <Text style={[styles.shopName, { color: theme.text }]} numberOfLines={1}>
                 {item.shopName}
               </Text>
             </View>
-            <Text style={styles.customerName}>
-              👤 {item.name} • {item.location}
+            <Text style={[styles.subText, { color: theme.textSecondary }]}>
+              {item.name} • {item.location}
             </Text>
           </View>
 
-          <View style={[styles.categoryBadge, { backgroundColor: catBadge.color + '18' }]}>
-            <MaterialIcons name={catBadge.icon as any} size={14} color={catBadge.color} />
-            <Text style={[styles.categoryBadgeText, { color: catBadge.color }]}>
+          {/* Unified Gray Category Tag */}
+          <View style={[styles.categoryTag, { backgroundColor: isDark ? '#334155' : '#F1F5F9' }]}>
+            <Text style={[styles.categoryTagText, { color: theme.textSecondary }]}>
               {item.category}
             </Text>
           </View>
         </View>
 
-        {/* Details Row: Roll Type & Profit Margin */}
-        <View
-          style={[
-            styles.detailsContainer,
-            { backgroundColor: isDark ? '#111827' : '#F9FAFB' },
-          ]}
-        >
-          <View style={styles.detailCol}>
-            <Text style={styles.detailLabel}>Roll Requirement</Text>
-            <Text style={[styles.detailValue, { color: isDark ? '#E5E7EB' : '#1F2937' }]}>
-              📜 {item.rollType}
-            </Text>
+        {/* Pricing Summary Box */}
+        <View style={[styles.priceBox, { backgroundColor: isDark ? '#0F172A' : '#F8FAFC', borderColor: theme.border }]}>
+          <View style={styles.priceCol}>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Roll Type</Text>
+            <Text style={[styles.priceVal, { color: theme.text }]}>{item.rollType}</Text>
           </View>
 
-          <View style={styles.detailCol}>
-            <Text style={styles.detailLabel}>Rates (Cost ➔ Sale)</Text>
-            <Text style={[styles.detailValue, { color: isDark ? '#E5E7EB' : '#1F2937' }]}>
+          <View style={styles.priceCol}>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Rate (Cost ➔ Sale)</Text>
+            <Text style={[styles.priceVal, { color: theme.text }]}>
               ₨{item.purchaseRate} ➔ <Text style={{ fontWeight: '700' }}>₨{item.saleRate}</Text>
             </Text>
           </View>
 
-          <View style={styles.detailCol}>
-            <Text style={styles.detailLabel}>Profit Margin</Text>
-            <Text style={[styles.marginValue, { color: margin >= 0 ? '#10B981' : '#EF4444' }]}>
-              +₨{margin}/roll
+          <View style={styles.priceCol}>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Margin</Text>
+            <Text style={[styles.marginVal, { color: Palette.success }]}>
+              +₨{margin}
             </Text>
           </View>
         </View>
 
-        {/* Status & Re-visit Schedule Row */}
-        <View style={styles.statusRow}>
+        {/* Status & Revisit Schedule Footer */}
+        <View style={styles.cardFooter}>
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
-              ● {item.status}
+              {item.status}
             </Text>
           </View>
 
-          <View style={styles.visitBadgeContainer}>
+          <View style={styles.visitNotice}>
             {isDue ? (
-              <View style={styles.dueBadge}>
-                <Ionicons name="time" size={13} color="#D97706" />
-                <Text style={styles.dueBadgeText}>Visit Due Today</Text>
+              <View style={[styles.dueBadge, { backgroundColor: isDark ? '#78350F' : '#FFFBEB' }]}>
+                <Ionicons name="time-outline" size={13} color="#B45309" />
+                <Text style={styles.dueText}>Visit Due Today</Text>
               </View>
             ) : (
-              <Text style={styles.nextVisitText}>
-                🗓️ Re-visit: {item.nextVisitDate || `In ${item.revisitDays} days`}
+              <Text style={[styles.revisitText, { color: theme.textSecondary }]}>
+                Next Visit: {item.nextVisitDate}
               </Text>
             )}
           </View>
         </View>
 
-        {/* Action Buttons Row */}
-        <View style={styles.actionRow}>
+        {/* Native Action Buttons Bar */}
+        <View style={[styles.actionBar, { borderTopColor: theme.border }]}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: '#10B98115' }]}
+            style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
             onPress={() => handleCall(item.phone, item.name)}
           >
-            <Ionicons name="call" size={16} color="#10B981" />
-            <Text style={[styles.actionBtnText, { color: '#059669' }]}>Call</Text>
+            <Ionicons name="call-outline" size={15} color={theme.text} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Call</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: '#25D36618' }]}
+            style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
             onPress={() => handleWhatsApp(item.phone, item.shopName)}
           >
-            <Ionicons name="logo-whatsapp" size={16} color="#25D366" />
-            <Text style={[styles.actionBtnText, { color: '#16A34A' }]}>WhatsApp</Text>
+            <Ionicons name="logo-whatsapp" size={15} color="#16A34A" />
+            <Text style={[styles.actionText, { color: theme.text }]}>WhatsApp</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: '#4F46E515' }]}
+            style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
             onPress={() => handleLogVisit(item.id, item.shopName)}
           >
-            <MaterialCommunityIcons name="calendar-check" size={16} color="#4F46E5" />
-            <Text style={[styles.actionBtnText, { color: '#4338CA' }]}>Log Visit</Text>
+            <Ionicons name="checkmark-done-outline" size={15} color={theme.tint} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Log Visit</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: isDark ? '#374151' : '#F3F4F6' }]}
+            style={[styles.actionBtn, styles.iconOnlyBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
             onPress={() => router.push(`/customer/add?id=${item.id}`)}
           >
-            <Feather name="edit-2" size={14} color={isDark ? '#9CA3AF' : '#4B5563'} />
+            <Feather name="edit-2" size={14} color={theme.textSecondary} />
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -337,43 +277,38 @@ export default function CustomersScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F3F4F6' }]}>
-      {/* Search Bar */}
-      <View style={[styles.searchSection, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-        <View
-          style={[
-            styles.searchBar,
-            { backgroundColor: isDark ? '#374151' : '#F3F4F6' },
-          ]}
-        >
-          <Ionicons name="search" size={20} color={isDark ? '#9CA3AF' : '#6B7280'} />
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Top Search & Filter Bar */}
+      <View style={[styles.headerBox, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Ionicons name="search" size={18} color={theme.textSecondary} />
           <TextInput
-            style={[styles.searchInput, { color: isDark ? '#F9FAFB' : '#111827' }]}
-            placeholder="Search by Shop, Customer or Location..."
-            placeholderTextColor={isDark ? '#9CA3AF' : '#9CA3AF'}
+            style={[styles.searchInput, { color: theme.text }]}
+            placeholder="Search by shop, customer, location..."
+            placeholderTextColor={theme.textSecondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
           {searchQuery !== '' && (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={18} color="#9CA3AF" />
-            </TouchableOpacity>
+            <Pressable onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={16} color={theme.textSecondary} />
+            </Pressable>
           )}
         </View>
 
-        {/* Quick Stats Chips */}
-        <View style={styles.statsRow}>
-          <View style={styles.statChip}>
-            <Text style={styles.statNumber}>{totalCount}</Text>
-            <Text style={styles.statLabel}>Total Customers</Text>
+        {/* Minimal KPI Metric Chips */}
+        <View style={styles.metricsRow}>
+          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.metricVal, { color: theme.text }]}>{totalCount}</Text>
+            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Total Shops</Text>
           </View>
-          <View style={[styles.statChip, { backgroundColor: '#F59E0B15' }]}>
-            <Text style={[styles.statNumber, { color: '#D97706' }]}>{visitDueTodayCount}</Text>
-            <Text style={[styles.statLabel, { color: '#B45309' }]}>Visits Due</Text>
+          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.metricVal, { color: Palette.warning }]}>{visitDueTodayCount}</Text>
+            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Visits Due</Text>
           </View>
-          <View style={[styles.statChip, { backgroundColor: '#2563EB15' }]}>
-            <Text style={[styles.statNumber, { color: '#2563EB' }]}>{inProgressCount}</Text>
-            <Text style={[styles.statLabel, { color: '#1D4ED8' }]}>In Progress</Text>
+          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.metricVal, { color: theme.tint }]}>{inProgressCount}</Text>
+            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>In Progress</Text>
           </View>
         </View>
 
@@ -383,28 +318,28 @@ export default function CustomersScreen() {
           showsHorizontalScrollIndicator={false}
           data={MARKET_CATEGORIES}
           keyExtractor={(item) => item}
-          style={styles.filterList}
+          style={styles.filterScroll}
           renderItem={({ item }) => {
             const isSelected = selectedCategory === item;
             return (
-              <Pressable
+              <TouchableOpacity
                 style={[
                   styles.filterPill,
                   isSelected
-                    ? { backgroundColor: '#4F46E5' }
-                    : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                    ? { backgroundColor: theme.tint }
+                    : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
                 ]}
                 onPress={() => setSelectedCategory(item)}
               >
                 <Text
                   style={[
                     styles.filterPillText,
-                    { color: isSelected ? '#FFFFFF' : isDark ? '#D1D5DB' : '#374151' },
+                    { color: isSelected ? '#FFFFFF' : theme.textSecondary },
                   ]}
                 >
                   {item}
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
             );
           }}
         />
@@ -415,209 +350,147 @@ export default function CustomersScreen() {
           showsHorizontalScrollIndicator={false}
           data={STATUS_FILTERS}
           keyExtractor={(item) => item}
-          style={[styles.filterList, { marginTop: 4 }]}
+          style={[styles.filterScroll, { marginTop: 6 }]}
           renderItem={({ item }) => {
             const isSelected = selectedStatus === item;
             return (
-              <Pressable
+              <TouchableOpacity
                 style={[
                   styles.statusPill,
                   isSelected
-                    ? { backgroundColor: '#0284C7' }
-                    : { backgroundColor: isDark ? '#1F2937' : '#F3F4F6' },
+                    ? { backgroundColor: isDark ? '#334155' : '#334155' }
+                    : { backgroundColor: 'transparent' },
                 ]}
                 onPress={() => setSelectedStatus(item)}
               >
                 <Text
                   style={[
                     styles.statusPillText,
-                    { color: isSelected ? '#FFFFFF' : isDark ? '#9CA3AF' : '#6B7280' },
+                    { color: isSelected ? '#FFFFFF' : theme.textSecondary },
                   ]}
                 >
                   {item}
                 </Text>
-              </Pressable>
+              </TouchableOpacity>
             );
           }}
         />
       </View>
 
-      {/* Customer Cards List */}
+      {/* Main List */}
       <FlatList
         data={filteredCustomers}
         keyExtractor={(item) => item.id}
-        renderItem={renderCustomerItem}
-        contentContainerStyle={styles.listContent}
+        renderItem={renderCustomerCard}
+        contentContainerStyle={styles.listPadding}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <MaterialIcons name="person-search" size={54} color="#9CA3AF" />
-            <Text style={[styles.emptyTitle, { color: isDark ? '#F3F4F6' : '#374151' }]}>
-              No Customers Found
-            </Text>
-            <Text style={styles.emptySubtitle}>
+          <View style={styles.emptyBox}>
+            <MaterialIcons name="storefront" size={48} color={theme.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>No Customers Found</Text>
+            <Text style={[styles.emptySub, { color: theme.textSecondary }]}>
               {searchQuery
                 ? `No shops matching "${searchQuery}"`
-                : 'Tap + Add Customer to register a new shop customer record.'}
+                : 'Tap + New Customer to register a shop record.'}
             </Text>
           </View>
         }
       />
 
-      {/* Floating Action Button (+ Add Customer) */}
+      {/* Floating Native Add Button */}
       <TouchableOpacity
-        style={styles.fab}
+        style={[styles.fab, { backgroundColor: theme.tint }]}
         activeOpacity={0.85}
         onPress={() => router.push('/customer/add')}
       >
-        <Ionicons name="add" size={28} color="#FFFFFF" />
-        <Text style={styles.fabText}>Add Customer</Text>
+        <Ionicons name="add" size={24} color="#FFFFFF" />
+        <Text style={styles.fabText}>New Customer</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  searchSection: {
-    paddingHorizontal: 14,
+  container: { flex: 1 },
+  headerBox: {
+    paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 12,
-    height: 44,
-    borderRadius: 10,
+    height: 42,
+    borderRadius: 8,
+    borderWidth: 1,
   },
   searchInput: {
     flex: 1,
     marginLeft: 8,
-    fontSize: 15,
+    fontSize: 14,
   },
-  statsRow: {
+  metricsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 10,
   },
-  statChip: {
+  metricChip: {
     flex: 1,
-    backgroundColor: '#4F46E510',
     paddingVertical: 6,
     paddingHorizontal: 8,
     borderRadius: 8,
     alignItems: 'center',
     marginHorizontal: 3,
   },
-  statNumber: {
-    fontSize: 16,
-    fontWeight: '800',
-    color: '#4F46E5',
-  },
-  statLabel: {
-    fontSize: 11,
-    fontWeight: '500',
-    color: '#6366F1',
-    marginTop: 1,
-  },
-  filterList: {
-    marginTop: 8,
-  },
+  metricVal: { fontSize: 15, fontWeight: '700' },
+  metricLbl: { fontSize: 11, marginTop: 1 },
+  filterScroll: { marginTop: 10 },
   filterPill: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 20,
+    borderRadius: 16,
     marginRight: 6,
   },
-  filterPillText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
+  filterPillText: { fontSize: 12, fontWeight: '600' },
   statusPill: {
     paddingHorizontal: 10,
     paddingVertical: 4,
-    borderRadius: 14,
-    marginRight: 6,
-  },
-  statusPillText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  listContent: {
-    padding: 14,
-    paddingBottom: 90,
-  },
-  card: {
     borderRadius: 12,
+    marginRight: 4,
+  },
+  statusPillText: { fontSize: 12, fontWeight: '500' },
+  listPadding: { padding: 16, paddingBottom: 90 },
+  card: {
+    borderRadius: 10,
     padding: 14,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
   },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  shopTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  customerName: {
-    fontSize: 13,
-    color: '#6B7280',
-    marginTop: 2,
-  },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  cardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
+  nameRow: { flexDirection: 'row', alignItems: 'center' },
+  shopName: { fontSize: 16, fontWeight: '700' },
+  subText: { fontSize: 13, marginTop: 2 },
+  categoryTag: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
-  categoryBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    marginLeft: 4,
-  },
-  detailsContainer: {
+  categoryTagText: { fontSize: 11, fontWeight: '600' },
+  priceBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     borderRadius: 8,
     padding: 10,
     marginTop: 10,
+    borderWidth: 1,
   },
-  detailCol: {
-    flex: 1,
-  },
-  detailLabel: {
-    fontSize: 10,
-    color: '#9CA3AF',
-    textTransform: 'uppercase',
-    fontWeight: '600',
-  },
-  detailValue: {
-    fontSize: 13,
-    marginTop: 2,
-  },
-  marginValue: {
-    fontSize: 13,
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  statusRow: {
+  priceCol: { flex: 1 },
+  priceLabel: { fontSize: 10, textTransform: 'uppercase', fontWeight: '600' },
+  priceVal: { fontSize: 13, marginTop: 2 },
+  marginVal: { fontSize: 13, fontWeight: '700', marginTop: 2 },
+  cardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -626,92 +499,53 @@ const styles = StyleSheet.create({
   statusBadge: {
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 6,
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  visitBadgeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+  statusText: { fontSize: 11, fontWeight: '700' },
+  visitNotice: { flexDirection: 'row', alignItems: 'center' },
   dueBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEF3C7',
     paddingHorizontal: 8,
     paddingVertical: 3,
-    borderRadius: 10,
+    borderRadius: 6,
   },
-  dueBadgeText: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#B45309',
-    marginLeft: 4,
-  },
-  nextVisitText: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  actionRow: {
+  dueText: { fontSize: 11, fontWeight: '700', color: '#B45309', marginLeft: 4 },
+  revisitText: { fontSize: 12 },
+  actionBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB20',
   },
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 8,
+    borderRadius: 6,
+    marginRight: 8,
   },
-  actionBtnText: {
-    fontSize: 12,
-    fontWeight: '600',
-    marginLeft: 4,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    marginTop: 12,
-  },
-  emptySubtitle: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginTop: 6,
-    paddingHorizontal: 30,
-  },
+  iconOnlyBtn: { paddingHorizontal: 8 },
+  actionText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
+  emptyBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', marginTop: 10 },
+  emptySub: { fontSize: 13, textAlign: 'center', marginTop: 4, paddingHorizontal: 30 },
   fab: {
     position: 'absolute',
     bottom: 20,
     right: 20,
-    backgroundColor: '#4F46E5',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 30,
-    shadowColor: '#4F46E5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 8,
-    elevation: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderRadius: 24,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
   },
-  fabText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '700',
-    marginLeft: 6,
-  },
+  fabText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', marginLeft: 4 },
 });

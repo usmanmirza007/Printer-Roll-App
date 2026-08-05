@@ -1,4 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
+import Colors, { Palette } from '@/constants/Colors';
 import {
   generateAutomaticNotifications,
   loadCustomers,
@@ -16,7 +17,6 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
-  Linking,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -28,6 +28,7 @@ import {
 export default function NotificationsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  const theme = Colors[isDark ? 'dark' : 'light'];
 
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [activeFilter, setActiveFilter] = useState<'All' | 'visit_reminder' | 'stock_alert'>('All');
@@ -83,124 +84,98 @@ export default function NotificationsScreen() {
     if (!customerId) return;
     const result = await recordCustomerVisit(customerId);
     setNotifications(result.notifications);
-    Alert.alert('Visit Logged!', 'Shop visit marked complete and next reminder auto-scheduled.');
+    Alert.alert('Visit Logged!', 'Shop visit marked complete and next reminder scheduled.');
   };
 
-  const renderNotificationItem = ({ item }: { item: AppNotification }) => {
+  const renderNotifCard = ({ item }: { item: AppNotification }) => {
     const isVisit = item.type === 'visit_reminder';
-    const isStock = item.type === 'stock_alert';
 
     return (
       <View
         style={[
           styles.card,
           {
-            backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
-            borderColor: !item.isRead
-              ? '#4F46E5'
-              : isDark
-              ? '#374151'
-              : '#E5E7EB',
-            borderLeftWidth: !item.isRead ? 4 : 1,
-            borderLeftColor: !item.isRead
-              ? item.priority === 'high'
-                ? '#EF4444'
-                : '#4F46E5'
-              : isDark
-              ? '#374151'
-              : '#E5E7EB',
+            backgroundColor: theme.card,
+            borderColor: !item.isRead ? theme.tint : theme.border,
           },
         ]}
       >
-        <View style={styles.cardHeader}>
-          <View
-            style={[
-              styles.iconBox,
-              {
-                backgroundColor: isVisit
-                  ? '#FEF3C7'
-                  : isStock
-                  ? '#FEE2E2'
-                  : '#DBEAFE',
-              },
-            ]}
-          >
+        <View style={styles.cardTop}>
+          <View style={[styles.iconBox, { backgroundColor: theme.surface }]}>
             {isVisit ? (
-              <Ionicons name="calendar-outline" size={22} color="#D97706" />
-            ) : isStock ? (
-              <Ionicons name="alert-circle-outline" size={22} color="#DC2626" />
+              <Ionicons name="calendar-outline" size={20} color={theme.tint} />
             ) : (
-              <MaterialIcons name="notifications-none" size={22} color="#2563EB" />
+              <Ionicons name="alert-circle-outline" size={20} color={Palette.danger} />
             )}
           </View>
 
-          <View style={{ flex: 1, marginLeft: 12 }}>
+          <View style={{ flex: 1, marginLeft: 10 }}>
             <View style={styles.titleRow}>
               <Text
                 style={[
                   styles.notifTitle,
-                  { color: isDark ? '#F9FAFB' : '#111827' },
-                  !item.isRead && { fontWeight: '800' },
+                  { color: theme.text },
+                  !item.isRead && { fontWeight: '700' },
                 ]}
               >
                 {item.title}
               </Text>
-              {!item.isRead && <View style={styles.unreadDot} />}
+              {!item.isRead && <View style={[styles.dot, { backgroundColor: theme.tint }]} />}
             </View>
 
-            <Text style={styles.notifMessage}>{item.message}</Text>
-            <Text style={styles.notifDate}>
-              ⏰ {new Date(item.date).toLocaleDateString()} • {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            <Text style={[styles.notifMsg, { color: theme.textSecondary }]}>{item.message}</Text>
+            <Text style={[styles.notifTime, { color: theme.textSecondary }]}>
+              {new Date(item.date).toLocaleDateString()} • {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
         </View>
 
-        {/* Action Buttons Row */}
-        <View style={styles.actionRow}>
+        {/* Actions Bar */}
+        <View style={[styles.actionsRow, { borderTopColor: theme.border }]}>
           {item.customerId && (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: '#10B98115' }]}
+              style={[styles.actionBtn, { backgroundColor: theme.surface }]}
               onPress={() => handleVisitDone(item.customerId)}
             >
-              <MaterialCommunityIcons name="calendar-check" size={16} color="#10B981" />
-              <Text style={[styles.actionBtnText, { color: '#047857' }]}>Mark Visit Done</Text>
+              <MaterialCommunityIcons name="calendar-check" size={14} color={Palette.success} />
+              <Text style={[styles.actionText, { color: theme.text }]}>Mark Done</Text>
             </TouchableOpacity>
           )}
 
           {item.customerId && (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: '#4F46E515' }]}
+              style={[styles.actionBtn, { backgroundColor: theme.surface }]}
               onPress={() => router.push(`/customer/${item.customerId}`)}
             >
-              <MaterialIcons name="storefront" size={16} color="#4F46E5" />
-              <Text style={[styles.actionBtnText, { color: '#4338CA' }]}>View Customer</Text>
+              <MaterialIcons name="storefront" size={14} color={theme.tint} />
+              <Text style={[styles.actionText, { color: theme.text }]}>View Customer</Text>
             </TouchableOpacity>
           )}
 
           {item.rollId && (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: '#0284C715' }]}
+              style={[styles.actionBtn, { backgroundColor: theme.surface }]}
               onPress={() => router.push(`/roll/${item.rollId}`)}
             >
-              <MaterialCommunityIcons name="receipt" size={16} color="#0284C7" />
-              <Text style={[styles.actionBtnText, { color: '#0369A1' }]}>View Stock Roll</Text>
+              <MaterialCommunityIcons name="receipt" size={14} color={theme.tint} />
+              <Text style={[styles.actionText, { color: theme.text }]}>View Stock</Text>
             </TouchableOpacity>
           )}
 
           {!item.isRead ? (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: isDark ? '#374151' : '#F3F4F6' }]}
+              style={[styles.actionBtn, { backgroundColor: theme.surface }]}
               onPress={() => handleToggleRead(item.id)}
             >
-              <Feather name="check-circle" size={14} color="#6B7280" />
-              <Text style={[styles.actionBtnText, { color: '#6B7280' }]}>Read</Text>
+              <Feather name="check" size={14} color={theme.textSecondary} />
+              <Text style={[styles.actionText, { color: theme.textSecondary }]}>Read</Text>
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={[styles.actionBtn, { backgroundColor: isDark ? '#374151' : '#F3F4F6' }]}
+              style={[styles.actionBtn, { backgroundColor: theme.surface }]}
               onPress={() => handleClearNotif(item.id)}
             >
-              <Feather name="trash-2" size={14} color="#EF4444" />
+              <Feather name="trash-2" size={14} color={Palette.danger} />
             </TouchableOpacity>
           )}
         </View>
@@ -209,24 +184,22 @@ export default function NotificationsScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F3F4F6' }]}>
-      {/* Top Controls Header */}
-      <View style={[styles.headerSection, { backgroundColor: isDark ? '#1F2937' : '#FFFFFF' }]}>
-        <View style={styles.headerTopRow}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
+      {/* Header Bar */}
+      <View style={[styles.headerBox, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <View style={styles.headerRow}>
           <View>
-            <Text style={[styles.headerTitleText, { color: isDark ? '#FFF' : '#111827' }]}>
-              Notifications & Reminders
+            <Text style={[styles.headerTitle, { color: theme.text }]}>
+              Reminders & Notifications
             </Text>
-            <Text style={styles.headerSub}>
-              {unreadCount > 0
-                ? `You have ${unreadCount} unread shop visit reminders.`
-                : 'All visit reminders up to date.'}
+            <Text style={[styles.headerSub, { color: theme.textSecondary }]}>
+              {unreadCount > 0 ? `${unreadCount} unread shop visit reminders` : 'All reminders updated'}
             </Text>
           </View>
 
           {unreadCount > 0 && (
-            <TouchableOpacity style={styles.markAllBtn} onPress={handleMarkAllRead}>
-              <Text style={styles.markAllText}>Mark All Read</Text>
+            <TouchableOpacity style={[styles.markAllBtn, { backgroundColor: theme.surface }]} onPress={handleMarkAllRead}>
+              <Text style={[styles.markAllText, { color: theme.tint }]}>Mark All Read</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -237,18 +210,13 @@ export default function NotificationsScreen() {
             style={[
               styles.pill,
               activeFilter === 'All'
-                ? { backgroundColor: '#4F46E5' }
-                : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                ? { backgroundColor: theme.tint }
+                : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
             ]}
             onPress={() => setActiveFilter('All')}
           >
-            <Text
-              style={[
-                styles.pillText,
-                { color: activeFilter === 'All' ? '#FFF' : isDark ? '#D1D5DB' : '#374151' },
-              ]}
-            >
-              All Notifications ({notifications.length})
+            <Text style={[styles.pillText, { color: activeFilter === 'All' ? '#FFF' : theme.textSecondary }]}>
+              All ({notifications.length})
             </Text>
           </Pressable>
 
@@ -256,21 +224,13 @@ export default function NotificationsScreen() {
             style={[
               styles.pill,
               activeFilter === 'visit_reminder'
-                ? { backgroundColor: '#D97706' }
-                : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                ? { backgroundColor: theme.tint }
+                : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
             ]}
             onPress={() => setActiveFilter('visit_reminder')}
           >
-            <Text
-              style={[
-                styles.pillText,
-                {
-                  color:
-                    activeFilter === 'visit_reminder' ? '#FFF' : isDark ? '#D1D5DB' : '#374151',
-                },
-              ]}
-            >
-              🗓️ Shop Visits
+            <Text style={[styles.pillText, { color: activeFilter === 'visit_reminder' ? '#FFF' : theme.textSecondary }]}>
+              Visits
             </Text>
           </Pressable>
 
@@ -278,41 +238,31 @@ export default function NotificationsScreen() {
             style={[
               styles.pill,
               activeFilter === 'stock_alert'
-                ? { backgroundColor: '#DC2626' }
-                : { backgroundColor: isDark ? '#374151' : '#E5E7EB' },
+                ? { backgroundColor: theme.tint }
+                : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
             ]}
             onPress={() => setActiveFilter('stock_alert')}
           >
-            <Text
-              style={[
-                styles.pillText,
-                {
-                  color:
-                    activeFilter === 'stock_alert' ? '#FFF' : isDark ? '#D1D5DB' : '#374151',
-                },
-              ]}
-            >
-              ⚠️ Stock Alerts
+            <Text style={[styles.pillText, { color: activeFilter === 'stock_alert' ? '#FFF' : theme.textSecondary }]}>
+              Stock Alerts
             </Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Notifications List */}
+      {/* Main List */}
       <FlatList
         data={filteredNotifs}
         keyExtractor={(item) => item.id}
-        renderItem={renderNotificationItem}
-        contentContainerStyle={styles.listContent}
+        renderItem={renderNotifCard}
+        contentContainerStyle={styles.listPadding}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="notifications-off-outline" size={54} color="#9CA3AF" />
-            <Text style={[styles.emptyTitle, { color: isDark ? '#F3F4F6' : '#374151' }]}>
-              No Notifications Right Now
-            </Text>
-            <Text style={styles.emptySubtitle}>
-              Reminders will automatically appear here when customer shop visits are due based on feedback frequency.
+          <View style={styles.emptyBox}>
+            <Ionicons name="notifications-off-outline" size={48} color={theme.textSecondary} />
+            <Text style={[styles.emptyTitle, { color: theme.text }]}>No Notifications</Text>
+            <Text style={[styles.emptySub, { color: theme.textSecondary }]}>
+              Visit reminders will appear here when scheduled customer shop visits are due.
             </Text>
           </View>
         }
@@ -323,70 +273,28 @@ export default function NotificationsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  headerSection: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  headerTitleText: { fontSize: 18, fontWeight: '800' },
-  headerSub: { fontSize: 12, color: '#6B7280', marginTop: 2 },
-  markAllBtn: {
-    backgroundColor: '#4F46E515',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 14,
-  },
-  markAllText: { color: '#4F46E5', fontSize: 12, fontWeight: '700' },
-  pillRow: { flexDirection: 'row', marginTop: 12 },
-  pill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, marginRight: 8 },
+  headerBox: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12, borderBottomWidth: 1 },
+  headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  headerTitle: { fontSize: 17, fontWeight: '700' },
+  headerSub: { fontSize: 12, marginTop: 2 },
+  markAllBtn: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  markAllText: { fontSize: 12, fontWeight: '600' },
+  pillRow: { flexDirection: 'row', marginTop: 10 },
+  pill: { paddingHorizontal: 12, paddingVertical: 5, borderRadius: 14, marginRight: 6 },
   pillText: { fontSize: 12, fontWeight: '600' },
-  listContent: { padding: 14, paddingBottom: 40 },
-  card: {
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-    borderWidth: 1,
-  },
-  cardHeader: { flexDirection: 'row', alignItems: 'flex-start' },
-  iconBox: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  listPadding: { padding: 16, paddingBottom: 40 },
+  card: { borderRadius: 10, padding: 14, marginBottom: 12, borderWidth: 1 },
+  cardTop: { flexDirection: 'row', alignItems: 'flex-start' },
+  iconBox: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  notifTitle: { fontSize: 15, fontWeight: '700', flex: 1 },
-  unreadDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444', marginLeft: 6 },
-  notifMessage: { fontSize: 13, color: '#4B5563', marginTop: 4, lineHeight: 18 },
-  notifDate: { fontSize: 11, color: '#9CA3AF', marginTop: 6 },
-  actionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    marginTop: 12,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB20',
-  },
-  actionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginLeft: 8,
-  },
-  actionBtnText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
-  emptyContainer: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', marginTop: 12 },
-  emptySubtitle: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    marginTop: 6,
-    paddingHorizontal: 30,
-  },
+  notifTitle: { fontSize: 14, fontWeight: '600', flex: 1 },
+  dot: { width: 7, height: 7, borderRadius: 3.5, marginLeft: 6 },
+  notifMsg: { fontSize: 13, marginTop: 3, lineHeight: 17 },
+  notifTime: { fontSize: 11, marginTop: 4 },
+  actionsRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', marginTop: 10, paddingTop: 8, borderTopWidth: 1 },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 5, borderRadius: 6, marginLeft: 6 },
+  actionText: { fontSize: 11, fontWeight: '600', marginLeft: 3 },
+  emptyBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
+  emptyTitle: { fontSize: 16, fontWeight: '700', marginTop: 10 },
+  emptySub: { fontSize: 13, textAlign: 'center', marginTop: 4, paddingHorizontal: 30 },
 });
