@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderWidth: 1,
   },
-  priceCol: { flex: 1 },
+  priceCol: {  },
   priceLabel: { fontSize: 10, textTransform: 'uppercase', fontWeight: '600' },
   priceVal: { fontSize: 13, marginTop: 2 },
   marginVal: { fontSize: 13, fontWeight: '700', marginTop: 2 },

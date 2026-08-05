@@ -41,4 +41,10 @@ export const auth = _auth;
 export const realDB = getDatabase(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
+// export const messaging = new Messaging(app);
+// messaging().useDeviceToken();
+// messaging().onMessage((payload) => {
+//   console.log("Message received. ", payload);
+//   // Handle the message as needed
+// });
 export { serverTimestamp };
