@@ -24,6 +24,7 @@ import {
   View,
 } from 'react-native';
 
+
 const MARKET_CATEGORIES: (MarketCategory | 'All')[] = [
   'All',
   'Pharmacy',
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderWidth: 1,
   },
-  priceCol: {  },
+  priceCol: {},
   priceLabel: { fontSize: 10, textTransform: 'uppercase', fontWeight: '600' },
   priceVal: { fontSize: 13, marginTop: 2 },
   marginVal: { fontSize: 13, fontWeight: '700', marginTop: 2 },

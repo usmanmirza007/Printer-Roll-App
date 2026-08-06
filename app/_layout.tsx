@@ -11,17 +11,13 @@ import notifee, { AndroidImportance } from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { router, Stack, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 export { ErrorBoundary } from 'expo-router';
-
-export const unstable_settings = {
-  initialRouteName: '(tabs)',
-};
 
 SplashScreen.preventAutoHideAsync();
 
@@ -54,6 +50,7 @@ export default function RootLayout() {
 function MainContent() {
   const { user, loading } = useAuth();
   const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
     async function initChannel() {
@@ -76,9 +73,9 @@ function MainContent() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthGroup = segments[0] === 'auth';
+    const inAuthGroup = segments[0] === '(auth)';
     if (!user && !inAuthGroup) {
-      router.replace('/auth');
+      router.replace('/(auth)');
     } else if (user && inAuthGroup) {
       router.replace('/(tabs)');
     }
@@ -95,7 +92,7 @@ function MainContent() {
         messaging().setBackgroundMessageHandler(async (remoteMessage: any) => {
           try {
             await notifee.incrementBadgeCount(1);
-          } catch (e) {}
+          } catch (e) { }
         });
 
         const unsubscribe = messaging().onMessage(async (remoteMessage: any) => {
@@ -149,9 +146,9 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="auth" options={{ headerShown: false }} />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
