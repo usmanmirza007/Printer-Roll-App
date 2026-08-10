@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const CATEGORIES: MarketCategory[] = [
   'Pharmacy',
@@ -54,6 +55,7 @@ export default function AddOrEditCustomerScreen() {
 
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
+  const { top } = useSafeAreaInsets();
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -156,7 +158,7 @@ export default function AddOrEditCustomerScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ScrollView
-        style={[styles.container, { backgroundColor: theme.background }]}
+        style={[styles.container, { marginTop: top, backgroundColor: theme.background }]}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Header */}

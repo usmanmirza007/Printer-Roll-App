@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function RollDetailScreen() {
   const colorScheme = useColorScheme();
@@ -21,7 +22,8 @@ export default function RollDetailScreen() {
   const theme = Colors[isDark ? 'dark' : 'light'];
 
   const { id } = useLocalSearchParams<{ id: string }>();
-
+    const { top } = useSafeAreaInsets();
+  
   const [roll, setRoll] = useState<ThermalRoll | null>(null);
   const [stockAddAmount, setStockAddAmount] = useState('20');
 
@@ -79,7 +81,7 @@ export default function RollDetailScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={[styles.container, {marginTop: top, backgroundColor: theme.background }]}
       contentContainerStyle={styles.scrollContent}
     >
       {/* Header */}

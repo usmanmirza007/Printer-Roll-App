@@ -9,7 +9,7 @@ import {
   saveRoll,
 } from '@/lib/storage';
 import { Customer, ThermalRoll } from '@/lib/types';
-import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -22,6 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function CustomerDetailScreen() {
   const colorScheme = useColorScheme();
@@ -29,7 +30,7 @@ export default function CustomerDetailScreen() {
   const theme = Colors[isDark ? 'dark' : 'light'];
 
   const { id } = useLocalSearchParams<{ id: string }>();
-
+  const { top } = useSafeAreaInsets();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
   const [orderQty, setOrderQty] = useState('20');
@@ -138,7 +139,7 @@ export default function CustomerDetailScreen() {
 
   return (
     <ScrollView
-      style={[styles.container, { backgroundColor: theme.background }]}
+      style={[styles.container, { marginTop: top, backgroundColor: theme.background }]}
       contentContainerStyle={styles.scrollContent}
     >
       {/* Top Header */}
