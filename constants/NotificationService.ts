@@ -1,7 +1,6 @@
-import notifee, { AndroidBadgeIconType, AndroidImportance } from '@notifee/react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+// import notifee, { AndroidBadgeIconType, AndroidImportance } from '@notifee/react-native';
 // @ts-ignore
-import messaging from '@react-native-firebase/messaging';
+// import messaging from '@react-native-firebase/messaging';
 import { Alert, PermissionsAndroid, Platform } from 'react-native';
 
 let navigationRef: any = null;
@@ -27,27 +26,27 @@ export async function requestNotificationPermission() {
     }
 
     // For iOS, request permission with badge, alert, and sound
-    const authStatus = await messaging().requestPermission({
-      alert: true,
-      badge: true,
-      sound: true,
-    });
+    // const authStatus = await messaging().requestPermission({
+    //   alert: true,
+    //   badge: true,
+    //   sound: true,
+    // });
 
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    // const enabled =
+    //   authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+    //   authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
-    // Also request badge permission via notifee for iOS
-    if (enabled) {
-      try {
-        await notifee.requestPermission({ badge: true });
-        console.log(':white_check_mark: iOS badge permission requested');
-      } catch (badgeError) {
-        console.error(':x: Error requesting iOS badge permission:', badgeError);
-      }
-    }
+    // // Also request badge permission via notifee for iOS
+    // if (enabled) {
+    //   try {
+    //     // await notifee.requestPermission({ badge: true });
+    //     console.log(':white_check_mark: iOS badge permission requested');
+    //   } catch (badgeError) {
+    //     console.error(':x: Error requesting iOS badge permission:', badgeError);
+    //   }
+    // }
 
-    return enabled;
+    // return enabled;
   } catch (err) {
     console.error(':x: Permission Error:', err);
     return false;
@@ -59,14 +58,14 @@ export async function requestNotificationPermission() {
  */
 export async function getFCMToken() {
   try {
-    await messaging().registerDeviceForRemoteMessages();
-    const token = await messaging().getToken();
+    // await messaging().registerDeviceForRemoteMessages();
+    // const token = await messaging().getToken();
 
-    if (token) {
-      console.log(':white_check_mark: FCM Token:', token, token.substring(0, 20) + '...');
-      await AsyncStorage.setItem('fcmToken', token);
-    }
-    return token;
+    // if (token) {
+    //   console.log(':white_check_mark: FCM Token:', token, token.substring(0, 20) + '...');
+    //   await AsyncStorage.setItem('fcmToken', token);
+    // }
+    // return token;
   } catch (err) {
     console.error(':x: Token Error:', err);
     return null;
@@ -141,18 +140,18 @@ export async function triggerVisitEndPushNotification(
 
   try {
     // 1. Display local notification via Notifee
-    await notifee.displayNotification({
-      title,
-      body,
-      android: {
-        channelId: 'default',
-        importance: AndroidImportance.HIGH,
-        pressAction: { id: 'default' },
-      },
-      ios: {
-        foregroundPresentationOptions: { alert: true, badge: true, sound: true },
-      },
-    });
+    // await notifee.displayNotification({
+    //   title,
+    //   body,
+    //   android: {
+    //     channelId: 'default',
+    //     importance: AndroidImportance.HIGH,
+    //     pressAction: { id: 'default' },
+    //   },
+    //   ios: {
+    //     foregroundPresentationOptions: { alert: true, badge: true, sound: true },
+    //   },
+    // });
 
     // 2. If user UID and access token are available, call backend push API
     if (uid && accessToken) {
@@ -172,28 +171,28 @@ export async function showForegroundNotification(remoteMessage: any) {
   const { notification } = remoteMessage;
   console.log('remoteMessage', remoteMessage);
 
-  await notifee.displayNotification({
-    title: notification?.title || 'New Message',
-    body: notification?.body || 'You have a new notification',
-    android: {
-      channelId: 'default',
-      importance: AndroidImportance.HIGH,
-      pressAction: { id: 'default' },
-      largeIcon: 'ic_launchers_round',
-      badgeIconType: AndroidBadgeIconType.LARGE,
-    },
-    ios: {
-      foregroundPresentationOptions: {
-        alert: true,
-        badge: true,
-        sound: true,
-      },
-    },
-    data: {
+  // await notifee.displayNotification({
+  //   title: notification?.title || 'New Message',
+  //   body: notification?.body || 'You have a new notification',
+  //   android: {
+  //     channelId: 'default',
+  //     importance: AndroidImportance.HIGH,
+  //     pressAction: { id: 'default' },
+  //     largeIcon: 'ic_launchers_round',
+  //     badgeIconType: AndroidBadgeIconType.LARGE,
+  //   },
+  //   ios: {
+  //     foregroundPresentationOptions: {
+  //       alert: true,
+  //       badge: true,
+  //       sound: true,
+  //     },
+  //   },
+  //   data: {
 
-    }
+  //   }
 
-  });
+  // });
 }
 
 /**
@@ -237,7 +236,7 @@ export async function updateBadgeCountOnServer(uid: string, badgeCount: number, 
   }
 
   try {
-    await notifee.decrementBadgeCount(1)
+    // await notifee.decrementBadgeCount(1)
 
     console.log(`:arrows_counterclockwise: Updating server badge count to ${badgeCount}`);
     const response = await fetch(`${API_URL}/decrement-badge`, {
@@ -275,7 +274,7 @@ export async function resetAppBadge(uid: string, accesssToken: string) {
       if (!response.ok) {
         console.error(':x: Server returned error for badge update:', response.status);
       } else {
-        await notifee.setBadgeCount(0)
+        // await notifee.setBadgeCount(0)
         console.log(':white_check_mark: Server badge update successful');
       }
     } catch (error) {
