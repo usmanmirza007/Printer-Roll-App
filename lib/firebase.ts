@@ -1,17 +1,13 @@
-// @ts-nocheck
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getApp, getApps, initializeApp } from "firebase/app";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
+  Auth,
   getAuth,
+  // @ts-ignore
   getReactNativePersistence,
   initializeAuth,
-  type Auth,
-} from "firebase/auth";
-import { getDatabase, serverTimestamp } from "firebase/database";
+} from 'firebase/auth';
 import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
-
-// --- keep your same config here ---
 const firebaseConfig = {
   apiKey: "AIzaSyA8ROVWQm-tOozj6EV-B0V0I6eidyHoRr0",
   authDomain: "printer-app-169a3.firebaseapp.com",
@@ -22,29 +18,17 @@ const firebaseConfig = {
   measurementId: "G-3YG1DDHP97"
 };
 
-// Ensure a single app instance across hot reloads
-export const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Ensure a single Auth instance with RN persistence
-let _auth: Auth;
+let auth: Auth
 try {
-  _auth = initializeAuth(app, {
+  auth = initializeAuth(app, {
     persistence: getReactNativePersistence(AsyncStorage),
   });
-} catch {
-  // If already initialized, just get the existing one
-  _auth = getAuth(app);
+} catch (error) {
+  // Auth already initialized (hot reload)
+  auth = getAuth(app);
 }
-export const auth = _auth;
 
-// Other services
-export const realDB = getDatabase(app);
+export { app, auth };
 export const db = getFirestore(app);
-export const storage = getStorage(app);
-// export const messaging = new Messaging(app);
-// messaging().useDeviceToken();
-// messaging().onMessage((payload) => {
-//   console.log("Message received. ", payload);
-//   // Handle the message as needed
-// });
-export { serverTimestamp };

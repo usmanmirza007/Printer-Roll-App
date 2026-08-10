@@ -31,9 +31,6 @@ export default function AuthScreen() {
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async () => {
-        console.log('fofofo');
-
-        // router.replace('/(tabs)');
 
         if (!email.trim() || !password.trim()) {
             Alert.alert('Validation Error', 'Please enter email and password.');
@@ -109,7 +106,7 @@ export default function AuthScreen() {
                         onPress={() => setIsSignUp(false)}
                     >
                         <Text style={[styles.tabText, { color: !isSignUp ? '#FFFFFF' : theme.textSecondary }]}>
-                            Sign In 3333
+                            Sign In
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity

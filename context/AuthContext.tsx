@@ -30,6 +30,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log('auth do', auth);
+
     const unsubscribe = onAuthStateChanged(auth, (usr) => {
       setUser(usr);
       setLoading(false);
