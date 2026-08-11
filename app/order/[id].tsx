@@ -19,8 +19,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const ROLL_TYPES = ['40 Meter', '50 Meter', '60 Meter', '80 Meter', 'Custom'];
-
 const STATUSES: CustomerStatus[] = [
   'In Progress',
   'Pending',

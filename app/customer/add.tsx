@@ -1,5 +1,6 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
+import { useGetRoll } from '@/hooks/useGetRoll';
 import { getTodayDateString, loadCustomers, saveCustomer } from '@/lib/storage';
 import { Customer, CustomerStatus, MarketCategory } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,8 +31,6 @@ const CATEGORIES: MarketCategory[] = [
   'Other',
 ];
 
-const ROLL_TYPES = ['40 Meter', '50 Meter', '60 Meter', '80 Meter', 'Custom'];
-
 const STATUSES: CustomerStatus[] = [
   'In Progress',
   'Pending',
@@ -56,6 +55,13 @@ export default function AddOrEditCustomerScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
   const { top } = useSafeAreaInsets();
+  
+  const {
+    rolls,
+    loading: rollLoading,
+    error,
+    refetch,
+  } = useGetRoll();
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -248,18 +254,28 @@ export default function AddOrEditCustomerScreen() {
 
           <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Required Roll Type *</Text>
           <View style={styles.pillsWrap}>
-            {ROLL_TYPES.map((rt) => {
-              const active = rollType === rt;
+            {rolls.map((rt) => {
+
+              const title = rt.title.replaceAll('Thermal Roll', '').trim();
+              const active = rollType === title;
               return (
                 <TouchableOpacity
-                  key={rt}
+                  key={rt.title}
                   style={[
                     styles.pill,
                     active
                       ? { backgroundColor: theme.tint }
-                      : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
+                      : {
+                        backgroundColor: theme.surface,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                      },
                   ]}
-                  onPress={() => setRollType(rt)}
+                  onPress={() => {
+                    setRollType(title)
+                    setPurchaseRate(rt.purchaseRate.toString())
+                    setSaleRate(rt.wholesaleRate.toString())
+                  }}
                 >
                   <Text
                     style={[
@@ -267,7 +283,7 @@ export default function AddOrEditCustomerScreen() {
                       { color: active ? '#FFFFFF' : theme.textSecondary },
                     ]}
                   >
-                    {rt}
+                    {title}
                   </Text>
                 </TouchableOpacity>
               );
