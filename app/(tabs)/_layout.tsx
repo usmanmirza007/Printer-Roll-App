@@ -78,6 +78,22 @@ export default function TabLayout() {
         }}
       />
 
+      {/* 2. Order Tab */}
+      <Tabs.Screen
+        name="orders"
+        options={{
+          title: 'Orders',
+          headerTitle: 'Order Management',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons
+              name={focused ? 'list-box' : 'list-box-outline'}
+              size={25}
+              color={color}
+            />
+          ),
+        }}
+      />
+
       {/* 2. Rolls Inventory Tab */}
       <Tabs.Screen
         name="rolls"

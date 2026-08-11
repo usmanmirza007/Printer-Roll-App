@@ -336,7 +336,7 @@ export default function CustomerDetailScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${customer.id}`)}>
+      <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${id}`)}>
         <Text style={styles.processOrderBtnText}>View Order List</Text>
       </TouchableOpacity>
     </ScrollView>

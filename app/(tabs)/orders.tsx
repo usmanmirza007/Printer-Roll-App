@@ -1,10 +1,9 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { getCustomerOrdersFromFirestore } from '@/lib/firestore';
+import { getOrdersFromFirestore } from '@/lib/firestore';
 import { CustomerOrder, CustomerStatus } from '@/lib/types';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
-import { useSearchParams } from 'expo-router/build/hooks';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
@@ -16,7 +15,6 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STATUS_FILTERS: (CustomerStatus | 'All')[] = [
   'All',
@@ -27,13 +25,12 @@ const STATUS_FILTERS: (CustomerStatus | 'All')[] = [
   'Follow-up Required',
 ];
 
-export default function OrderListScreen() {
+export default function OrdersScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
-  const searchParams = useSearchParams();
-  const customerId = searchParams.get('customerId');
-  const { top } = useSafeAreaInsets();
+  // const searchParams = useSearchParams();
+  // const customerId = searchParams.get('customerId');
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,7 +39,7 @@ export default function OrderListScreen() {
 
   const fetchOrders = async () => {
     try {
-      const data = await getCustomerOrdersFromFirestore(customerId || '');
+      const data = await getOrdersFromFirestore();
       setOrders(data);
     } catch (e) {
       console.error('Failed to load orders:', e);
@@ -216,7 +213,7 @@ export default function OrderListScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.background, marginTop: top, }]}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header */}
       <View
         style={[
@@ -325,14 +322,14 @@ export default function OrderListScreen() {
       />
 
       {/* Floating Add Button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={[styles.fab, { backgroundColor: theme.tint }]}
         activeOpacity={0.85}
         onPress={() => router.push(`/order/add?customerId=${customerId}`)}
       >
         <Ionicons name="add" size={24} color="#FFFFFF" />
         <Text style={styles.fabText}>New Order</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   );
 }

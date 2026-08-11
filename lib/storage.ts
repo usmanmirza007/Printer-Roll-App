@@ -4,8 +4,8 @@ import {
   deleteRollFromFirestore,
   getCustomerByIdFromFirestore,
   getCustomerOrderByIdFromFirestore,
+  getCustomerOrdersFromFirestore,
   getCustomersFromFirestore,
-  getCustomersOrderFromFirestore,
   getNotificationsFromFirestore,
   getRollsFromFirestore,
   saveCustomerToFirestore,
@@ -163,9 +163,9 @@ export const loadSingleCustomerOrder = async (orderId: string): Promise<Customer
 };
 
 // Load customers from Firestore with AsyncStorage cache fallback
-export const loadCustomersOrder = async (): Promise<CustomerOrder[]> => {
+export const loadCustomersOrder = async (customerId: string): Promise<CustomerOrder[]> => {
   try {
-    const firestoreData = await getCustomersOrderFromFirestore();
+    const firestoreData = await getCustomerOrdersFromFirestore(customerId);
     await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(firestoreData));
     return firestoreData;
   } catch (error) {
@@ -234,7 +234,7 @@ export const saveCustomerOrder = async (customerOrder: CustomerOrder): Promise<C
     return order;
   } catch (error) {
     console.error('Error saving roll:', error);
-    return await loadCustomersOrder();
+    return await loadCustomersOrder(customerOrder.customerId);
   }
 };
 

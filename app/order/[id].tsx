@@ -1,7 +1,7 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { loadSingleCustomer, loadSingleCustomerOrder, saveCustomerOrder } from '@/lib/storage';
-import { Customer, CustomerOrder, CustomerStatus } from '@/lib/types';
+import { loadRolls, loadSingleCustomer, loadSingleCustomerOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
+import { Customer, CustomerOrder, CustomerStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSearchParams } from 'expo-router/build/hooks';
@@ -50,15 +50,29 @@ export default function AddOrEditCustomerOrderScreen() {
   const [unitSaleRate, setUnitSaleRate] = useState('135');
   const [status, setStatus] = useState<CustomerStatus>('Pending');
   const [loading, setLoading] = useState(false);
+  const [rolls, setRolls] = useState<ThermalRoll[]>([]);
+  const [selectedRoll, setSelectedRoll] = useState<ThermalRoll | null>(null);
+
+  const fetchDetail = async () => {
+    if (!customerId) return;
+    const customer = await loadSingleCustomer(customerId);
+    setCustomers(customer);
+    if (customer && !selectedCustomerId) {
+      setSelectedCustomerId(customer.id);
+    }
+    const allRolls = await loadRolls();
+    setRolls(allRolls);
+    if (allRolls.length > 0) {
+      const matched = allRolls.find((r) =>
+        customer ? r.title.toLowerCase().includes(customer.rollType.toLowerCase()) : false
+      );
+      setSelectedRoll(matched || allRolls[0]);
+    }
+  };
 
   // Load customers for selection
   useEffect(() => {
-    loadSingleCustomer(customerId).then((data) => {
-      setCustomers(data);
-      if (data && !selectedCustomerId) {
-        setSelectedCustomerId(data.id);
-      }
-    });
+    fetchDetail();
   }, [customerId]);
 
   // If editing, load existing order (you can expand this later)
@@ -99,6 +113,19 @@ export default function AddOrEditCustomerOrderScreen() {
       return;
     }
 
+    if (!selectedRoll) {
+      Alert.alert('Select Roll', 'Please select a thermal roll type.');
+      return;
+    }
+
+    if (selectedRoll.stockCount < qty) {
+      Alert.alert(
+        'Insufficient Stock',
+        `Current available stock for ${selectedRoll.title} is ${selectedRoll.stockCount} rolls.`
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -117,8 +144,22 @@ export default function AddOrEditCustomerOrderScreen() {
         orderDate: new Date().toISOString(),
       };
 
-      await saveCustomerOrder(orderData); // make sure this function exists in storage
+      const updatedRoll: ThermalRoll = {
+        id: selectedRoll?.id || `roll-${rollType.replace(/\s/g, '-').toLowerCase()}`,
+        description: selectedRoll?.description || '',
+        meterLength: selectedRoll?.meterLength || 40,
+        paperWidth: selectedRoll?.paperWidth || '80mm Standard POS',
+        purchaseRate: costRate,
+        wholesaleRate: saleRate,
+        stockCount: selectedRoll ? selectedRoll.stockCount - qty : 0, // Assuming initial stock is 100 for simplicity
+        minStockAlert: selectedRoll?.minStockAlert || 10,
+        title: rollType,
+      };
 
+      await saveCustomerOrder(orderData); // make sure this function exists in storage
+      if (updatedRoll) {
+        await saveRoll(updatedRoll);
+      }
       setLoading(false);
       Alert.alert(
         'Success',
@@ -155,44 +196,6 @@ export default function AddOrEditCustomerOrderScreen() {
         {/* Section 1: Select Customer */}
         <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <Text style={[styles.sectionHeader, { color: theme.tint }]}>Customer Details</Text>
-
-          {/* {customers.length === 0 ? (
-            <Text style={{ color: theme.textSecondary, marginTop: 8 }}>
-              No customers found. Please add a customer first.
-            </Text>
-          ) : (
-            <View style={styles.pillsWrap}>
-              {customers.map((cust) => {
-                const active = selectedCustomerId === cust.id;
-                return (
-                  <TouchableOpacity
-                    key={cust.id}
-                    style={[
-                      styles.pill,
-                      active
-                        ? { backgroundColor: theme.tint }
-                        : {
-                          backgroundColor: theme.surface,
-                          borderWidth: 1,
-                          borderColor: theme.border,
-                        },
-                    ]}
-                    onPress={() => setSelectedCustomerId(cust.id)}
-                  >
-                    <Text
-                      style={[
-                        styles.pillText,
-                        { color: active ? '#FFFFFF' : theme.textSecondary },
-                      ]}
-                    >
-                      {cust.shopName}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          )} */}
-
           {customers && (
             <View style={[styles.selectedInfo, { backgroundColor: theme.surface }]}>
               <Text style={{ color: theme.text, fontWeight: '600' }}>
@@ -213,11 +216,13 @@ export default function AddOrEditCustomerOrderScreen() {
 
           <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Roll Type *</Text>
           <View style={styles.pillsWrap}>
-            {ROLL_TYPES.map((rt) => {
-              const active = rollType === rt;
+            {rolls.map((rt) => {
+
+              const title = rt.title.replaceAll('Thermal Roll', '').trim();
+              const active = rollType === title; // Adjusted to match the rollType state
               return (
                 <TouchableOpacity
-                  key={rt}
+                  key={rt.title}
                   style={[
                     styles.pill,
                     active
@@ -228,7 +233,12 @@ export default function AddOrEditCustomerOrderScreen() {
                         borderColor: theme.border,
                       },
                   ]}
-                  onPress={() => setRollType(rt)}
+                  onPress={() => {
+                    setRollType(title)
+                    setSelectedRoll(rt)
+                    setUnitCostRate(rt.purchaseRate.toString())
+                    setUnitSaleRate(rt.wholesaleRate.toString())
+                  }}
                 >
                   <Text
                     style={[
@@ -236,7 +246,7 @@ export default function AddOrEditCustomerOrderScreen() {
                       { color: active ? '#FFFFFF' : theme.textSecondary },
                     ]}
                   >
-                    {rt}
+                    {title} {rt.stockCount !== undefined ? `(Stock: ${rt.stockCount})` : ''}
                   </Text>
                 </TouchableOpacity>
               );

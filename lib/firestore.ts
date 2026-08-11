@@ -1,7 +1,6 @@
 import { db } from '@/lib/firebase';
 import {
   DEFAULT_CUSTOMERS,
-  DEFAULT_CUSTOMERS_ORDERS,
   DEFAULT_NOTIFICATIONS,
   DEFAULT_ROLLS
 } from '@/lib/storage';
@@ -12,7 +11,9 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   setDoc,
+  where,
 } from 'firebase/firestore';
 
 const CUSTOMERS_COLLECTION = 'customers';
@@ -80,8 +81,36 @@ export async function getCustomerOrderByIdFromFirestore(customerOrderId: string)
  * Fetch all customer orders from Firestore.
  * Auto-seeds DEFAULT_CUSTOMERS if collection is empty.
  */
+export async function getCustomerOrdersFromFirestore(
+  customerId: string
+): Promise<CustomerOrder[]> {
+  try {
+    if (!customerId) return [];
 
-export async function getCustomersOrderFromFirestore(): Promise<CustomerOrder[]> {
+    const q = query(
+      collection(db, CUSTOMERS_ORDER_COLLECTION),
+      where('customerId', '==', customerId)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const orders: CustomerOrder[] = [];
+    snapshot.forEach((d) => {
+      orders.push({
+        id: d.id,
+        ...d.data(),
+      } as CustomerOrder);
+    });
+
+    return orders;
+  } catch (error) {
+    console.error('❌ Error fetching customer orders:', error);
+    return [];
+  }
+}
+
+// Fetch all orders from Firestore (for admin view)
+export async function getOrdersFromFirestore(): Promise<CustomerOrder[]> {
   try {
     const colRef = collection(db, CUSTOMERS_ORDER_COLLECTION); // ← now using customers orders collection
     const snapshot = await getDocs(colRef);
@@ -104,7 +133,7 @@ export async function getCustomersOrderFromFirestore(): Promise<CustomerOrder[]>
     return customers;
   } catch (error) {
     console.error('❌ Error fetching customers from Firestore:', error);
-    return DEFAULT_CUSTOMERS_ORDERS; // ← return default orders on error
+    return []; // ← return default orders on error
 
   }
 }
@@ -186,7 +215,7 @@ export async function saveRollOrderToFirestore(customerOrder: CustomerOrder): Pr
   try {
     const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrder.id);
     await setDoc(docRef, customerOrder, { merge: true });
-    return await getCustomersOrderFromFirestore();
+    return await getCustomerOrdersFromFirestore(customerOrder.customerId);
   } catch (error) {
     console.error('❌ Error saving roll order to Firestore:', error);
     return [];
