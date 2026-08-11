@@ -532,7 +532,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginRight: 8,
   },
-  iconOnlyBtn: { paddingHorizontal: 8 },
+  iconOnlyBtn: { paddingHorizontal: 12, paddingVertical: 8 },
   actionText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
   emptyBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 60 },
   emptyTitle: { fontSize: 16, fontWeight: '700', marginTop: 10 },

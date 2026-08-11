@@ -1,6 +1,6 @@
 const tintColorLight = '#2563EB'; // Professional Slate Blue
-const tintColorDark = '#38BDF8';  // Bright Sky Blue for Dark mode
-
+const tintColorDark = '#ab814eff';  // Bright Sky Blue for Dark mode
+// c48232ff
 export const Palette = {
   primary: '#2563EB',
   primaryLight: '#EFF6FF',

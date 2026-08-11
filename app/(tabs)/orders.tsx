@@ -189,7 +189,8 @@ export default function OrdersScreen() {
 
         {/* Action Bar */}
         <View style={[styles.actionBar, { borderTopColor: theme.border }]}>
-          <TouchableOpacity
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
             onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
           >
@@ -205,7 +206,15 @@ export default function OrdersScreen() {
             ]}
             onPress={() => router.push(`/order/${item.id}?type=edit&customerId=${item.customerId}`)}
           >
-            <Feather name="edit-2" size={14} color={theme.textSecondary} />
+            <Feather name="edit-2" size={15} color={theme.textSecondary} />
+          </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+            onPress={() => router.push(`/invoice/${item.id}`)}
+          >
+            <Ionicons name="print-outline" size={18} color={theme.tint} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Print Invoice</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -419,6 +428,7 @@ const styles = StyleSheet.create({
   actionBar: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
@@ -431,7 +441,7 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginRight: 8,
   },
-  iconOnlyBtn: { paddingHorizontal: 8 },
+  iconOnlyBtn: { paddingHorizontal: 12, paddingVertical: 8 },
   actionText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
   emptyBox: {
     alignItems: 'center',

@@ -3149,6 +3149,11 @@ expo-modules-core@3.0.30:
   dependencies:
     invariant "^2.2.4"
 
+expo-print@~15.0.8:
+  version "15.0.8"
+  resolved "https://registry.yarnpkg.com/expo-print/-/expo-print-15.0.8.tgz#596c9f2302fb68d2db682f6f3e0c6596930b59dc"
+  integrity sha512-4O0Qzm0On5AmJIl9d+BT+ieTipFp658nHI4aX7vKEFPfj3dfQxG6rDJJpca+rrc9c4Ha8ZFYGvxJG5+4lFq2Pw==
+
 expo-router@~6.0.24:
   version "6.0.24"
   resolved "https://registry.npmjs.org/expo-router/-/expo-router-6.0.24.tgz"
@@ -3182,6 +3187,11 @@ expo-server@^1.0.7:
   version "1.0.7"
   resolved "https://registry.npmjs.org/expo-server/-/expo-server-1.0.7.tgz"
   integrity sha512-mcmyML3oXcqFUXUxtdtCL1O00ztNI2v76d+MdniXRUgHNxIcHZ05zo+DqBaOOT6LQnPk4vA4YHqQl7iGUfRb3g==
+
+expo-sharing@~14.0.8:
+  version "14.0.8"
+  resolved "https://registry.yarnpkg.com/expo-sharing/-/expo-sharing-14.0.8.tgz#cfd5fcf77ab5f64cf3d192a40a925abb316d3545"
+  integrity sha512-A1pPr2iBrxypFDCWVAESk532HK+db7MFXbvO2sCV9ienaFXAk7lIBm6bkqgE6vzRd9O3RGdEGzYx80cYlc089Q==
 
 expo-splash-screen@~31.0.13:
   version "31.0.13"

@@ -184,12 +184,21 @@ export default function AddOrEditCustomerOrderScreen() {
       >
         {/* Header */}
         <View style={styles.headerRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-            <Ionicons name="arrow-back" size={24} color={theme.text} />
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={24} color={theme.text} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>
+              {isEditMode ? 'Edit Order' : 'New Customer Order'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+            onPress={() => router.push(`/invoice/${id}`)}
+          >
+            <Ionicons name="print-outline" size={18} color={theme.tint} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Print Invoice</Text>
           </TouchableOpacity>
-          <Text style={[styles.headerTitle, { color: theme.text }]}>
-            {isEditMode ? 'Edit Order' : 'New Customer Order'}
-          </Text>
         </View>
 
         {/* Section 1: Select Customer */}
@@ -205,6 +214,7 @@ export default function AddOrEditCustomerOrderScreen() {
               </Text>
             </View>
           )}
+
         </View>
 
         {/* Section 2: Roll & Quantity */}
@@ -404,6 +414,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 16,
     marginTop: 4,
   },
@@ -456,4 +467,14 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   saveBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
+  actionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  actionText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
+
 });
