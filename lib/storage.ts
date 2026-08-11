@@ -138,7 +138,7 @@ export const loadCustomers = async (): Promise<Customer[]> => {
   } catch (error) {
     console.error('Error loading customers:', error);
     const cached = await AsyncStorage.getItem(CUSTOMERS_KEY);
-    return cached ? JSON.parse(cached) : DEFAULT_CUSTOMERS;
+    return cached ? JSON.parse(cached) : [];
   }
 };
 
@@ -171,7 +171,7 @@ export const loadCustomersOrder = async (customerId: string): Promise<CustomerOr
   } catch (error) {
     console.error('Error loading customers:', error);
     const cached = await AsyncStorage.getItem(CUSTOMERS_ORDER_KEY);
-    return cached ? JSON.parse(cached) : DEFAULT_CUSTOMERS_ORDERS;
+    return cached ? JSON.parse(cached) : [];
   }
 };
 
@@ -259,7 +259,7 @@ export const loadNotifications = async (): Promise<AppNotification[]> => {
   } catch (error) {
     console.error('Error loading notifications:', error);
     const cached = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-    return cached ? JSON.parse(cached) : DEFAULT_NOTIFICATIONS;
+    return cached ? JSON.parse(cached) : [];
   }
 };
 

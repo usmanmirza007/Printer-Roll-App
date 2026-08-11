@@ -39,7 +39,8 @@ export default function AddOrEditCustomerOrderScreen() {
   const searchParams = useSearchParams();
   const customerId: string = searchParams.get('customerId') || '';
   const id: string = searchParams.get('id') || '';
-  const isEditMode = id && id === 'edit';
+  const type: string = searchParams.get('type') || '';
+  const isEditMode = type && type === 'edit';
 
   // Form state
   const [customers, setCustomers] = useState<Customer | null>(null);

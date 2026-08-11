@@ -1,7 +1,6 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
 import { useAuth } from '@/context/AuthContext';
-import { seedInitialFirestoreData } from '@/lib/firestore';
 import {
   getTodayDateString,
   loadCustomers,
@@ -83,7 +82,7 @@ export default function DashboardScreen() {
           style: 'destructive',
           onPress: async () => {
             setReseeding(true);
-            await seedInitialFirestoreData();
+            // await seedInitialFirestoreData();
             await fetchData();
             setReseeding(false);
             Alert.alert('Reset Complete', 'Firestore default collections restored!');

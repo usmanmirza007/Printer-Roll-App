@@ -23,7 +23,6 @@ const NOTIFICATIONS_COLLECTION = 'notifications';
 
 /**
  * Fetch all customers from Firestore.
- * Auto-seeds DEFAULT_CUSTOMERS if collection is empty.
  */
 export async function getCustomersFromFirestore(): Promise<Customer[]> {
   try {
@@ -32,10 +31,7 @@ export async function getCustomersFromFirestore(): Promise<Customer[]> {
 
     if (snapshot.empty) {
       console.log('⚡ Firestore customers collection empty. Seeding defaults...');
-      for (const cust of DEFAULT_CUSTOMERS) {
-        await setDoc(doc(db, CUSTOMERS_COLLECTION, cust.id), cust);
-      }
-      return DEFAULT_CUSTOMERS;
+      return []
     }
 
     const customers: Customer[] = [];
@@ -45,7 +41,7 @@ export async function getCustomersFromFirestore(): Promise<Customer[]> {
     return customers;
   } catch (error) {
     console.error('❌ Error fetching customers from Firestore:', error);
-    return DEFAULT_CUSTOMERS;
+    return [];
   }
 }
 
@@ -79,7 +75,6 @@ export async function getCustomerOrderByIdFromFirestore(customerOrderId: string)
 }
 /**
  * Fetch all customer orders from Firestore.
- * Auto-seeds DEFAULT_CUSTOMERS if collection is empty.
  */
 export async function getCustomerOrdersFromFirestore(
   customerId: string
@@ -177,10 +172,7 @@ export async function getRollsFromFirestore(): Promise<ThermalRoll[]> {
 
     if (snapshot.empty) {
       console.log('⚡ Firestore rolls collection empty. Seeding defaults...');
-      for (const roll of DEFAULT_ROLLS) {
-        await setDoc(doc(db, ROLLS_COLLECTION, roll.id), roll);
-      }
-      return DEFAULT_ROLLS;
+      return [];
     }
 
     const rolls: ThermalRoll[] = [];
@@ -190,7 +182,7 @@ export async function getRollsFromFirestore(): Promise<ThermalRoll[]> {
     return rolls;
   } catch (error) {
     console.error('❌ Error fetching rolls from Firestore:', error);
-    return DEFAULT_ROLLS;
+    return [];
   }
 }
 
@@ -238,7 +230,6 @@ export async function deleteRollFromFirestore(id: string): Promise<ThermalRoll[]
 
 /**
  * Fetch all notifications from Firestore.
- * Auto-seeds DEFAULT_NOTIFICATIONS if empty.
  */
 export async function getNotificationsFromFirestore(): Promise<AppNotification[]> {
   try {
@@ -247,10 +238,7 @@ export async function getNotificationsFromFirestore(): Promise<AppNotification[]
 
     if (snapshot.empty) {
       console.log('⚡ Firestore notifications collection empty. Seeding defaults...');
-      for (const notif of DEFAULT_NOTIFICATIONS) {
-        await setDoc(doc(db, NOTIFICATIONS_COLLECTION, notif.id), notif);
-      }
-      return DEFAULT_NOTIFICATIONS;
+      return [];
     }
 
     const notifications: AppNotification[] = [];
@@ -262,7 +250,7 @@ export async function getNotificationsFromFirestore(): Promise<AppNotification[]
     return notifications;
   } catch (error) {
     console.error('❌ Error fetching notifications from Firestore:', error);
-    return DEFAULT_NOTIFICATIONS;
+    return [];
   }
 }
 
