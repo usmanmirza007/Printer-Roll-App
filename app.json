@@ -47,6 +47,10 @@
         "projectId": "8aeab978-0ead-4b34-8ada-347f6706c4c4"
       }
     },
-    "owner": "usmanmirza"
+    "owner": "usmanmirza",
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/8aeab978-0ead-4b34-8ada-347f6706c4c4"
+    }
   }
 }
