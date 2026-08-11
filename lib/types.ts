@@ -36,6 +36,21 @@ export interface Customer {
   totalRollsOrdered?: number; // Total quantity ordered by this customer
 }
 
+export interface CustomerOrder {
+  id: string;
+  customerId: string;
+  rollId: string;
+  quantity: number;
+  rollType: string;         
+  unitCostRate: number;
+  unitSaleRate: number;
+  totalCost: number;
+  totalSale: number;
+  profit: number;
+  status: CustomerStatus;
+  orderDate: string; // ISO String format date
+}
+
 export interface ThermalRoll {
   id: string;
   title: string;           // e.g. "40 Meter Thermal Roll"

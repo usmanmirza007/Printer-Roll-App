@@ -2,17 +2,22 @@ import { triggerVisitEndPushNotification } from '@/constants/NotificationService
 import {
   deleteCustomerFromFirestore,
   deleteRollFromFirestore,
+  getCustomerByIdFromFirestore,
+  getCustomerOrderByIdFromFirestore,
   getCustomersFromFirestore,
+  getCustomersOrderFromFirestore,
   getNotificationsFromFirestore,
   getRollsFromFirestore,
   saveCustomerToFirestore,
   saveNotificationToFirestore,
+  saveRollOrderToFirestore,
   saveRollToFirestore,
 } from '@/lib/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppNotification, Customer, SalesOrder, ThermalRoll } from './types';
+import { AppNotification, Customer, CustomerOrder, ThermalRoll } from './types';
 
 const CUSTOMERS_KEY = '@thermal_roll_customers_v1';
+const CUSTOMERS_ORDER_KEY = '@thermal_roll_customers_orders_v1';
 const ROLLS_KEY = '@thermal_roll_rolls_v1';
 const NOTIFICATIONS_KEY = '@thermal_roll_notifications_v1';
 
@@ -91,60 +96,23 @@ export const DEFAULT_CUSTOMERS: Customer[] = [
     notes: 'Requires 25 rolls every week. Prefers morning deliveries.',
     totalRollsOrdered: 50,
   },
+  
+];
+export const DEFAULT_CUSTOMERS_ORDERS: CustomerOrder[] = [
   {
-    id: 'cust-2',
-    name: 'Muhammad Usman',
-    phone: '+92 321 4445678',
-    shopName: 'Savour Foods & Restaurant',
-    location: 'Food Street, Blue Area',
-    category: 'Restaurant',
-    rollType: '80 Meter',
-    purchaseRate: 240,
-    saleRate: 275,
-    status: 'Delivered',
-    createdDate: getTodayDateString(-10),
-    revisitDays: 3,
-    nextVisitDate: getTodayDateString(0),
-    lastVisitDate: getTodayDateString(-3),
-    notes: 'Busy restaurant terminal. Pays cash on delivery.',
-    totalRollsOrdered: 120,
-  },
-  {
-    id: 'cust-3',
-    name: 'Shahid Khan',
-    phone: '+92 333 9876543',
-    shopName: 'Outfitters Clothing Outlet',
-    location: 'Centaurus Mall 2nd Floor',
-    category: 'Cloth Brand',
-    rollType: '50 Meter',
-    purchaseRate: 150,
-    saleRate: 170,
-    status: 'Pending',
-    createdDate: getTodayDateString(-2),
-    revisitDays: 14,
-    nextVisitDate: getTodayDateString(12),
-    lastVisitDate: getTodayDateString(-2),
-    notes: 'Needs official invoice for company account clearance.',
-    totalRollsOrdered: 40,
-  },
-  {
-    id: 'cust-4',
-    name: 'Ali Raza',
-    phone: '+92 312 8887766',
-    shopName: 'Burger Lab Fast Food',
-    location: 'F-6 Markaz Market',
-    category: 'Fast Food',
+    id: 'cust-1',
+    customerId: 'cust-1',
+    orderDate: getTodayDateString(-5),
+    profit: 15,
+    quantity: 25,
+    rollId: 'roll-40m',
     rollType: '40 Meter',
-    purchaseRate: 120,
-    saleRate: 140,
-    status: 'Follow-up Required',
-    createdDate: getTodayDateString(-1),
-    revisitDays: 7,
-    nextVisitDate: getTodayDateString(0),
-    lastVisitDate: getTodayDateString(-7),
-    notes: 'Requested sample roll testing on counter printer.',
-    totalRollsOrdered: 30,
-  },
+    status: 'In Progress',
+    totalCost: 3000,
+    totalSale: 3375,
+    unitCostRate: 120,
+    unitSaleRate: 135,
+  },  
 ];
 
 // Initial notifications
@@ -159,26 +127,6 @@ export const DEFAULT_NOTIFICATIONS: AppNotification[] = [
     isRead: false,
     priority: 'high',
   },
-  {
-    id: 'notif-2',
-    type: 'visit_reminder',
-    title: 'Follow-up Scheduled',
-    message: 'Visit Burger Lab Fast Food in F-6 Markaz (7 days feedback cycle).',
-    customerId: 'cust-4',
-    date: new Date().toISOString(),
-    isRead: false,
-    priority: 'high',
-  },
-  {
-    id: 'notif-3',
-    type: 'stock_alert',
-    title: 'Stock Overview Alert',
-    message: '40 Meter Thermal Roll stock is currently at 50 items. Keep stock monitored for peak orders.',
-    rollId: 'roll-40m',
-    date: new Date().toISOString(),
-    isRead: true,
-    priority: 'medium',
-  },
 ];
 
 // Load customers from Firestore with AsyncStorage cache fallback
@@ -191,6 +139,39 @@ export const loadCustomers = async (): Promise<Customer[]> => {
     console.error('Error loading customers:', error);
     const cached = await AsyncStorage.getItem(CUSTOMERS_KEY);
     return cached ? JSON.parse(cached) : DEFAULT_CUSTOMERS;
+  }
+};
+
+export const loadSingleCustomer = async (id: string): Promise<Customer | null> => {
+  try {
+    const firestoreData = await getCustomerByIdFromFirestore(id);
+    return firestoreData;
+  } catch (error) {
+    console.error('Error loading single customer:', error);
+    return null;
+  }
+};
+
+export const loadSingleCustomerOrder = async (orderId: string): Promise<CustomerOrder | null> => {
+  try {
+    const firestoreData = await getCustomerOrderByIdFromFirestore(orderId);
+    return firestoreData;
+  } catch (error) {
+    console.error('Error loading single customer order:', error);
+    return null;
+  }
+};
+
+// Load customers from Firestore with AsyncStorage cache fallback
+export const loadCustomersOrder = async (): Promise<CustomerOrder[]> => {
+  try {
+    const firestoreData = await getCustomersOrderFromFirestore();
+    await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(firestoreData));
+    return firestoreData;
+  } catch (error) {
+    console.error('Error loading customers:', error);
+    const cached = await AsyncStorage.getItem(CUSTOMERS_ORDER_KEY);
+    return cached ? JSON.parse(cached) : DEFAULT_CUSTOMERS_ORDERS;
   }
 };
 
@@ -242,6 +223,18 @@ export const saveRoll = async (roll: ThermalRoll): Promise<ThermalRoll[]> => {
   } catch (error) {
     console.error('Error saving roll:', error);
     return await loadRolls();
+  }
+};
+
+// Save Thermal Roll in Firestore
+export const saveCustomerOrder = async (customerOrder: CustomerOrder): Promise<CustomerOrder[]> => {
+  try {
+    const order = await saveRollOrderToFirestore(customerOrder);
+    await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(order));
+    return order;
+  } catch (error) {
+    console.error('Error saving roll:', error);
+    return await loadCustomersOrder();
   }
 };
 

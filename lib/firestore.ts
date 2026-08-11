@@ -1,20 +1,22 @@
 import { db } from '@/lib/firebase';
 import {
   DEFAULT_CUSTOMERS,
+  DEFAULT_CUSTOMERS_ORDERS,
   DEFAULT_NOTIFICATIONS,
-  DEFAULT_ROLLS,
-  getTodayDateString,
+  DEFAULT_ROLLS
 } from '@/lib/storage';
-import { AppNotification, Customer, ThermalRoll } from '@/lib/types';
+import { AppNotification, Customer, CustomerOrder, ThermalRoll } from '@/lib/types';
 import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   setDoc,
 } from 'firebase/firestore';
 
 const CUSTOMERS_COLLECTION = 'customers';
+const CUSTOMERS_ORDER_COLLECTION = 'orders';
 const ROLLS_COLLECTION = 'rolls';
 const NOTIFICATIONS_COLLECTION = 'notifications';
 
@@ -43,6 +45,67 @@ export async function getCustomersFromFirestore(): Promise<Customer[]> {
   } catch (error) {
     console.error('❌ Error fetching customers from Firestore:', error);
     return DEFAULT_CUSTOMERS;
+  }
+}
+
+export async function getCustomerByIdFromFirestore(customerId: string): Promise<Customer | null> {
+  try {
+    const docRef = doc(db, CUSTOMERS_COLLECTION, customerId);
+    const snapshot = await getDoc(docRef);
+
+    if (snapshot.exists()) {
+      return { id: snapshot.id, ...snapshot.data() } as Customer;
+    }
+    return null; // Customer not found
+  } catch (error) {
+    console.error('❌ Error fetching customer by ID:', error);
+    return null;
+  }
+}
+export async function getCustomerOrderByIdFromFirestore(customerOrderId: string): Promise<CustomerOrder | null> {
+  try {
+    const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrderId);
+    const snapshot = await getDoc(docRef);
+
+    if (snapshot.exists()) {
+      return { id: snapshot.id, ...snapshot.data() } as CustomerOrder;
+    }
+    return null; // Customer order not found
+  } catch (error) {
+    console.error('❌ Error fetching customer order by ID:', error);
+    return null;
+  }
+}
+/**
+ * Fetch all customer orders from Firestore.
+ * Auto-seeds DEFAULT_CUSTOMERS if collection is empty.
+ */
+
+export async function getCustomersOrderFromFirestore(): Promise<CustomerOrder[]> {
+  try {
+    const colRef = collection(db, CUSTOMERS_ORDER_COLLECTION); // ← now using customers orders collection
+    const snapshot = await getDocs(colRef);
+
+    // Collection empty → seed defaults
+    if (snapshot.empty) {
+      console.log('⚡ Customers orders collection is empty. Seeding default orders...');
+
+    }
+
+    // Collection has data
+    const customers: CustomerOrder[] = [];
+    snapshot.forEach((d) => {
+      customers.push({
+        id: d.id,
+        ...d.data(),
+      } as CustomerOrder);
+    });
+
+    return customers;
+  } catch (error) {
+    console.error('❌ Error fetching customers from Firestore:', error);
+    return DEFAULT_CUSTOMERS_ORDERS; // ← return default orders on error
+
   }
 }
 
@@ -112,6 +175,20 @@ export async function saveRollToFirestore(roll: ThermalRoll): Promise<ThermalRol
     return await getRollsFromFirestore();
   } catch (error) {
     console.error('❌ Error saving roll to Firestore:', error);
+    return [];
+  }
+}
+
+/**
+ * Save or update a thermal roll order record in Firestore.
+ */
+export async function saveRollOrderToFirestore(customerOrder: CustomerOrder): Promise<CustomerOrder[]> {
+  try {
+    const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrder.id);
+    await setDoc(docRef, customerOrder, { merge: true });
+    return await getCustomersOrderFromFirestore();
+  } catch (error) {
+    console.error('❌ Error saving roll order to Firestore:', error);
     return [];
   }
 }

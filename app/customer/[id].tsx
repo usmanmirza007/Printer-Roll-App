@@ -6,9 +6,10 @@ import {
   loadCustomers,
   loadRolls,
   recordCustomerVisit,
+  saveCustomerOrder,
   saveRoll,
 } from '@/lib/storage';
-import { Customer, ThermalRoll } from '@/lib/types';
+import { Customer, CustomerOrder, ThermalRoll } from '@/lib/types';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -126,12 +127,27 @@ export default function CustomerDetailScreen() {
       ...selectedRoll,
       stockCount: selectedRoll.stockCount - qty,
     };
+
+    const createCustomerOrder: CustomerOrder = {
+      id: `${customer.id}_${selectedRoll.id}_${Date.now()}`,
+      customerId: customer.id,
+      rollId: selectedRoll.id,
+      quantity: qty,
+      rollType: selectedRoll.title,
+      unitCostRate: selectedRoll.purchaseRate,
+      unitSaleRate: customer.saleRate,
+      totalCost: selectedRoll.purchaseRate * qty,
+      totalSale: customer.saleRate * qty,
+      profit: (customer.saleRate - selectedRoll.purchaseRate) * qty,
+      status: 'In Progress',
+      orderDate: new Date().toISOString(),
+    };
     await saveRoll(updatedRoll);
+    await saveCustomerOrder(createCustomerOrder);
 
     Alert.alert(
       'Order Recorded!',
-      `Logged sale of ${qty} rolls (${selectedRoll.title}) for ${customer.shopName}.\n\nTotal Sale: ₨${
-        qty * customer.saleRate
+      `Logged sale of ${qty} rolls (${selectedRoll.title}) for ${customer.shopName}.\n\nTotal Sale: ₨${qty * customer.saleRate
       }\nTotal Profit: ₨${qty * margin}\nRemaining Stock: ${updatedRoll.stockCount} rolls.`
     );
     fetchDetail();
@@ -320,6 +336,9 @@ export default function CustomerDetailScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${customer.id}`)}>
+        <Text style={styles.processOrderBtnText}>View Order List</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
