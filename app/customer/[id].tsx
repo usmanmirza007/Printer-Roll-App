@@ -4,12 +4,9 @@ import {
   deleteCustomer,
   getTodayDateString,
   loadCustomers,
-  loadRolls,
-  recordCustomerVisit,
-  saveCustomerOrder,
-  saveRoll,
+  recordCustomerVisit
 } from '@/lib/storage';
-import { Customer, CustomerOrder, ThermalRoll } from '@/lib/types';
+import { Customer } from '@/lib/types';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
@@ -19,9 +16,8 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -33,24 +29,12 @@ export default function CustomerDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { top } = useSafeAreaInsets();
   const [customer, setCustomer] = useState<Customer | null>(null);
-  const [rolls, setRolls] = useState<ThermalRoll[]>([]);
-  const [orderQty, setOrderQty] = useState('20');
-  const [selectedRoll, setSelectedRoll] = useState<ThermalRoll | null>(null);
 
   const fetchDetail = async () => {
     if (!id) return;
     const allCustomers = await loadCustomers();
     const found = allCustomers.find((c) => c.id === id);
     setCustomer(found || null);
-
-    const allRolls = await loadRolls();
-    setRolls(allRolls);
-    if (allRolls.length > 0) {
-      const matched = allRolls.find((r) =>
-        found ? r.title.toLowerCase().includes(found.rollType.toLowerCase()) : false
-      );
-      setSelectedRoll(matched || allRolls[0]);
-    }
   };
 
   useEffect(() => {
@@ -102,55 +86,6 @@ export default function CustomerDetailScreen() {
         },
       },
     ]);
-  };
-
-  const handleProcessOrder = async () => {
-    const qty = parseInt(orderQty, 10);
-    if (!qty || qty <= 0) {
-      Alert.alert('Invalid Quantity', 'Please enter a valid order quantity.');
-      return;
-    }
-    if (!selectedRoll) {
-      Alert.alert('Select Roll', 'Please select a thermal roll type.');
-      return;
-    }
-
-    if (selectedRoll.stockCount < qty) {
-      Alert.alert(
-        'Insufficient Stock',
-        `Current available stock for ${selectedRoll.title} is ${selectedRoll.stockCount} rolls.`
-      );
-      return;
-    }
-
-    const updatedRoll: ThermalRoll = {
-      ...selectedRoll,
-      stockCount: selectedRoll.stockCount - qty,
-    };
-
-    const createCustomerOrder: CustomerOrder = {
-      id: `${customer.id}_${selectedRoll.id}_${Date.now()}`,
-      customerId: customer.id,
-      rollId: selectedRoll.id,
-      quantity: qty,
-      rollType: selectedRoll.title,
-      unitCostRate: selectedRoll.purchaseRate,
-      unitSaleRate: customer.saleRate,
-      totalCost: selectedRoll.purchaseRate * qty,
-      totalSale: customer.saleRate * qty,
-      profit: (customer.saleRate - selectedRoll.purchaseRate) * qty,
-      status: 'In Progress',
-      orderDate: new Date().toISOString(),
-    };
-    await saveRoll(updatedRoll);
-    await saveCustomerOrder(createCustomerOrder);
-
-    Alert.alert(
-      'Order Recorded!',
-      `Logged sale of ${qty} rolls (${selectedRoll.title}) for ${customer.shopName}.\n\nTotal Sale: ₨${qty * customer.saleRate
-      }\nTotal Profit: ₨${qty * margin}\nRemaining Stock: ${updatedRoll.stockCount} rolls.`
-    );
-    fetchDetail();
   };
 
   return (
@@ -287,55 +222,6 @@ export default function CustomerDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Record Order Card */}
-      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
-        <Text style={[styles.cardSectionTitle, { color: theme.tint }]}>Record New Sale</Text>
-
-        <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Select Roll Item:</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
-          {rolls.map((r) => {
-            const isSelected = selectedRoll?.id === r.id;
-            return (
-              <TouchableOpacity
-                key={r.id}
-                style={[
-                  styles.rollPill,
-                  isSelected
-                    ? { backgroundColor: theme.tint, borderColor: theme.tint }
-                    : { backgroundColor: theme.surface, borderColor: theme.border },
-                ]}
-                onPress={() => setSelectedRoll(r)}
-              >
-                <Text style={{ color: isSelected ? '#FFF' : theme.text, fontWeight: '600', fontSize: 12 }}>
-                  {r.title}
-                </Text>
-                <Text style={{ fontSize: 10, color: isSelected ? '#E0E7FF' : theme.textSecondary }}>
-                  Stock: {r.stockCount}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        <View style={styles.orderInputRow}>
-          <View style={{ flex: 1, marginRight: 8 }}>
-            <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Quantity (Rolls):</Text>
-            <TextInput
-              style={[
-                styles.qtyInput,
-                { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface },
-              ]}
-              keyboardType="numeric"
-              value={orderQty}
-              onChangeText={setOrderQty}
-            />
-          </View>
-
-          <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={handleProcessOrder}>
-            <Text style={styles.processOrderBtnText}>Record Sale</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
       <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${id}`)}>
         <Text style={styles.processOrderBtnText}>View Order List</Text>
       </TouchableOpacity>

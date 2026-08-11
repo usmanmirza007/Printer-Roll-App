@@ -1,3 +1,4 @@
+import { CUSTOMERS_COLLECTION, CUSTOMERS_ORDER_COLLECTION, NOTIFICATIONS_COLLECTION, ROLLS_COLLECTION } from '@/constants/environment';
 import { db } from '@/lib/firebase';
 import {
   DEFAULT_CUSTOMERS,
@@ -15,11 +16,6 @@ import {
   setDoc,
   where,
 } from 'firebase/firestore';
-
-const CUSTOMERS_COLLECTION = 'customers';
-const CUSTOMERS_ORDER_COLLECTION = 'orders';
-const ROLLS_COLLECTION = 'rolls';
-const NOTIFICATIONS_COLLECTION = 'notifications';
 
 /**
  * Fetch all customers from Firestore.
@@ -171,8 +167,11 @@ export async function getRollsFromFirestore(): Promise<ThermalRoll[]> {
     const snapshot = await getDocs(colRef);
 
     if (snapshot.empty) {
-      console.log('⚡ Firestore rolls collection empty. Seeding defaults...');
-      return [];
+      console.log('⚡ Firestore rolls collection empty. Seeding defaults... rolls');
+      for (const roll of DEFAULT_ROLLS) {
+        await setDoc(doc(db, ROLLS_COLLECTION, roll.id), roll);
+      }
+      return DEFAULT_ROLLS;
     }
 
     const rolls: ThermalRoll[] = [];
