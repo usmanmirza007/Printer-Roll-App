@@ -152,7 +152,7 @@ export const loadSingleCustomer = async (id: string): Promise<Customer | null> =
   }
 };
 
-export const loadSingleCustomerOrder = async (orderId: string): Promise<CustomerOrder | null> => {
+export const loadSingleOrder = async (orderId: string): Promise<CustomerOrder | null> => {
   try {
     const firestoreData = await getCustomerOrderByIdFromFirestore(orderId);
     return firestoreData;

@@ -1,6 +1,6 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { loadRolls, loadSingleCustomer, loadSingleCustomerOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
+import { loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
 import { Customer, CustomerOrder, OrderStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -49,7 +49,7 @@ export default function AddOrEditCustomerOrderScreen() {
   const [status, setStatus] = useState<OrderStatus>('Pending');
   const [loading, setLoading] = useState(false);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
-  const [selectedRoll, setSelectedRoll] = useState<ThermalRoll | null>(null);
+  // const [selectedRoll, setSelectedRoll] = useState<ThermalRoll | null>(null);
 
   const fetchDetail = async () => {
     if (!customerId) return;
@@ -61,12 +61,12 @@ export default function AddOrEditCustomerOrderScreen() {
     }
     const allRolls = await loadRolls();
     setRolls(allRolls);
-    if (allRolls.length > 0) {
-      const matched = allRolls.find((r) =>
-        customer ? r.title.toLowerCase().includes(customer.rollType.toLowerCase()) : false
-      );
-      setSelectedRoll(matched || allRolls[0]);
-    }
+    // if (allRolls.length > 0) {
+    //   const matched = allRolls.find((r) =>
+    //     customer ? r.title.toLowerCase().includes(customer.rollType.toLowerCase()) : false
+    //   );
+    //   setSelectedRoll(matched || allRolls[0]);
+    // }
   };
 
   // Load customers for selection
@@ -76,7 +76,7 @@ export default function AddOrEditCustomerOrderScreen() {
 
   // If editing, load existing order (you can expand this later)
   useEffect(() => {
-    loadSingleCustomerOrder(id).then((data) => {
+    loadSingleOrder(id).then((data) => {
       if (data) {
         setRollType(data.rollType);
         setQuantity(data.quantity.toString());
@@ -99,6 +99,8 @@ export default function AddOrEditCustomerOrderScreen() {
 
 
   const handleSave = async () => {
+    const filterRoll = rolls.find((roll) => roll.title.replaceAll('Thermal Roll', '').trim() == rollType)
+
     if (!selectedCustomerId) {
       Alert.alert('Validation Error', 'Please select a customer.');
       return;
@@ -112,15 +114,15 @@ export default function AddOrEditCustomerOrderScreen() {
       return;
     }
 
-    if (!selectedRoll) {
+    if (!filterRoll) {
       Alert.alert('Select Roll', 'Please select a thermal roll type.');
       return;
     }
 
-    if (selectedRoll.stockCount < qty) {
+    if (filterRoll && filterRoll.stockCount < qty) {
       Alert.alert(
         'Insufficient Stock',
-        `Current available stock for ${selectedRoll.title} is ${selectedRoll.stockCount} rolls.`
+        `Current available stock for ${filterRoll.title} is ${filterRoll.stockCount} rolls.`
       );
       return;
     }
@@ -144,15 +146,15 @@ export default function AddOrEditCustomerOrderScreen() {
       };
 
       const updatedRoll: ThermalRoll = {
-        id: selectedRoll?.id || `roll-${rollType.replace(/\s/g, '-').toLowerCase()}`,
-        description: selectedRoll?.description || '',
-        meterLength: selectedRoll?.meterLength || 40,
-        paperWidth: selectedRoll?.paperWidth || '80mm Standard POS',
+        id: filterRoll?.id || `roll-${rollType.replace(/\s/g, '-').toLowerCase()}`,
+        description: filterRoll?.description || '',
+        meterLength: filterRoll?.meterLength || 40,
+        paperWidth: filterRoll?.paperWidth || '80mm Standard POS',
         purchaseRate: costRate,
         wholesaleRate: saleRate,
-        stockCount: selectedRoll ? selectedRoll.stockCount - qty : 0, // Assuming initial stock is 100 for simplicity
-        minStockAlert: selectedRoll?.minStockAlert || 10,
-        title: rollType,
+        stockCount: filterRoll ? filterRoll.stockCount - qty : 0, // Assuming initial stock is 100 for simplicity
+        minStockAlert: filterRoll?.minStockAlert || 10,
+        title: filterRoll.title,
       };
 
       await saveCustomerOrder(orderData); // make sure this function exists in storage
@@ -244,7 +246,7 @@ export default function AddOrEditCustomerOrderScreen() {
                   ]}
                   onPress={() => {
                     setRollType(title)
-                    setSelectedRoll(rt)
+                    // setSelectedRoll(rt)
                     setUnitCostRate(rt.purchaseRate.toString())
                     setUnitSaleRate(rt.wholesaleRate.toString())
                   }}
