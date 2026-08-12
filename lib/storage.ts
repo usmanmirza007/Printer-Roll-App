@@ -88,7 +88,7 @@ export const DEFAULT_CUSTOMERS: Customer[] = [
     rollType: '40 Meter',
     purchaseRate: 120,
     saleRate: 135,
-    status: 'In Progress',
+    status: 'Active',
     createdDate: getTodayDateString(-5),
     revisitDays: 7,
     nextVisitDate: getTodayDateString(2),

@@ -10,12 +10,17 @@ export type MarketCategory =
   | 'Other';
 
 export type CustomerStatus =
-  | 'In Progress'
-  | 'Pending'
-  | 'Out for Delivery'
-  | 'Delivered'
-  | 'Follow-up Required'
-  | 'Cancelled';
+  | 'Active'              // Normal active customer
+  | 'Follow-up Required'  // Needs visit / follow-up
+  | 'Inactive'            // Not ordering anymore
+  | 'Blocked';            // Optional
+
+export type OrderStatus =
+  | 'Pending'             // Just created
+  | 'In Progress'         // Being processed
+  | 'Invoiced'            // Invoice generated
+  | 'Delivered'           // Successfully delivered
+  | 'Cancelled';          // Cancelled
 
 export interface Customer {
   id: string;
@@ -34,6 +39,7 @@ export interface Customer {
   lastVisitDate?: string;   // Last visited date YYYY-MM-DD
   notes?: string;           // Customer notes / feedback
   totalRollsOrdered?: number; // Total quantity ordered by this customer
+  orderHistory?: CustomerOrder[]; // Optional: List of past orders for this customer
 }
 
 export interface CustomerOrder {
@@ -41,13 +47,13 @@ export interface CustomerOrder {
   customerId: string;
   rollId: string;
   quantity: number;
-  rollType: string;         
+  rollType: string;
   unitCostRate: number;
   unitSaleRate: number;
   totalCost: number;
   totalSale: number;
   profit: number;
-  status: CustomerStatus;
+  status: OrderStatus;
   orderDate: string; // ISO String format date
 }
 
@@ -75,19 +81,3 @@ export interface AppNotification {
   priority: 'high' | 'medium' | 'low';
 }
 
-export interface SalesOrder {
-  id: string;
-  customerId: string;
-  customerName: string;
-  shopName: string;
-  rollId: string;
-  rollTitle: string;
-  quantity: number;
-  unitCostRate: number;
-  unitSaleRate: number;
-  totalCost: number;
-  totalSale: number;
-  profit: number;
-  status: CustomerStatus;
-  orderDate: string;
-}

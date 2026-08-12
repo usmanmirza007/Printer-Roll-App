@@ -32,12 +32,10 @@ const CATEGORIES: MarketCategory[] = [
 ];
 
 const STATUSES: CustomerStatus[] = [
-  'In Progress',
-  'Pending',
-  'Out for Delivery',
-  'Delivered',
+  'Active',
+  'Inactive',
+  'Blocked',
   'Follow-up Required',
-  'Cancelled',
 ];
 
 const REVISIT_OPTIONS = [
@@ -71,7 +69,7 @@ export default function AddOrEditCustomerScreen() {
   const [rollType, setRollType] = useState('40 Meter');
   const [purchaseRate, setPurchaseRate] = useState('120');
   const [saleRate, setSaleRate] = useState('135');
-  const [status, setStatus] = useState<CustomerStatus>('In Progress');
+  const [status, setStatus] = useState<CustomerStatus>('Active');
   const [revisitDays, setRevisitDays] = useState<number>(7);
   const [customRevisitDays, setCustomRevisitDays] = useState('');
   const [notes, setNotes] = useState('');

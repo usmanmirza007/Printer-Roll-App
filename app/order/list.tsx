@@ -1,7 +1,8 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
 import { getCustomerOrdersFromFirestore } from '@/lib/firestore';
-import { CustomerOrder, CustomerStatus } from '@/lib/types';
+import { CustomerOrder, OrderStatus } from '@/lib/types';
+import { getOrderStatusStyle } from '@/utils/statusStyle';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useSearchParams } from 'expo-router/build/hooks';
@@ -18,13 +19,12 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const STATUS_FILTERS: (CustomerStatus | 'All')[] = [
-  'All',
-  'In Progress',
-  'Pending',
-  'Out for Delivery',
-  'Delivered',
-  'Follow-up Required',
+const STATUS_FILTERS: (OrderStatus | 'All')[] = [
+  'Pending',            // Just created
+  'In Progress',        // Being processed
+  'Delivered',          // Successfully delivered
+  'Invoiced',           // Invoice generated
+  'Cancelled'
 ];
 
 export default function OrderListScreen() {
@@ -37,7 +37,7 @@ export default function OrderListScreen() {
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<CustomerStatus | 'All'>('All');
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All'>('All');
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchOrders = async () => {
@@ -84,23 +84,6 @@ export default function OrderListScreen() {
   const inProgressCount = orders.filter((o) => o.status === 'In Progress').length;
   const deliveredCount = orders.filter((o) => o.status === 'Delivered').length;
 
-  const getStatusStyle = (st: CustomerStatus) => {
-    switch (st) {
-      case 'Delivered':
-        return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857' };
-      case 'In Progress':
-        return { bg: isDark ? '#1E3A8A' : '#EFF6FF', text: isDark ? '#BFDBFE' : '#1D4ED8' };
-      case 'Pending':
-        return { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#B45309' };
-      case 'Out for Delivery':
-        return { bg: isDark ? '#4C1D95' : '#F5F3FF', text: isDark ? '#DDD6FE' : '#6D28D9' };
-      case 'Follow-up Required':
-        return { bg: isDark ? '#7F1D1D' : '#FEF2F2', text: isDark ? '#FECACA' : '#B91C1C' };
-      default:
-        return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#CBD5E1' : '#475569' };
-    }
-  };
-
   const formatDate = (iso: string) => {
     try {
       return new Date(iso).toLocaleDateString('en-GB', {
@@ -114,7 +97,7 @@ export default function OrderListScreen() {
   };
 
   const renderOrderCard = ({ item }: { item: CustomerOrder }) => {
-    const statusStyle = getStatusStyle(item.status);
+    const statusStyle = getOrderStatusStyle(item.status);
     const margin = item.profit;
 
     return (

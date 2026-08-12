@@ -8,6 +8,7 @@ import {
   recordCustomerVisit,
 } from '@/lib/storage';
 import { Customer, CustomerStatus, MarketCategory } from '@/lib/types';
+import { getCustomerStatusStyle } from '@/utils/statusStyle';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -40,11 +41,10 @@ const MARKET_CATEGORIES: (MarketCategory | 'All')[] = [
 
 const STATUS_FILTERS: (CustomerStatus | 'All')[] = [
   'All',
-  'In Progress',
-  'Pending',
-  'Out for Delivery',
-  'Delivered',
+  'Active',
   'Follow-up Required',
+  'Inactive',
+  'Blocked'
 ];
 
 export default function CustomersScreen() {
@@ -106,7 +106,7 @@ export default function CustomersScreen() {
   const visitDueTodayCount = customers.filter(
     (c) => c.nextVisitDate && c.nextVisitDate <= todayStr
   ).length;
-  const inProgressCount = customers.filter((c) => c.status === 'In Progress').length;
+  const inProgressCount = customers.filter((c) => c.status === 'Active').length;
 
   const handleCall = (phone: string, name: string) => {
     Linking.openURL(`tel:${phone}`).catch(() => {
@@ -147,24 +147,10 @@ export default function CustomersScreen() {
     );
   };
 
-  const getStatusStyle = (st: CustomerStatus) => {
-    switch (st) {
-      case 'Delivered':
-        return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857' };
-      case 'In Progress':
-        return { bg: isDark ? '#1E3A8A' : '#EFF6FF', text: isDark ? '#BFDBFE' : '#1D4ED8' };
-      case 'Pending':
-        return { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#B45309' };
-      case 'Follow-up Required':
-        return { bg: isDark ? '#7F1D1D' : '#FEF2F2', text: isDark ? '#FECACA' : '#B91C1C' };
-      default:
-        return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#CBD5E1' : '#475569' };
-    }
-  };
 
   const renderCustomerCard = ({ item }: { item: Customer }) => {
     const margin = item.saleRate - item.purchaseRate;
-    const statusStyle = getStatusStyle(item.status);
+    const statusStyle = getCustomerStatusStyle(item.status);
     const isDue = item.nextVisitDate && item.nextVisitDate <= todayStr;
 
     return (

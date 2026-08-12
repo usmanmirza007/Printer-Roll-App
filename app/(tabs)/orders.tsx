@@ -1,7 +1,8 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
 import { getOrdersFromFirestore } from '@/lib/firestore';
-import { CustomerOrder, CustomerStatus } from '@/lib/types';
+import { CustomerOrder, OrderStatus } from '@/lib/types';
+import { getOrderStatusStyle } from '@/utils/statusStyle';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
@@ -16,13 +17,13 @@ import {
   View
 } from 'react-native';
 
-const STATUS_FILTERS: (CustomerStatus | 'All')[] = [
+const STATUS_FILTERS: (OrderStatus | 'All')[] = [
   'All',
   'In Progress',
   'Pending',
-  'Out for Delivery',
   'Delivered',
-  'Follow-up Required',
+  'Invoiced',
+  'Cancelled'
 ];
 
 export default function OrdersScreen() {
@@ -34,7 +35,7 @@ export default function OrdersScreen() {
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<CustomerStatus | 'All'>('All');
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All'>('All');
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchOrders = async () => {
@@ -81,23 +82,6 @@ export default function OrdersScreen() {
   const inProgressCount = orders.filter((o) => o.status === 'In Progress').length;
   const deliveredCount = orders.filter((o) => o.status === 'Delivered').length;
 
-  const getStatusStyle = (st: CustomerStatus) => {
-    switch (st) {
-      case 'Delivered':
-        return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857' };
-      case 'In Progress':
-        return { bg: isDark ? '#1E3A8A' : '#EFF6FF', text: isDark ? '#BFDBFE' : '#1D4ED8' };
-      case 'Pending':
-        return { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#B45309' };
-      case 'Out for Delivery':
-        return { bg: isDark ? '#4C1D95' : '#F5F3FF', text: isDark ? '#DDD6FE' : '#6D28D9' };
-      case 'Follow-up Required':
-        return { bg: isDark ? '#7F1D1D' : '#FEF2F2', text: isDark ? '#FECACA' : '#B91C1C' };
-      default:
-        return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#CBD5E1' : '#475569' };
-    }
-  };
-
   const formatDate = (iso: string) => {
     try {
       return new Date(iso).toLocaleDateString('en-GB', {
@@ -111,7 +95,7 @@ export default function OrdersScreen() {
   };
 
   const renderOrderCard = ({ item }: { item: CustomerOrder }) => {
-    const statusStyle = getStatusStyle(item.status);
+    const statusStyle = getOrderStatusStyle(item.status);
     const margin = item.profit;
 
     return (
@@ -191,23 +175,23 @@ export default function OrdersScreen() {
         <View style={[styles.actionBar, { borderTopColor: theme.border }]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-            onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
-          >
-            <Ionicons name="eye-outline" size={15} color={theme.tint} />
-            <Text style={[styles.actionText, { color: theme.text }]}>View Details</Text>
-          </TouchableOpacity>
+              style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+              onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
+            >
+              <Ionicons name="eye-outline" size={15} color={theme.tint} />
+              <Text style={[styles.actionText, { color: theme.text }]}>View Details</Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              styles.iconOnlyBtn,
-              { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
-            ]}
-            onPress={() => router.push(`/order/${item.id}?type=edit&customerId=${item.customerId}`)}
-          >
-            <Feather name="edit-2" size={15} color={theme.textSecondary} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.actionBtn,
+                styles.iconOnlyBtn,
+                { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
+              ]}
+              onPress={() => router.push(`/order/${item.id}?type=edit&customerId=${item.customerId}`)}
+            >
+              <Feather name="edit-2" size={15} color={theme.textSecondary} />
+            </TouchableOpacity>
           </View>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
@@ -329,16 +313,6 @@ export default function OrdersScreen() {
           </View>
         }
       />
-
-      {/* Floating Add Button */}
-      {/* <TouchableOpacity
-        style={[styles.fab, { backgroundColor: theme.tint }]}
-        activeOpacity={0.85}
-        onPress={() => router.push(`/order/add?customerId=${customerId}`)}
-      >
-        <Ionicons name="add" size={24} color="#FFFFFF" />
-        <Text style={styles.fabText}>New Order</Text>
-      </TouchableOpacity> */}
     </View>
   );
 }

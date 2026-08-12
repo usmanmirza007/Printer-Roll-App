@@ -1,7 +1,7 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
 import { loadRolls, loadSingleCustomer, loadSingleCustomerOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
-import { Customer, CustomerOrder, CustomerStatus, ThermalRoll } from '@/lib/types';
+import { Customer, CustomerOrder, OrderStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useSearchParams } from 'expo-router/build/hooks';
@@ -19,12 +19,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const STATUSES: CustomerStatus[] = [
+const STATUSES: OrderStatus[] = [
   'In Progress',
   'Pending',
-  'Out for Delivery',
   'Delivered',
-  'Follow-up Required',
+  'Invoiced',
   'Cancelled',
 ];
 
@@ -47,7 +46,7 @@ export default function AddOrEditCustomerOrderScreen() {
   const [quantity, setQuantity] = useState('1');
   const [unitCostRate, setUnitCostRate] = useState('120');
   const [unitSaleRate, setUnitSaleRate] = useState('135');
-  const [status, setStatus] = useState<CustomerStatus>('Pending');
+  const [status, setStatus] = useState<OrderStatus>('Pending');
   const [loading, setLoading] = useState(false);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
   const [selectedRoll, setSelectedRoll] = useState<ThermalRoll | null>(null);
@@ -55,6 +54,7 @@ export default function AddOrEditCustomerOrderScreen() {
   const fetchDetail = async () => {
     if (!customerId) return;
     const customer = await loadSingleCustomer(customerId);
+
     setCustomers(customer);
     if (customer && !selectedCustomerId) {
       setSelectedCustomerId(customer.id);
@@ -194,7 +194,7 @@ export default function AddOrEditCustomerOrderScreen() {
           </View>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-            onPress={() => router.push(`/invoice/${id}`)}
+            onPress={() => router.push(`/invoice/${customerId}`)}
           >
             <Ionicons name="print-outline" size={18} color={theme.tint} />
             <Text style={[styles.actionText, { color: theme.text }]}>Print Invoice</Text>
