@@ -14,6 +14,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ============ STATIC COMPANY DETAILS ============
 const COMPANY = {
@@ -64,6 +65,7 @@ export default function InvoiceScreen() {
   const [discount, setDiscount] = useState<number>(0);
   const [shipping, setShipping] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
+  const { top } = useSafeAreaInsets();
 
   const fetchDetail = async () => {
     if (!customerId) {
@@ -300,7 +302,7 @@ export default function InvoiceScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView contentContainerStyle={{marginTop: top, padding: 16 }}>
         <Text style={styles.title}>Invoice Preview</Text>
         <Text style={styles.invoiceNo}>{order.invoiceNo}</Text>
         <Text style={styles.customer}>{order.customer.name}</Text>
