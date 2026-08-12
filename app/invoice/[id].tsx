@@ -1,16 +1,18 @@
+import { loadSingleCustomer } from '@/lib/storage';
+import { Customer } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
-import { useLocalSearchParams } from 'expo-router';
+import { useSearchParams } from 'expo-router/build/hooks';
 import * as Sharing from 'expo-sharing';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 // ============ STATIC COMPANY DETAILS ============
@@ -21,34 +23,101 @@ const COMPANY = {
   phone1: '0335-0604017',
   phone2: '0337-0495656',
   address: 'Lahore, Punjab, Pakistan',
-  signature: 'Muhammad Usman',
 };
 
-export default function InvoiceScreen() {
-  const { orderId } = useLocalSearchParams();
-  const [loading, setLoading] = useState(false);
+type OrderItem = {
+  no: string
+  description: string
+  qty: number
+  unitPrice: number
+  amount: number
+}
+type CustomerDetails = {
+  name: string
+  address: string
+  phone: string
+}
+type Order = {
+  invoiceNo: string
+  invoiceDate: string
+  salesUsman: string
+  salesBilal: string
+  customer: CustomerDetails
+  items: OrderItem[]
+  subtotal: number
+  discount: number
+  shipping: number
+  total: number
+}
 
-  // TODO: Replace with real order data from Firestore
-  const order = {
-    invoiceNo: 'INV-2025-0001',
-    invoiceDate: '09 May 2025',
-    dueDate: '16 May 2025',
-    salesPerson: 'Muhammad Usman',
+export default function InvoiceScreen() {
+  const searchParams = useSearchParams();
+  const customerId: string = searchParams.get('id') || '';
+
+  const [loading, setLoading] = useState(false);
+  const [customers, setCustomers] = useState<Customer | null>(null);
+  const [orders, setOrders] = useState<OrderItem[]>([]);
+  const [subTotal, setSubTotal] = useState<number>(0);
+  const [discount, setDiscount] = useState<number>(0);
+  const [shipping, setShipping] = useState<number>(0);
+  const [total, setTotal] = useState<number>(0);
+
+
+  const fetchDetail = async () => {
+
+    if (!customerId) return;
+    const customer = await loadSingleCustomer(customerId);
+
+    setCustomers(customer);
+    const filteredOrder = customer?.orderHistory?.filter((order) => order.status === 'Invoiced')
+    
+    if (filteredOrder && filteredOrder.length) {
+      setOrders(filteredOrder.map((order, index) => ({
+        no: (index + 1).toString().padStart(2, '0'),
+        description: `Thermal Printer Roll ${order.rollType}`,
+        qty: order.quantity,
+        unitPrice: order.unitSaleRate,
+        amount: order.totalSale,
+      })))
+      let calculatedSubTotal = 0;
+      let calculatedDiscount = 0;
+      for (const order of filteredOrder) {
+
+        calculatedSubTotal += order.totalSale;
+        const discountPerUnit = (order.unitSaleRate - (order.unitCostRate || 200));
+        calculatedDiscount += discountPerUnit * order.quantity;
+      }
+      const calculatedShipping = 0; // or fixed amount
+      // const calculatedTotal = calculatedSubTotal - calculatedDiscount + calculatedShipping;
+      const calculatedTotal = calculatedSubTotal + calculatedShipping;
+      setSubTotal(calculatedSubTotal)
+      setDiscount(0)
+      setShipping(calculatedShipping)
+      setTotal(calculatedTotal)
+    }
+  }
+  
+
+  useEffect(() => {
+    fetchDetail()
+  }, [customerId]);
+
+  const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  const order: Order = {
+    invoiceNo: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+    invoiceDate: today,
+    salesUsman: 'Muhammad Usman',
+    salesBilal: "Muhammad Bilal",
     customer: {
-      name: 'ABC Store',
-      address: '123 Business Street, Lahore, Punjab, Pakistan',
-      phone: '0300-1234567',
+      name: customers?.shopName || 'ABC Store',
+      address: customers?.location || '123 Business Street, Lahore, Punjab, Pakistan',
+      phone: customers?.phone || '0300-1234567',
     },
-    items: [
-      { no: '01', description: 'Thermal Printer Roll 80x80', qty: 50, unitPrice: 120, amount: 6000 },
-      { no: '02', description: 'Thermal Printer Roll 57x40', qty: 100, unitPrice: 60, amount: 6000 },
-      { no: '03', description: 'Thermal Printer Roll 80x60', qty: 50, unitPrice: 100, amount: 5000 },
-      { no: '04', description: 'Thermal Printer Roll 57x30', qty: 100, unitPrice: 50, amount: 5000 },
-    ],
-    subtotal: 22000,
-    discount: 1100, // 5%
-    shipping: 300,
-    total: 21200,
+    items: orders,
+    subtotal: subTotal,
+    discount: discount, // 5%
+    shipping: shipping,
+    total: total,
   };
 
   const generateHTML = () => {
@@ -90,11 +159,7 @@ export default function InvoiceScreen() {
         .totals { margin-left: auto; width: 280px; }
         .totals td { padding: 8px 12px; }
         .total-row { background: #0d1b4c; color: white; font-weight: 700; }
-        .features { display: flex; justify-content: space-around; margin: 30px 0; text-align: center; }
-        .feature { font-size: 11px; }
         .footer { background: #0d1b4c; color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; font-size: 12px; }
-        .signature { margin-top: 40px; text-align: left; }
-        .signature-name { font-family: 'Playfair Display', serif; font-size: 22px; color: #0d1b4c; }
       </style>
     </head>
     <body>
@@ -120,8 +185,8 @@ export default function InvoiceScreen() {
           </div>
           <div class="meta-box">
             <div>📅 Invoice Date : ${order.invoiceDate}</div>
-            <div>⏰ Due Date : ${order.dueDate}</div>
-            <div>👤 Sales Person : ${order.salesPerson}</div>
+            <div>👤 Sales Person : ${order.salesUsman}</div>
+            <div>👤 Sales Person : ${order.salesBilal}</div>
           </div>
         </div>
 
@@ -142,9 +207,9 @@ export default function InvoiceScreen() {
 
         <table class="totals">
           <tr><td>SUBTOTAL</td><td style="text-align:right">Rs. ${order.subtotal.toLocaleString()}.00</td></tr>
-          <tr><td>DISCOUNT (5%)</td><td style="text-align:right">Rs. ${order.discount.toLocaleString()}.00</td></tr>
-          <tr><td>SHIPPING CHARGES</td><td style="text-align:right">Rs. ${order.shipping.toLocaleString()}.00</td></tr>
-          <tr class="total-row"><td>TOTAL AMOUNT</td><td style="text-align:right">Rs. ${order.total.toLocaleString()}.00</td></tr>
+          <tr><td>DISCOUNT</td><td style="text-align:right">Rs. ${order.discount.toLocaleString()}.00</td></tr>
+          <tr><td>SHIPPING</td><td style="text-align:right">Rs. ${order.shipping.toLocaleString()}.00</td></tr>
+          <tr class="total-row"><td>TOTAL</td><td style="text-align:right">Rs. ${order.total.toLocaleString()}.00</td></tr>
         </table>
 
         <div style="margin:20px 0;padding:12px;background:#fff8e1;border-radius:8px;border-left:4px solid #c9a227;">
@@ -153,22 +218,10 @@ export default function InvoiceScreen() {
           We appreciate your trust in Mughal Thermal Printer Roll.
         </div>
 
-        <div class="features">
-          <div class="feature">🛡️<br>HIGH QUALITY</div>
-          <div class="feature">🖨️<br>CLEAR PRINT</div>
-          <div class="feature">📜<br>SMOOTH PAPER</div>
-          <div class="feature">🏅<br>BEST CHOICE</div>
-        </div>
-
         <div class="footer">
           <div>📞 CONTACT US<br>${COMPANY.phone1}<br>${COMPANY.phone2}</div>
           <div>📍 ADDRESS<br>${COMPANY.address}</div>
           <div>🌐 FOLLOW US<br>Stay connected for updates & offers</div>
-        </div>
-
-        <div class="signature">
-          <div class="signature-name">${COMPANY.signature}</div>
-          <div style="font-size:12px;color:#666;">Authorized Signature</div>
         </div>
       </div>
     </body>

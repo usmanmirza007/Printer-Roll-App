@@ -76,7 +76,7 @@ export default function AddOrEditCustomerOrderScreen() {
 
   // If editing, load existing order (you can expand this later)
   useEffect(() => {
-    loadSingleOrder(id).then((data) => {
+    loadSingleOrder(id).then((data: any) => {
       if (data) {
         setRollType(data.rollType);
         setQuantity(data.quantity.toString());
@@ -173,7 +173,7 @@ export default function AddOrEditCustomerOrderScreen() {
       Alert.alert('Error', 'Failed to save order.');
     }
   };
-
+  
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}

@@ -41,15 +41,43 @@ export async function getCustomersFromFirestore(): Promise<Customer[]> {
   }
 }
 
-export async function getCustomerByIdFromFirestore(customerId: string): Promise<Customer | null> {
+export async function getCustomerByIdFromFirestore(
+  customerId: string
+): Promise<Customer | null> {
   try {
+    // 1. Get Customer
     const docRef = doc(db, CUSTOMERS_COLLECTION, customerId);
     const snapshot = await getDoc(docRef);
 
-    if (snapshot.exists()) {
-      return { id: snapshot.id, ...snapshot.data() } as Customer;
+    if (!snapshot.exists()) {
+      return null;
     }
-    return null; // Customer not found
+
+    const customerData = {
+      id: snapshot.id,
+      ...snapshot.data(),
+    } as Customer;
+
+    // 2. Get Orders by customerId
+    const q = query(
+      collection(db, CUSTOMERS_ORDER_COLLECTION),
+      where('customerId', '==', customerId)
+    );
+
+    const ordersSnapshot = await getDocs(q);
+
+    const orderHistory: CustomerOrder[] = [];
+    ordersSnapshot.forEach((d) => {
+      orderHistory.push({
+        id: d.id,
+        ...d.data(),
+      } as CustomerOrder);
+    });
+
+    // 3. Attach orders
+    customerData.orderHistory = orderHistory;
+    
+    return customerData;
   } catch (error) {
     console.error('❌ Error fetching customer by ID:', error);
     return null;
