@@ -26,35 +26,38 @@ const COMPANY = {
 };
 
 type OrderItem = {
-  no: string
-  description: string
-  qty: number
-  unitPrice: number
-  amount: number
-}
+  no: string;
+  description: string;
+  qty: number;
+  unitPrice: number;
+  amount: number;
+};
+
 type CustomerDetails = {
-  name: string
-  address: string
-  phone: string
-}
+  name: string;
+  address: string;
+  phone: string;
+};
+
 type Order = {
-  invoiceNo: string
-  invoiceDate: string
-  salesUsman: string
-  salesBilal: string
-  customer: CustomerDetails
-  items: OrderItem[]
-  subtotal: number
-  discount: number
-  shipping: number
-  total: number
-}
+  invoiceNo: string;
+  invoiceDate: string;
+  salesUsman: string;
+  salesBilal: string;
+  customer: CustomerDetails;
+  items: OrderItem[];
+  subtotal: number;
+  discount: number;
+  shipping: number;
+  total: number;
+};
 
 export default function InvoiceScreen() {
   const searchParams = useSearchParams();
   const customerId: string = searchParams.get('id') || '';
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // start true so first render shows loader
+  const [sharing, setSharing] = useState(false); // separate state for PDF share button
   const [customers, setCustomers] = useState<Customer | null>(null);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [subTotal, setSubTotal] = useState<number>(0);
@@ -62,52 +65,85 @@ export default function InvoiceScreen() {
   const [shipping, setShipping] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
 
-
   const fetchDetail = async () => {
-
-    if (!customerId) return;
-    const customer = await loadSingleCustomer(customerId);
-
-    setCustomers(customer);
-    const filteredOrder = customer?.orderHistory?.filter((order) => order.status === 'Invoiced')
-    
-    if (filteredOrder && filteredOrder.length) {
-      setOrders(filteredOrder.map((order, index) => ({
-        no: (index + 1).toString().padStart(2, '0'),
-        description: `Thermal Printer Roll ${order.rollType}`,
-        qty: order.quantity,
-        unitPrice: order.unitSaleRate,
-        amount: order.totalSale,
-      })))
-      let calculatedSubTotal = 0;
-      let calculatedDiscount = 0;
-      for (const order of filteredOrder) {
-
-        calculatedSubTotal += order.totalSale;
-        const discountPerUnit = (order.unitSaleRate - (order.unitCostRate || 200));
-        calculatedDiscount += discountPerUnit * order.quantity;
-      }
-      const calculatedShipping = 0; // or fixed amount
-      // const calculatedTotal = calculatedSubTotal - calculatedDiscount + calculatedShipping;
-      const calculatedTotal = calculatedSubTotal + calculatedShipping;
-      setSubTotal(calculatedSubTotal)
-      setDiscount(0)
-      setShipping(calculatedShipping)
-      setTotal(calculatedTotal)
+    if (!customerId) {
+      setLoading(false);
+      return;
     }
-  }
-  
+
+    try {
+      setLoading(true);
+      const customer = await loadSingleCustomer(customerId);
+
+      setCustomers(customer);
+
+      const filteredOrder = customer?.orderHistory?.filter(
+        (order) => order.status === 'Invoiced'
+      );
+
+      if (filteredOrder && filteredOrder.length) {
+        setOrders(
+          filteredOrder.map((order, index) => ({
+            no: (index + 1).toString().padStart(2, '0'),
+            description: `Thermal Printer Roll ${order.rollType}`,
+            qty: order.quantity,
+            unitPrice: order.unitSaleRate,
+            amount: order.totalSale,
+          }))
+        );
+
+        let calculatedSubTotal = 0;
+        let calculatedDiscount = 0;
+
+        for (const order of filteredOrder) {
+          calculatedSubTotal += order.totalSale;
+          const discountPerUnit =
+            order.unitSaleRate - (order.unitCostRate || 200);
+          calculatedDiscount += discountPerUnit * order.quantity;
+        }
+
+        const calculatedShipping = 0;
+        const calculatedTotal = calculatedSubTotal + calculatedShipping;
+
+        setSubTotal(calculatedSubTotal);
+        setDiscount(0);
+        setShipping(calculatedShipping);
+        setTotal(calculatedTotal);
+      } else {
+        // no invoiced orders – reset values
+        setOrders([]);
+        setSubTotal(0);
+        setDiscount(0);
+        setShipping(0);
+        setTotal(0);
+      }
+    } catch (error) {
+      console.log('Failed to load customer:', error);
+      Alert.alert('Error', 'Failed to load invoice data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    fetchDetail()
+    fetchDetail();
   }, [customerId]);
 
-  const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
+  const today = new Date().toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  });
+
   const order: Order = {
-    invoiceNo: `INV-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+    invoiceNo: `INV-${new Date().getFullYear()}-${Math.floor(
+      Math.random() * 10000
+    )
+      .toString()
+      .padStart(4, '0')}`,
     invoiceDate: today,
     salesUsman: 'Muhammad Usman',
-    salesBilal: "Muhammad Bilal",
+    salesBilal: 'Muhammad Bilal',
     customer: {
       name: customers?.shopName || 'ABC Store',
       address: customers?.location || '123 Business Street, Lahore, Punjab, Pakistan',
@@ -115,7 +151,7 @@ export default function InvoiceScreen() {
     },
     items: orders,
     subtotal: subTotal,
-    discount: discount, // 5%
+    discount: discount,
     shipping: shipping,
     total: total,
   };
@@ -231,7 +267,7 @@ export default function InvoiceScreen() {
 
   const handleDownloadAndShare = async () => {
     try {
-      setLoading(true);
+      setSharing(true);
       const html = generateHTML();
       const { uri } = await Print.printToFileAsync({ html, base64: false });
 
@@ -248,27 +284,38 @@ export default function InvoiceScreen() {
       console.log(error);
       Alert.alert('Error', 'Failed to generate invoice');
     } finally {
-      setLoading(false);
+      setSharing(false);
     }
   };
+
+  // ---------- LOADING UI ----------
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#0d1b4c" />
+        <Text style={styles.loadingText}>Loading invoice...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        {/* You can also show a visual preview here using the same data */}
         <Text style={styles.title}>Invoice Preview</Text>
         <Text style={styles.invoiceNo}>{order.invoiceNo}</Text>
         <Text style={styles.customer}>{order.customer.name}</Text>
-        <Text style={styles.total}>Total: Rs. {order.total.toLocaleString()}</Text>
+        <Text style={styles.total}>
+          Total: Rs. {order.total.toLocaleString()}
+        </Text>
       </ScrollView>
 
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.btn, styles.shareBtn]}
           onPress={handleDownloadAndShare}
-          disabled={loading}
+          disabled={sharing}
         >
-          {loading ? (
+          {sharing ? (
             <ActivityIndicator color="#fff" />
           ) : (
             <>
@@ -284,6 +331,18 @@ export default function InvoiceScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#0d1b4c',
+    fontWeight: '600',
+  },
   title: { fontSize: 22, fontWeight: '700', color: '#0d1b4c' },
   invoiceNo: { fontSize: 16, color: '#c9a227', marginTop: 6 },
   customer: { fontSize: 16, marginTop: 12 },
