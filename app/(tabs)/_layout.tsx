@@ -67,7 +67,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Customers',
-          headerTitle: 'Customer Directory',
+          headerTitle: 'Customer Directory 123',
           tabBarIcon: ({ color, focused }) => (
             <MaterialIcons
               name={focused ? 'people' : 'people-outline'}
