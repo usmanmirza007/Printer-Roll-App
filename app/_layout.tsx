@@ -4,14 +4,12 @@ import {
   requestNotificationPermission
 } from '@/constants/NotificationService';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
-// import notifee, { AndroidImportance } from '@notifee/react-native';
-// @ts-ignore
-// import messaging from '@react-native-firebase/messaging';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 
 export { ErrorBoundary } from 'expo-router';
@@ -33,13 +31,16 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
-
+  // ✅ Early return hata diya — hamesha same structure
   return (
     <AuthProvider>
-      <MainContent />
+      {!loaded ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" />
+        </View>
+      ) : (
+        <MainContent />
+      )}
     </AuthProvider>
   );
 }
@@ -49,7 +50,7 @@ function MainContent() {
   const segments = useSegments();
   const router = useRouter();
 
-  useEffect(() => {
+  // useEffect(() => {
     // async function initChannel() {
     //   try {
     //     await notifee.createChannel({
@@ -65,7 +66,7 @@ function MainContent() {
     //   }
     // }
     // initChannel();
-  }, []);
+  // }, []);
 
   useEffect(() => {
     if (loading) return;
@@ -125,15 +126,22 @@ function MainContent() {
             (user as any)?.stsTokenManager?.accessToken
           );
         }
-
-        // return unsubscribe;
       } catch (error) {
         console.error('Error initializing notifications:', error);
       }
     };
 
-    initializeNotifications();
+    // initializeNotifications();
   }, [user]);
+
+  // Auth loading ke time bhi same component tree rakho
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return <RootLayoutNav />;
 }

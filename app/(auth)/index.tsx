@@ -49,8 +49,6 @@ export default function AuthScreen() {
 
         setLoading(true);
         try {
-            console.log('isSignUp', isSignUp, email, password);
-
             if (isSignUp) {
                 await signUp(email.trim(), password, name.trim());
                 Alert.alert('Account Created', 'Welcome to Thermal Roll Direct Sales!');

@@ -57,6 +57,7 @@ export default function CustomersScreen() {
   const [selectedCategory, setSelectedCategory] = useState<MarketCategory | 'All'>('All');
   const [selectedStatus, setSelectedStatus] = useState<CustomerStatus | 'All'>('All');
   const [refreshing, setRefreshing] = useState(false);
+  const { user } = useAuth();
 
   const fetchCustomerData = async () => {
     try {
@@ -127,7 +128,6 @@ export default function CustomersScreen() {
     });
   };
 
-  const { user } = useAuth();
 
   const handleLogVisit = async (customerId: string, shopName: string) => {
     Alert.alert(

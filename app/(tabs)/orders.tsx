@@ -30,8 +30,6 @@ export default function OrdersScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
-  // const searchParams = useSearchParams();
-  // const customerId = searchParams.get('customerId');
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
