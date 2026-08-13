@@ -3,8 +3,7 @@ import Colors, { Palette } from '@/constants/Colors';
 import { loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
 import { Customer, CustomerOrder, OrderStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { useSearchParams } from 'expo-router/build/hooks';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -33,11 +32,12 @@ export default function AddOrEditCustomerOrderScreen() {
   const theme = Colors[isDark ? 'dark' : 'light'];
   const { top } = useSafeAreaInsets();
 
-  const searchParams = useSearchParams();
-  const customerId: string = searchParams.get('customerId') || '';
-  const id: string = searchParams.get('id') || '';
-  const type: string = searchParams.get('type') || '';
-  const isEditMode = type && type === 'edit';
+  const { customerId = '', id = '', type = '' } = useLocalSearchParams<{
+    customerId?: string;
+    id?: string;
+    type?: string;
+  }>();
+  const isEditMode = type === 'edit';
 
   // Form state
   const [customers, setCustomers] = useState<Customer | null>(null);

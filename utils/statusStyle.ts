@@ -1,10 +1,6 @@
 import { CustomerStatus, OrderStatus } from "@/lib/types";
-import { useColorScheme } from "react-native";
-const colorScheme = useColorScheme();
 
-const isDark = colorScheme === 'dark';
-
-export const getOrderStatusStyle = (st: OrderStatus) => {
+export const getOrderStatusStyle = (st: OrderStatus, isDark: boolean = false) => {
   switch (st) {
     case 'Delivered':
       return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857' };
@@ -22,21 +18,21 @@ export const getOrderStatusStyle = (st: OrderStatus) => {
 };
 
 
-export const getCustomerStatusStyle = (status: CustomerStatus) => {
+export const getCustomerStatusStyle = (status: CustomerStatus, isDark: boolean = false) => {
   switch (status) {
     case 'Active':
-      return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857', }; // Green
+      return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857' };
 
     case 'Follow-up Required':
-      return { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#B45309', }; // Amber / Orange
+      return { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#B45309' };
 
     case 'Inactive':
-      return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#94A3B8' : '#64748B', }; // Gray
+      return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#94A3B8' : '#64748B' };
 
     case 'Blocked':
-      return { bg: isDark ? '#7F1D1D' : '#FEF2F2', text: isDark ? '#FECACA' : '#B91C1C', }; // Red
+      return { bg: isDark ? '#7F1D1D' : '#FEF2F2', text: isDark ? '#FECACA' : '#B91C1C' };
 
     default:
-      return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#CBD5E1' : '#475569', };
+      return { bg: isDark ? '#334155' : '#F1F5F9', text: isDark ? '#CBD5E1' : '#475569' };
   }
 };

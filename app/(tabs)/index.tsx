@@ -150,7 +150,7 @@ export default function CustomersScreen() {
 
   const renderCustomerCard = ({ item }: { item: Customer }) => {
     const margin = item.saleRate - item.purchaseRate;
-    const statusStyle = getCustomerStatusStyle(item.status);
+    const statusStyle = getCustomerStatusStyle(item.status, isDark);
     const isDue = item.nextVisitDate && item.nextVisitDate <= todayStr;
 
     return (

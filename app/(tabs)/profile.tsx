@@ -212,7 +212,7 @@ export default function DashboardScreen() {
         <Text style={[styles.cardTitle, { color: theme.tint }]}>App Info</Text>
         <View style={[styles.catChip, { paddingHorizontal: 0 }]}>
           <Text style={[styles.catChipName, { color: theme.text }]}>Env:</Text>
-          <Text style={[styles.catChipCount, { color: theme.textSecondary }]}>{env.toUpperCase()}</Text>
+          <Text style={[styles.catChipCount, { color: theme.textSecondary }]}>{env}</Text>
         </View>
         <View style={[styles.catChip, { paddingHorizontal: 0 }]}>
           <Text style={[styles.catChipName, { color: theme.text }]}>Version:</Text>

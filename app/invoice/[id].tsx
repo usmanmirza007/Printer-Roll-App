@@ -2,7 +2,7 @@ import { loadSingleCustomer } from '@/lib/storage';
 import { Customer } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import * as Print from 'expo-print';
-import { useSearchParams } from 'expo-router/build/hooks';
+import { useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React, { useEffect, useState } from 'react';
 import {
@@ -54,8 +54,7 @@ type Order = {
 };
 
 export default function InvoiceScreen() {
-  const searchParams = useSearchParams();
-  const customerId: string = searchParams.get('id') || '';
+  const { id: customerId = '' } = useLocalSearchParams<{ id?: string }>();
 
   const [loading, setLoading] = useState(true); // start true so first render shows loader
   const [sharing, setSharing] = useState(false); // separate state for PDF share button

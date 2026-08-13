@@ -93,7 +93,7 @@ export default function OrdersScreen() {
   };
 
   const renderOrderCard = ({ item }: { item: CustomerOrder }) => {
-    const statusStyle = getOrderStatusStyle(item.status);
+    const statusStyle = getOrderStatusStyle(item.status, isDark);
     const margin = item.profit;
 
     return (

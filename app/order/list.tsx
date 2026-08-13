@@ -4,8 +4,7 @@ import { getCustomerOrdersFromFirestore } from '@/lib/firestore';
 import { CustomerOrder, OrderStatus } from '@/lib/types';
 import { getOrderStatusStyle } from '@/utils/statusStyle';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import { useSearchParams } from 'expo-router/build/hooks';
+import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
@@ -31,8 +30,7 @@ export default function OrderListScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
-  const searchParams = useSearchParams();
-  const customerId = searchParams.get('customerId');
+  const { customerId } = useLocalSearchParams<{ customerId?: string }>();
   const { top } = useSafeAreaInsets();
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
@@ -97,7 +95,7 @@ export default function OrderListScreen() {
   };
 
   const renderOrderCard = ({ item }: { item: CustomerOrder }) => {
-    const statusStyle = getOrderStatusStyle(item.status);
+    const statusStyle = getOrderStatusStyle(item.status, isDark);
     const margin = item.profit;
 
     return (
