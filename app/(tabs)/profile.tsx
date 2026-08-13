@@ -1,5 +1,6 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
+import { env } from '@/constants/environment';
 import { useAuth } from '@/context/AuthContext';
 import {
   getTodayDateString,
@@ -8,6 +9,8 @@ import {
 } from '@/lib/storage';
 import { Customer, ThermalRoll } from '@/lib/types';
 import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import * as Application from 'expo-application';
+import Constants from 'expo-constants';
 import { useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
@@ -29,6 +32,11 @@ export default function DashboardScreen() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
   const [reseeding, setReseeding] = useState(false);
+  const version = Constants.expoConfig?.version
+  const buildNumber =
+    Constants.executionEnvironment === 'storeClient'
+      ? 'dev'                                             // Expo Go mein
+      : Application.nativeBuildVersion || '1';            // Real Build
 
   const fetchData = async () => {
     const custs = await loadCustomers();
@@ -200,6 +208,18 @@ export default function DashboardScreen() {
           </Text>
         </TouchableOpacity>
       </View>
+      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+        <Text style={[styles.cardTitle, { color: theme.tint }]}>App Info</Text>
+        <View style={[styles.catChip, { paddingHorizontal: 0 }]}>
+          <Text style={[styles.catChipName, { color: theme.text }]}>Env:</Text>
+          <Text style={[styles.catChipCount, { color: theme.textSecondary }]}>{env.toUpperCase()}</Text>
+        </View>
+        <View style={[styles.catChip, { paddingHorizontal: 0 }]}>
+          <Text style={[styles.catChipName, { color: theme.text }]}>Version:</Text>
+          <Text style={[styles.catChipCount, { color: theme.textSecondary }]}>{version}{'(' + buildNumber + ')'}</Text>
+        </View>
+      </View>
+
     </ScrollView>
   );
 }

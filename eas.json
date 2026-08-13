@@ -11,11 +11,18 @@
     },
     "staging": {
       "distribution": "internal",
-      "channel": "staging"
+      "channel": "staging",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "channel": "production",
-      "autoIncrement": true
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
