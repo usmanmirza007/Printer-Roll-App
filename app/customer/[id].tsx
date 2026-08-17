@@ -164,25 +164,25 @@ export default function CustomerDetailScreen() {
             <Text style={[styles.rateValue, { color: theme.text }]}>{customer.rollType}</Text>
           </View>
 
-          <View style={styles.rateBox}>
-            <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Cost Rate</Text>
-            <Text style={[styles.rateValue, { color: theme.text }]}>₨{customer.purchaseRate}</Text>
-          </View>
 
           <View style={styles.rateBox}>
             <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Sale Rate</Text>
             <Text style={[styles.rateValue, { color: theme.text }]}>₨{customer.saleRate}</Text>
           </View>
+          <View style={styles.rateBox}>
+            <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Order Count</Text>
+            <Text style={[styles.rateValue, { color: theme.text }]}>1</Text>
+          </View>
         </View>
 
-        <View style={[styles.marginBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        {/* <View style={[styles.marginBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
           <Text style={[styles.marginTitle, { color: margin >= 0 ? Palette.success : Palette.danger }]}>
             Profit Margin: <Text style={{ fontWeight: '700' }}>₨{margin}</Text> per roll
           </Text>
           <Text style={[styles.marginSub, { color: theme.textSecondary }]}>
             Est. profit on 50 rolls = <Text style={{ fontWeight: '700', color: theme.text }}>₨{margin * 50}</Text>
           </Text>
-        </View>
+        </View> */}
       </View>
 
       {/* Visit Schedule Card */}

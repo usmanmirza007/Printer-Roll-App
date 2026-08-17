@@ -145,10 +145,9 @@ export default function OrderListScreen() {
 
           <View style={styles.priceCol}>
             <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
-              Rate (Cost ➔ Sale)
+              Sale Rate 
             </Text>
             <Text style={[styles.priceVal, { color: theme.text }]}>
-              ₨{item.unitCostRate} ➔{' '}
               <Text style={{ fontWeight: '700' }}>₨{item.unitSaleRate}</Text>
             </Text>
           </View>
@@ -163,9 +162,9 @@ export default function OrderListScreen() {
 
         {/* Totals Row */}
         <View style={styles.totalsRow}>
-          <Text style={[styles.totalText, { color: theme.textSecondary }]}>
+          {/* <Text style={[styles.totalText, { color: theme.textSecondary }]}>
             Total Cost: <Text style={{ color: theme.text, fontWeight: '600' }}>₨{item.totalCost}</Text>
-          </Text>
+          </Text> */}
           <Text style={[styles.totalText, { color: theme.textSecondary }]}>
             Total Sale: <Text style={{ color: theme.text, fontWeight: '600' }}>₨{item.totalSale}</Text>
           </Text>

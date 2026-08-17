@@ -59,6 +59,14 @@ export default function CustomersScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
 
+  // const {
+  //   orders,
+  //   orderCount,
+  //   loading,
+  //   error,
+  //   refetch,
+  // } = useCustomerOrders(customerId);
+
   const fetchCustomerData = async () => {
     try {
       const data = await loadCustomers();
@@ -194,16 +202,16 @@ export default function CustomersScreen() {
           </View>
 
           <View style={styles.priceCol}>
-            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Rate (Cost ➔ Sale)</Text>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Sale Rate</Text>
             <Text style={[styles.priceVal, { color: theme.text }]}>
-              ₨{item.purchaseRate} ➔ <Text style={{ fontWeight: '700' }}>₨{item.saleRate}</Text>
+              ₨{item.saleRate}
             </Text>
           </View>
 
           <View style={styles.priceCol}>
-            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Margin</Text>
+            <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Order Count</Text>
             <Text style={[styles.marginVal, { color: Palette.success }]}>
-              +₨{margin}
+              1
             </Text>
           </View>
         </View>
