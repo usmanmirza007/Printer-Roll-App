@@ -211,7 +211,7 @@ export default function CustomersScreen() {
           <View style={styles.priceCol}>
             <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Order Count</Text>
             <Text style={[styles.marginVal, { color: Palette.success }]}>
-              1
+              {item.orderCount}
             </Text>
           </View>
         </View>

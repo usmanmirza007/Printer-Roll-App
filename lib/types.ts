@@ -32,6 +32,7 @@ export interface Customer {
   rollType: string;         // Required Roll Type (e.g. "40 Meter", "50 Meter", "60 Meter", "80 Meter")
   purchaseRate: number;     // Cost Price (e.g. 120)
   saleRate: number;         // Sale Price for this customer (e.g. 135)
+  orderCount: number
   status: CustomerStatus;   // Order/Customer Status
   createdDate: string;      // ISO String format date
   revisitDays: number;      // Days cycle for re-visit (e.g. 3, 7, 14, 30)
@@ -49,6 +50,7 @@ export interface CustomerOrder {
   quantity: number;
   rollType: string;
   unitCostRate: number;
+  buisnessName: string;
   unitSaleRate: number;
   totalCost: number;
   totalSale: number;

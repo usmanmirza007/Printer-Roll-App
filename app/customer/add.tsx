@@ -134,6 +134,7 @@ export default function AddOrEditCustomerScreen() {
         location: location.trim(),
         category,
         rollType,
+        orderCount: 0,
         purchaseRate: pRate,
         saleRate: sRate,
         status,

@@ -138,6 +138,7 @@ export default function AddOrEditCustomerOrderScreen() {
         rollType,
         unitCostRate: costRate,
         unitSaleRate: saleRate,
+        buisnessName: customers?.shopName || '',
         totalCost,
         totalSale,
         profit,

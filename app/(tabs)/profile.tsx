@@ -208,7 +208,7 @@ export default function DashboardScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      <View style={[styles.card, { backgroundColor: theme.surface }]}>
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <Text style={[styles.cardTitle, { color: theme.tint }]}>App Info</Text>
         <View style={[styles.catChip, { paddingHorizontal: 0 }]}>
           <Text style={[styles.catChipName, { color: theme.text }]}>Env:</Text>

@@ -153,7 +153,7 @@ export default function OrdersScreen() {
           <View style={styles.priceCol}>
             <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Business</Text>
             <Text style={[styles.marginVal, {  }]}>
-              Ali Store
+              {item.buisnessName || 'ABC Store'}
             </Text>
           </View>
         </View>

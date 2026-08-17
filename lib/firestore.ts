@@ -22,21 +22,49 @@ import {
  */
 export async function getCustomersFromFirestore(): Promise<Customer[]> {
   try {
-    const colRef = collection(db, CUSTOMERS_COLLECTION);
-    const snapshot = await getDocs(colRef);
+    // Get customers
+    const customersRef = collection(db, CUSTOMERS_COLLECTION);
+    const customersSnapshot = await getDocs(customersRef);
 
-    if (snapshot.empty) {
-      console.log('⚡ Firestore customers collection empty. Seeding defaults...');
-      return []
+    if (customersSnapshot.empty) {
+      console.log('⚡ Firestore customers collection empty.');
+      return [];
     }
 
-    const customers: Customer[] = [];
-    snapshot.forEach((d) => {
-      customers.push({ id: d.id, ...d.data() } as Customer);
+    // Get all orders
+    const ordersRef = collection(db, CUSTOMERS_ORDER_COLLECTION);
+    const ordersSnapshot = await getDocs(ordersRef);
+
+    // Count orders by customer ID
+    const orderCounts: Record<string, number> = {};
+
+    ordersSnapshot.forEach((orderDoc) => {
+      const order = orderDoc.data();
+
+      if (order.customerId) {
+        orderCounts[order.customerId] =
+          (orderCounts[order.customerId] || 0) + 1;
+      }
     });
+
+    // Add orderCount to every customer
+    const customers: Customer[] = customersSnapshot.docs.map((doc) => {
+      const customer = doc.data();
+
+      return {
+        id: doc.id,
+        ...customer,
+        orderCount: orderCounts[doc.id] || 0,
+      } as Customer;
+    });
+
     return customers;
   } catch (error) {
-    console.error('❌ Error fetching customers from Firestore:', error);
+    console.error(
+      '❌ Error fetching customers from Firestore:',
+      error
+    );
+
     return [];
   }
 }
