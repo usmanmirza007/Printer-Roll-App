@@ -340,3 +340,72 @@ export async function seedInitialFirestoreData(): Promise<void> {
     console.error('❌ Error seeding initial Firestore data:', error);
   }
 }
+
+// export const createInvestment = async ({
+//   investorId,
+//   investorName,
+//   amount,
+//   investmentDate,
+//   status = 'Active',
+//   notes = '',
+//   createdBy,
+// }: {
+//   investorId: string;
+//   investorName: string;
+//   amount: number;
+//   investmentDate: Date;
+//   status?: 'Active' | 'Withdrawn';
+//   notes?: string;
+//   createdBy: string;
+// }) => {
+//   try {
+//     const investmentRef = await addDoc(
+//       collection(db, 'investments'),
+//       {
+//         investorId,
+//         investorName,
+//         amount: Number(amount),
+
+//         investmentDate,
+
+//         status,
+
+//         notes,
+
+//         createdBy,
+
+//         createdAt: serverTimestamp(),
+//         updatedAt: serverTimestamp(),
+//       }
+//     );
+
+//     return {
+//       success: true,
+//       id: investmentRef.id,
+//     };
+//   } catch (error) {
+//     console.error('Create investment error:', error);
+
+//     throw error;
+//   }
+// };
+
+// export const getInvestments = async () => {
+//   try {
+//     const q = query(
+//       collection(db, 'investments'),
+//       orderBy('createdAt', 'desc')
+//     );
+
+//     const snapshot = await getDocs(q);
+
+//     return snapshot.docs.map(doc => ({
+//       id: doc.id,
+//       ...doc.data(),
+//     }));
+//   } catch (error) {
+//     console.error('Get investments error:', error);
+
+//     throw error;
+//   }
+// };

@@ -39,6 +39,8 @@ export const Palette = {
 
   grayBadge: '#E2E8F0',
   grayBadgeText: '#475569',
+
+  white: '#FFFFFF'
 };
 
 export default {

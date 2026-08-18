@@ -12,7 +12,7 @@ import { Customer, ThermalRoll } from '@/lib/types';
 import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
   Alert,
@@ -193,6 +193,26 @@ export default function DashboardScreen() {
           <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total Sales</Text>
         </View>
       </View>
+      <TouchableOpacity
+        style={[
+          styles.saveButton,
+          {
+            marginTop: -15,
+            marginBottom: 10,
+            backgroundColor: theme.tint,
+          },
+        ]}
+        onPress={() => router.push('/investment')}>
+        <Ionicons
+          name="add"
+          size={21}
+          color={Palette.white}
+        />
+
+        <Text style={styles.saveText}>
+          Add Invest
+        </Text>
+      </TouchableOpacity>
 
       {/* Market Distribution */}
       <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -320,9 +340,7 @@ const styles = StyleSheet.create({
   },
 
   investHeader: {
-    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
   },
 
   investTitleRow: {
@@ -353,5 +371,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     marginLeft: 10
+  },
+
+  saveButton: {
+    minHeight: 52,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+
+  saveText: {
+    color: Palette.white,
+    fontSize: 15,
+    fontWeight: '800',
   },
 });
