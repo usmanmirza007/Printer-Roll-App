@@ -171,7 +171,7 @@ export default function CustomerDetailScreen() {
           </View>
           <View style={styles.rateBox}>
             <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Order Count</Text>
-            <Text style={[styles.rateValue, { color: theme.text }]}>1</Text>
+            <Text style={[styles.rateValue, { color: theme.text }]}>{customer?.orderCount}</Text>
           </View>
         </View>
 
@@ -222,7 +222,7 @@ export default function CustomerDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${id}`)}>
+      <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${id}&businessName=${customer.shopName}`)}>
         <Text style={styles.processOrderBtnText}>View Order List</Text>
       </TouchableOpacity>
     </ScrollView>

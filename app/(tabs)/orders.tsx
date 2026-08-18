@@ -10,6 +10,7 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -79,6 +80,8 @@ export default function OrdersScreen() {
   const pendingCount = orders.filter((o) => o.status === 'Pending').length;
   const inProgressCount = orders.filter((o) => o.status === 'In Progress').length;
   const deliveredCount = orders.filter((o) => o.status === 'Delivered').length;
+  const cancelledCount = orders.filter((o) => o.status === 'Cancelled').length;
+  const invoicedCount = orders.filter((o) => o.status === 'Invoiced').length;
 
   const formatDate = (iso: string) => {
     try {
@@ -152,7 +155,7 @@ export default function OrdersScreen() {
 
           <View style={styles.priceCol}>
             <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Business</Text>
-            <Text style={[styles.marginVal, {  }]}>
+            <Text style={[styles.marginVal, { color: theme.text }]}>
               {item.buisnessName || 'ABC Store'}
             </Text>
           </View>
@@ -233,7 +236,8 @@ export default function OrdersScreen() {
         </View>
 
         {/* KPI Metrics */}
-        <View style={styles.metricsRow}>
+        <ScrollView horizontal={true}>
+          <View style={styles.metricsRow}>
           <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
             <Text style={[styles.metricVal, { color: theme.text }]}>{totalCount}</Text>
             <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Total Orders</Text>
@@ -247,10 +251,19 @@ export default function OrdersScreen() {
             <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>In Progress</Text>
           </View>
           <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.metricVal, { color: Palette.primary }]}>{invoicedCount}</Text>
+            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Invoice</Text>
+          </View>
+          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
             <Text style={[styles.metricVal, { color: Palette.success }]}>{deliveredCount}</Text>
             <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Delivered</Text>
           </View>
+          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.metricVal, { color: Palette.success }]}>{cancelledCount}</Text>
+            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Cannceled</Text>
+          </View>
         </View>
+        </ScrollView>
 
         {/* Status Filters */}
         <FlatList

@@ -210,7 +210,7 @@ export default function CustomersScreen() {
 
           <View style={styles.priceCol}>
             <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>Order Count</Text>
-            <Text style={[styles.marginVal, { color: Palette.success }]}>
+            <Text style={[styles.marginVal, { color: theme.text }]}>
               {item.orderCount}
             </Text>
           </View>
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     borderWidth: 1,
   },
-  priceCol: {},
+  priceCol: {flex: 1},
   priceLabel: { fontSize: 10, textTransform: 'uppercase', fontWeight: '600' },
   priceVal: { fontSize: 13, marginTop: 2 },
   marginVal: { fontSize: 13, fontWeight: '700', marginTop: 2 },

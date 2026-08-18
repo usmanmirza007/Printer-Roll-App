@@ -10,6 +10,7 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -19,6 +20,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STATUS_FILTERS: (OrderStatus | 'All')[] = [
+  'All',
   'Pending',            // Just created
   'In Progress',        // Being processed
   'Delivered',          // Successfully delivered
@@ -30,7 +32,7 @@ export default function OrderListScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
-  const { customerId } = useLocalSearchParams<{ customerId?: string }>();
+  const { customerId, businessName } = useLocalSearchParams<{ customerId?: string, businessName?: string }>();
   const { top } = useSafeAreaInsets();
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
@@ -81,6 +83,8 @@ export default function OrderListScreen() {
   const pendingCount = orders.filter((o) => o.status === 'Pending').length;
   const inProgressCount = orders.filter((o) => o.status === 'In Progress').length;
   const deliveredCount = orders.filter((o) => o.status === 'Delivered').length;
+  const cancelledCount = orders.filter((o) => o.status === 'Cancelled').length;
+  const invoicedCount = orders.filter((o) => o.status === 'Invoiced').length;
 
   const formatDate = (iso: string) => {
     try {
@@ -145,7 +149,7 @@ export default function OrderListScreen() {
 
           <View style={styles.priceCol}>
             <Text style={[styles.priceLabel, { color: theme.textSecondary }]}>
-              Sale Rate 
+              Sale Rate
             </Text>
             <Text style={[styles.priceVal, { color: theme.text }]}>
               <Text style={{ fontWeight: '700' }}>₨{item.unitSaleRate}</Text>
@@ -202,8 +206,17 @@ export default function OrderListScreen() {
         style={[
           styles.headerBox,
           { backgroundColor: theme.card, borderBottomColor: theme.border },
-        ]}
-      >
+        ]}>
+        <View style={styles.headerRow}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+              <Ionicons name="arrow-back" size={24} color={theme.text} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>
+              {businessName} Orders
+            </Text>
+          </View>
+        </View>
         <View
           style={[
             styles.searchBar,
@@ -226,24 +239,34 @@ export default function OrderListScreen() {
         </View>
 
         {/* KPI Metrics */}
-        <View style={styles.metricsRow}>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: theme.text }]}>{totalCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Total Orders</Text>
+        <ScrollView horizontal={true}>
+          <View style={styles.metricsRow}>
+            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.metricVal, { color: theme.text }]}>{totalCount}</Text>
+              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Total Orders</Text>
+            </View>
+            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.metricVal, { color: Palette.warning }]}>{pendingCount}</Text>
+              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Pending</Text>
+            </View>
+            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.metricVal, { color: theme.tint }]}>{inProgressCount}</Text>
+              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>In Progress</Text>
+            </View>
+            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.metricVal, { color: Palette.success }]}>{invoicedCount}</Text>
+              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Invoice</Text>
+            </View>
+            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.metricVal, { color: Palette.success }]}>{deliveredCount}</Text>
+              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Delivered</Text>
+            </View>
+            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
+              <Text style={[styles.metricVal, { color: Palette.danger }]}>{cancelledCount}</Text>
+              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Cannceled</Text>
+            </View>
           </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.warning }]}>{pendingCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Pending</Text>
-          </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: theme.tint }]}>{inProgressCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>In Progress</Text>
-          </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.success }]}>{deliveredCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Delivered</Text>
-          </View>
-        </View>
+        </ScrollView>
 
         {/* Status Filters */}
         <FlatList
@@ -325,6 +348,15 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 1,
   },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  backBtn: { padding: 4, marginRight: 8 },
+  headerTitle: { fontSize: 18, fontWeight: '700' },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
