@@ -2,6 +2,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
 import { env } from '@/constants/environment';
 import { useAuth } from '@/context/AuthContext';
+import { useOrders } from '@/hooks/useOrders';
 import {
   getTodayDateString,
   loadCustomers,
@@ -45,6 +46,8 @@ export default function DashboardScreen() {
     setRolls(rls);
   };
 
+  const { orders, orderCount } = useOrders()
+
   useFocusEffect(
     useCallback(() => {
       fetchData();
@@ -58,12 +61,13 @@ export default function DashboardScreen() {
   ).length;
 
   const totalStockItems = rolls.reduce((sum, r) => sum + r.stockCount, 0);
+  const totalSales = orders.filter((order) => order.status == 'Delivered').reduce((sum, r) => sum + r.totalSale, 0);
+  // const totalProfit = orders
+  //   .filter(order => order.status === 'Delivered')
+  //   .reduce((total, order) => {
+  //     return total + (order.totalSale - order.totalCost);
+  //   }, 0);
 
-  let totalEstProfitPerCycle = 0;
-  customers.forEach((c) => {
-    const margin = c.saleRate - c.purchaseRate;
-    totalEstProfitPerCycle += margin * 20;
-  });
 
   const categoryCounts: Record<string, number> = {};
   customers.forEach((c) => {
@@ -141,7 +145,31 @@ export default function DashboardScreen() {
 
       {/* Metric Cards Grid */}
       <View style={styles.kpiGrid}>
-        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <View style={[styles.kpiCard, styles.kpiCardFullWidth, { backgroundColor: theme.card, borderColor: theme.border, },]}>
+          <View style={styles.investHeader}>
+            <View style={styles.investTitleRow}>
+              <MaterialCommunityIcons name="cash-multiple" size={22} color={Palette.success} />
+              <Text style={[styles.kpiLabel, { color: theme.textSecondary, marginLeft: 8, }]}>Total Invest</Text>
+            </View>
+            <Text style={[styles.kpiNumber, { color: Palette.success, }]}>{/* ₨{totalInvest.toLocaleString()} */}40000</Text>
+          </View>
+
+          <View style={[styles.investorsContainer, { borderTopColor: theme.border, },]}>
+            <View style={styles.investorRow}>
+              <Text style={[styles.investorName, { color: theme.text }]}>Usman</Text>
+              <Text style={[styles.investorAmount, { color: theme.text, },]}>{/* ₨{usmanInvest.toLocaleString()} */}Rs30000</Text>
+            </View>
+
+            <View style={styles.investorRow}>
+              <Text style={[styles.investorName, { color: theme.text }]}>
+                Bilal
+              </Text>
+              <Text style={[styles.investorAmount, { color: theme.text, },]}>{/* ₨{bilalInvest.toLocaleString()} */}40000</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border, }]}>
           <MaterialIcons name="storefront" size={22} color={theme.tint} />
           <Text style={[styles.kpiNumber, { color: theme.text }]}>{totalCustomers}</Text>
           <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Registered Shops</Text>
@@ -156,13 +184,13 @@ export default function DashboardScreen() {
         <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <MaterialCommunityIcons name="receipt" size={22} color={Palette.success} />
           <Text style={[styles.kpiNumber, { color: Palette.success }]}>{totalStockItems}</Text>
-          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total In-Stock</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary, },]}>Total In-Stock</Text>
         </View>
 
         <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
-          <MaterialCommunityIcons name="currency-usd" size={22} color={theme.tint} />
-          <Text style={[styles.kpiNumber, { color: theme.text }]}>₨{totalEstProfitPerCycle}</Text>
-          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Est. Cycle Profit</Text>
+          <MaterialCommunityIcons name="chart-line" size={22} color={theme.tint} />
+          <Text style={[styles.kpiNumber, { color: theme.text }]}>₨{totalSales.toLocaleString()}</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total Sales</Text>
         </View>
       </View>
 
@@ -285,4 +313,45 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   toolBtnText: { fontSize: 13, fontWeight: '600', marginLeft: 8 },
+
+
+  kpiCardFullWidth: {
+    width: '100%',
+  },
+
+  investHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+
+  investTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  investorsContainer: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+  },
+
+  investorRow: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+
+  investorName: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+
+  investorAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 10
+  },
 });
