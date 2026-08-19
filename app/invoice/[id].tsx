@@ -24,6 +24,10 @@ const COMPANY = {
   phone1: '0335-0604017',
   phone2: '0337-0495656',
   address: 'Lahore, Punjab, Pakistan',
+  bankName: 'HBL',
+  accountTitle: 'Mughal Thermal Printer Roll',
+  accountNo: '1234567890123',
+  iban: 'PK00HABB0000001234567890',
 };
 
 type OrderItem = {
@@ -221,8 +225,13 @@ export default function InvoiceScreen() {
             Phone: ${order.customer.phone}
           </div>
           <div class="meta-box">
-            <div>📅 Invoice Date : ${order.invoiceDate}</div>
-            <div>👤 Owner : ${order.salesUsman}, ${order.salesBilal}</div>
+            <div style="margin-top:12px;text-align:left;background:#f8f9fc;padding:12px;border-radius:8px;border-left:4px solid #c9a227;line-height:1.7;">
+              <strong>BANK DETAILS</strong><br>
+              Bank Name: ${COMPANY.bankName}<br>
+              Account Title: ${COMPANY.accountTitle}<br>
+              Account No: ${COMPANY.accountNo}<br>
+              IBAN No: ${COMPANY.iban}
+            </div>
           </div>
         </div>
 
@@ -256,8 +265,8 @@ export default function InvoiceScreen() {
 
         <div class="footer">
           <div>📞 CONTACT US<br>${COMPANY.phone1}<br>${COMPANY.phone2}</div>
+          <div>👤 Owner<br>${order.salesUsman}<br>${order.salesBilal}</div>
           <div>📍 ADDRESS<br>${COMPANY.address}</div>
-          <div>🌐 FOLLOW US<br>Stay connected for updates & offers</div>
         </div>
       </div>
     </body>
@@ -300,7 +309,7 @@ export default function InvoiceScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={{marginTop: top, padding: 16 }}>
+      <ScrollView contentContainerStyle={{ marginTop: top, padding: 16 }}>
         <Text style={styles.title}>Invoice Preview</Text>
         <Text style={styles.invoiceNo}>{order.invoiceNo}</Text>
         <Text style={styles.customer}>{order.customer.name}</Text>
