@@ -174,7 +174,7 @@ export default function AddOrEditCustomerOrderScreen() {
       Alert.alert('Error', 'Failed to save order.');
     }
   };
-  
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}

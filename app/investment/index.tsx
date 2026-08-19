@@ -25,7 +25,7 @@ type Investment = {
 
 const InvestmentsScreen = () => {
   const [search, setSearch] = useState('');
- const colorScheme = useColorScheme();
+  const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
   const { top } = useSafeAreaInsets();

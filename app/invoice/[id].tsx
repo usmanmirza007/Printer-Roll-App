@@ -222,8 +222,7 @@ export default function InvoiceScreen() {
           </div>
           <div class="meta-box">
             <div>📅 Invoice Date : ${order.invoiceDate}</div>
-            <div>👤 Sales Person : ${order.salesUsman}</div>
-            <div>👤 Sales Person : ${order.salesBilal}</div>
+            <div>👤 Owner : ${order.salesUsman}, ${order.salesBilal}</div>
           </div>
         </div>
 

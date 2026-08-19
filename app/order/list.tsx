@@ -1,3 +1,4 @@
+import OrderMetrics from '@/components/OrderMatric';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
 import { getCustomerOrdersFromFirestore } from '@/lib/firestore';
@@ -10,7 +11,6 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -176,23 +176,33 @@ export default function OrderListScreen() {
 
         {/* Action Bar */}
         <View style={[styles.actionBar, { borderTopColor: theme.border }]}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+
+            <TouchableOpacity
+              style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
+              onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
+            >
+              <Ionicons name="eye-outline" size={15} color={theme.tint} />
+              <Text style={[styles.actionText, { color: theme.text }]}>View Details</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.actionBtn,
+                styles.iconOnlyBtn,
+                { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
+              ]}
+              onPress={() => router.push(`/order/${item.id}?type=edit&customerId=${item.customerId}`)}
+            >
+              <Feather name="edit-2" size={14} color={theme.textSecondary} />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-            onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
+            onPress={() => router.push(`/invoice/${customerId}`)}
           >
-            <Ionicons name="eye-outline" size={15} color={theme.tint} />
-            <Text style={[styles.actionText, { color: theme.text }]}>View Details</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              styles.iconOnlyBtn,
-              { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
-            ]}
-            onPress={() => router.push(`/order/${item.id}?type=edit&customerId=${item.customerId}`)}
-          >
-            <Feather name="edit-2" size={14} color={theme.textSecondary} />
+            <Ionicons name="print-outline" size={18} color={theme.tint} />
+            <Text style={[styles.actionText, { color: theme.text }]}>Print Invoice</Text>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
@@ -239,34 +249,14 @@ export default function OrderListScreen() {
         </View>
 
         {/* KPI Metrics */}
-        <ScrollView horizontal={true}>
-          <View style={styles.metricsRow}>
-            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.metricVal, { color: theme.text }]}>{totalCount}</Text>
-              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Total Orders</Text>
-            </View>
-            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.metricVal, { color: Palette.warning }]}>{pendingCount}</Text>
-              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Pending</Text>
-            </View>
-            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.metricVal, { color: theme.tint }]}>{inProgressCount}</Text>
-              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>In Progress</Text>
-            </View>
-            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.metricVal, { color: Palette.success }]}>{invoicedCount}</Text>
-              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Invoice</Text>
-            </View>
-            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.metricVal, { color: Palette.success }]}>{deliveredCount}</Text>
-              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Delivered</Text>
-            </View>
-            <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-              <Text style={[styles.metricVal, { color: Palette.danger }]}>{cancelledCount}</Text>
-              <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Cannceled</Text>
-            </View>
-          </View>
-        </ScrollView>
+        <OrderMetrics
+          totalCount={totalCount}
+          pendingCount={pendingCount}
+          inProgressCount={inProgressCount}
+          invoicedCount={invoicedCount}
+          deliveredCount={deliveredCount}
+          cancelledCount={cancelledCount}
+        />
 
         {/* Status Filters */}
         <FlatList
@@ -437,6 +427,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 10,
     borderTopWidth: 1,
+    justifyContent: 'space-between',
   },
   actionBtn: {
     flexDirection: 'row',

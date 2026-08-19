@@ -1,5 +1,6 @@
+import OrderMetrics from '@/components/OrderMatric';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors, { Palette } from '@/constants/Colors';
+import Colors from '@/constants/Colors';
 import { getOrdersFromFirestore } from '@/lib/firestore';
 import { CustomerOrder, OrderStatus } from '@/lib/types';
 import { getOrderStatusStyle } from '@/utils/statusStyle';
@@ -10,7 +11,6 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -236,34 +236,14 @@ export default function OrdersScreen() {
         </View>
 
         {/* KPI Metrics */}
-        <ScrollView horizontal={true}>
-          <View style={styles.metricsRow}>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: theme.text }]}>{totalCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Total Orders</Text>
-          </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.warning }]}>{pendingCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Pending</Text>
-          </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: theme.tint }]}>{inProgressCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>In Progress</Text>
-          </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.primary }]}>{invoicedCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Invoice</Text>
-          </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.success }]}>{deliveredCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Delivered</Text>
-          </View>
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.success }]}>{cancelledCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Cannceled</Text>
-          </View>
-        </View>
-        </ScrollView>
+        <OrderMetrics
+          totalCount={totalCount}
+          pendingCount={pendingCount}
+          inProgressCount={inProgressCount}
+          invoicedCount={invoicedCount}
+          deliveredCount={deliveredCount}
+          cancelledCount={cancelledCount}
+        />
 
         {/* Status Filters */}
         <FlatList
