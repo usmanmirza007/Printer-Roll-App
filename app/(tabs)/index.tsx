@@ -18,12 +18,11 @@ import {
   Linking,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 
 
@@ -111,29 +110,12 @@ export default function CustomersScreen() {
     });
   }, [customers, searchQuery, selectedCategory, selectedStatus]);
 
-  const todayStr = new Date().toISOString().split('T')[0];
-  
   const totalCount = customers.length;
-  
-  const activeCount = customers.filter(
-    (c) => c.status === 'Active'
-  ).length;
-  
+  const todayStr = new Date().toISOString().split('T')[0];
   const visitDueTodayCount = customers.filter(
     (c) => c.nextVisitDate && c.nextVisitDate <= todayStr
   ).length;
-
-  const followUpCount = customers.filter(
-    (c) => c.status === 'Follow-up Required'
-  ).length;
-
-  const inactiveCount = customers.filter(
-    (c) => c.status === 'Inactive'
-  ).length;
-
-  const blockedCount = customers.filter(
-    (c) => c.status === 'Blocked'
-  ).length;
+  const inProgressCount = customers.filter((c) => c.status === 'Active').length;
 
   const handleCall = (phone: string, name: string) => {
     Linking.openURL(`tel:${phone}`).catch(() => {
@@ -314,44 +296,20 @@ export default function CustomersScreen() {
         </View>
 
         {/* Minimal KPI Metric Chips */}
-       <ScrollView horizontal={true}>
-         <View style={styles.metricsRow}>
-          {/* Total Shops */}
+        <View style={styles.metricsRow}>
           <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
             <Text style={[styles.metricVal, { color: theme.text }]}>{totalCount}</Text>
             <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Total Shops</Text>
           </View>
-
-          {/* Active */}
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.success }]}>{activeCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Active</Text>
-          </View>
-
-          {/* Vists Required */}
           <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
             <Text style={[styles.metricVal, { color: Palette.warning }]}>{visitDueTodayCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Visits</Text>
+            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Visits Due</Text>
           </View>
-          {/* Follow-up Required */}
           <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.warning }]}>{followUpCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Follow-up</Text>
-          </View>
-
-          {/* Inactive */}
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: theme.textSecondary }]}>{inactiveCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Inactive</Text>
-          </View>
-
-          {/* Blocked */}
-          <View style={[styles.metricChip, { backgroundColor: theme.surface }]}>
-            <Text style={[styles.metricVal, { color: Palette.danger }]}>{blockedCount}</Text>
-            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>Blocked</Text>
+            <Text style={[styles.metricVal, { color: theme.tint }]}>{inProgressCount}</Text>
+            <Text style={[styles.metricLbl, { color: theme.textSecondary }]}>In Progress</Text>
           </View>
         </View>
-       </ScrollView>
 
         {/* Category Filters */}
         <FlatList
