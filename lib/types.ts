@@ -61,9 +61,14 @@ export interface CustomerOrder {
 
 export interface ThermalRoll {
   id: string;
-  title: string;           // e.g. "40 Meter Thermal Roll"
-  meterLength: number;     // 40, 50, 60, 80
-  paperWidth: string;      // e.g. "80mm Standard POS"
+  title: string;
+  productType?: 'thermal' | 'barcode';
+  meterLength: number;
+  paperWidth: string;
+  stickerWidth?: number;
+  stickerHeight?: number;
+  stickerCount?: number;
+  barcodeColumns?: 1 | 2 | 3 | 4;
   purchaseRate: number;    // Purchase Rate (e.g. 120)
   wholesaleRate: number;   // Wholesale Rate (e.g. 140)
   stockCount: number;      // Stock available (e.g. 50 items)

@@ -48,6 +48,7 @@ export default function RollDetailScreen() {
 
   const margin = roll.wholesaleRate - roll.purchaseRate;
   const isLowStock = roll.stockCount <= roll.minStockAlert;
+  const isBarcode = roll.productType === 'barcode' || roll.title.toLowerCase().includes('barcode') || roll.title.toLowerCase().includes('sticker');
 
   const handleDelete = () => {
     Alert.alert('Delete Thermal Roll', `Are you sure you want to delete ${roll.title}?`, [
@@ -112,7 +113,9 @@ export default function RollDetailScreen() {
           <View style={{ flex: 1, marginLeft: 10 }}>
             <Text style={[styles.title, { color: theme.text }]}>{roll.title}</Text>
             <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-              Length: {roll.meterLength}m • Width: {roll.paperWidth}
+              {isBarcode
+                ? `${roll.paperWidth} • ${roll.stickerCount || 0} stickers • ${roll.barcodeColumns || 1} columns`
+                : `Length: ${roll.meterLength}m • Width: ${roll.paperWidth}`}
             </Text>
           </View>
         </View>

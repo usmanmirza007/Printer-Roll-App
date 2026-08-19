@@ -75,6 +75,22 @@ export const DEFAULT_ROLLS: ThermalRoll[] = [
     minStockAlert: 8,
     description: 'Jumbo 80m thermal roll for busy restaurants and supermarket terminals.',
   },
+  {
+    id: 'barcode-38x28',
+    title: '38 * 28 BarCode Stickers',
+    productType: 'barcode',
+    meterLength: 0,
+    paperWidth: '38mm x 28mm',
+    stickerWidth: 38,
+    stickerHeight: 28,
+    stickerCount: 4000,
+    barcodeColumns: 2,
+    purchaseRate: 260,
+    wholesaleRate: 350,
+    stockCount: 20,
+    minStockAlert: 5,
+    description: '38 x 28mm barcode stickers, 4000 stickers per roll.',
+  },
 ];
 
 // Initial pre-loaded customers across various market categories

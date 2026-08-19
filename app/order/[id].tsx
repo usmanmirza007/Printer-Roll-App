@@ -219,7 +219,7 @@ export default function AddOrEditCustomerOrderScreen() {
               <Ionicons name="arrow-back" size={24} color={theme.text} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: theme.text }]}>
-              {isEditMode ? 'Edit Order' : 'New Customer Order'}
+              {isEditMode ? 'Edit Order' : 'New Order'}
             </Text>
           </View>
           <TouchableOpacity

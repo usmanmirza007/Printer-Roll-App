@@ -56,6 +56,7 @@ export default function RollsInventoryScreen() {
         r.title.toLowerCase().includes(q) ||
         r.paperWidth.toLowerCase().includes(q) ||
         String(r.meterLength).includes(q) ||
+        String(r.stickerCount || '').includes(q) ||
         String(r.wholesaleRate).includes(q)
       );
     });
@@ -75,6 +76,7 @@ export default function RollsInventoryScreen() {
   const renderRollCard = ({ item }: { item: ThermalRoll }) => {
     const wholesaleMargin = item.wholesaleRate - item.purchaseRate;
     const isLowStock = item.stockCount <= item.minStockAlert;
+    const isBarcode = item.productType === 'barcode' || item.title.toLowerCase().includes('barcode') || item.title.toLowerCase().includes('sticker');
 
     return (
       <TouchableOpacity
@@ -97,7 +99,9 @@ export default function RollsInventoryScreen() {
           <View style={{ flex: 1, marginLeft: 10 }}>
             <Text style={[styles.rollTitle, { color: theme.text }]}>{item.title}</Text>
             <Text style={[styles.rollWidth, { color: theme.textSecondary }]}>
-              {item.paperWidth} • {item.meterLength}m
+              {isBarcode
+                ? `${item.paperWidth} • ${item.stickerCount || 0} stickers • ${item.barcodeColumns || 1} columns`
+                : `${item.paperWidth} • ${item.meterLength}m`}
             </Text>
           </View>
 
