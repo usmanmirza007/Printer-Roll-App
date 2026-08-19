@@ -270,6 +270,23 @@ export async function saveRollOrderToFirestore(customerOrder: CustomerOrder): Pr
 }
 
 /**
+ * Delete a customer order from Firestore.
+ */
+export async function deleteRollOrderFromFirestore(
+  id: string,
+  customerId: string
+): Promise<CustomerOrder[]> {
+  try {
+    const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, id);
+    await deleteDoc(docRef);
+    return await getCustomerOrdersFromFirestore(customerId);
+  } catch (error) {
+    console.error('❌ Error deleting roll order from Firestore:', error);
+    return [];
+  }
+}
+
+/**
  * Delete a thermal roll record from Firestore.
  */
 export async function deleteRollFromFirestore(id: string): Promise<ThermalRoll[]> {

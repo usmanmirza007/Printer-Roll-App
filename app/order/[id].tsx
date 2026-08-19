@@ -1,6 +1,6 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
+import { deleteCustomerOrder, loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
 import { Customer, CustomerOrder, OrderStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -175,6 +175,33 @@ export default function AddOrEditCustomerOrderScreen() {
     }
   };
 
+  const handleDelete = () => {
+    if (!isEditMode || !id || loading) return;
+
+    Alert.alert(
+      'Delete Order',
+      'Are you sure you want to permanently delete this order?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setLoading(true);
+            try {
+              await deleteCustomerOrder(id, selectedCustomerId || customerId);
+              router.back();
+            } catch (error) {
+              console.error(error);
+              setLoading(false);
+              Alert.alert('Error', 'Failed to delete order.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
@@ -202,6 +229,17 @@ export default function AddOrEditCustomerOrderScreen() {
             <Ionicons name="print-outline" size={18} color={theme.tint} />
             <Text style={[styles.actionText, { color: theme.text }]}>Print Invoice</Text>
           </TouchableOpacity>
+          {isEditMode && (
+            <TouchableOpacity
+              accessibilityLabel="Delete order"
+              accessibilityRole="button"
+              disabled={loading}
+              style={[styles.deleteBtn, { backgroundColor: isDark ? '#3B1F26' : '#FEE2E2' }, loading && { opacity: 0.6 }]}
+              onPress={handleDelete}
+            >
+              <Ionicons name="trash-outline" size={20} color={Palette.danger} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Section 1: Select Customer */}
@@ -479,5 +517,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   actionText: { fontSize: 12, fontWeight: '600', marginLeft: 4 },
+  deleteBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 
 });

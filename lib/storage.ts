@@ -2,6 +2,7 @@ import { triggerVisitEndPushNotification } from '@/constants/NotificationService
 import {
   deleteCustomerFromFirestore,
   deleteRollFromFirestore,
+  deleteRollOrderFromFirestore,
   getCustomerByIdFromFirestore,
   getCustomerOrderByIdFromFirestore,
   getCustomerOrdersFromFirestore,
@@ -237,6 +238,21 @@ export const saveCustomerOrder = async (customerOrder: CustomerOrder): Promise<C
   } catch (error) {
     console.error('Error saving roll:', error);
     return await loadCustomersOrder(customerOrder.customerId);
+  }
+};
+
+// Delete customer order in Firestore
+export const deleteCustomerOrder = async (
+  id: string,
+  customerId: string
+): Promise<CustomerOrder[]> => {
+  try {
+    const updated = await deleteRollOrderFromFirestore(id, customerId);
+    await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (error) {
+    console.error('Error deleting customer order:', error);
+    throw error;
   }
 };
 
