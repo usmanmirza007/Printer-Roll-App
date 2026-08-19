@@ -214,6 +214,7 @@ export default function InvoiceScreen() {
           <div class="invoice-title">
             <h2>INVOICE</h2>
             <div class="invoice-no">${order.invoiceNo}</div>
+            <div style="margin-top:5px">📅 Invoice Date : ${order.invoiceDate}</div>
           </div>
         </div>
 
