@@ -4,6 +4,7 @@ import { useGetRoll } from '@/hooks/useGetRoll';
 import { getTodayDateString, loadCustomers, saveCustomer } from '@/lib/storage';
 import { Customer, CustomerStatus, MarketCategory } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -43,6 +44,7 @@ const REVISIT_OPTIONS = [
   { label: 'After 7 Days', days: 7 },
   { label: 'After 14 Days', days: 14 },
   { label: 'After 30 Days', days: 30 },
+  { label: 'Custom', days: -1 }, // custom date
 ];
 
 export default function AddOrEditCustomerScreen() {
@@ -53,7 +55,7 @@ export default function AddOrEditCustomerScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const isEditMode = !!id;
   const { top } = useSafeAreaInsets();
-  
+
   const {
     rolls,
     loading: rollLoading,
@@ -61,7 +63,7 @@ export default function AddOrEditCustomerScreen() {
     refetch,
   } = useGetRoll();
 
-  const [name, setName] = useState('');
+  const [name, setName] = useState('Unknow');
   const [phone, setPhone] = useState('');
   const [shopName, setShopName] = useState('');
   const [location, setLocation] = useState('');
@@ -72,6 +74,8 @@ export default function AddOrEditCustomerScreen() {
   const [status, setStatus] = useState<CustomerStatus>('Active');
   const [revisitDays, setRevisitDays] = useState<number>(7);
   const [customRevisitDays, setCustomRevisitDays] = useState('');
+  const [customDate, setCustomDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -100,10 +104,6 @@ export default function AddOrEditCustomerScreen() {
   const sRate = parseFloat(saleRate) || 0;
   const margin = sRate - pRate;
 
-  const effectiveRevisitDays =
-    revisitDays === 0 ? parseInt(customRevisitDays, 10) || 7 : revisitDays;
-
-  const targetNextVisitDate = getTodayDateString(effectiveRevisitDays);
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -146,16 +146,40 @@ export default function AddOrEditCustomerScreen() {
 
       await saveCustomer(customerData);
       setLoading(false);
-      Alert.alert(
-        'Success',
-        `Customer "${shopName}" saved! Next visit scheduled for ${targetNextVisitDate}.`,
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      router.back()
+      // Alert.alert(
+      //   'Success',
+      //   `Customer "${shopName}" saved! Next visit scheduled for ${targetNextVisitDate}.`,
+      //   [{ text: 'OK', onPress: () => router.back() }]
+      // );
     } catch (e) {
       setLoading(false);
       Alert.alert('Error', 'Failed to save customer record.');
     }
   };
+
+  const getDaysFromToday = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const selected = new Date(date);
+    selected.setHours(0, 0, 0, 0);
+    const diff = Math.ceil(
+      (selected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
+    return diff > 0 ? diff : 1;
+  };
+
+  const effectiveRevisitDays =
+    revisitDays === -1 && customDate
+      ? getDaysFromToday(customDate)
+      : revisitDays > 0
+        ? revisitDays
+        : 7;
+
+  const targetNextVisitDate =
+    revisitDays === -1 && customDate
+      ? customDate.toISOString().split('T')[0]
+      : getTodayDateString(effectiveRevisitDays);
 
   return (
     <KeyboardAvoidingView
@@ -356,7 +380,10 @@ export default function AddOrEditCustomerScreen() {
             })}
           </View>
 
-          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Visit Feedback (Cycle)</Text>
+          <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+            Visit Feedback (Cycle)
+          </Text>
+
           <View style={styles.pillsWrap}>
             {REVISIT_OPTIONS.map((opt) => {
               const active = revisitDays === opt.days;
@@ -367,11 +394,21 @@ export default function AddOrEditCustomerScreen() {
                     styles.pill,
                     active
                       ? { backgroundColor: theme.tint }
-                      : { backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border },
+                      : {
+                        backgroundColor: theme.surface,
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                      },
                   ]}
                   onPress={() => {
-                    setRevisitDays(opt.days);
-                    setCustomRevisitDays('');
+                    if (opt.days === -1) {
+                      setRevisitDays(-1);
+                      setShowDatePicker(true);
+                    } else {
+                      setRevisitDays(opt.days);
+                      setCustomDate(null);
+                      setShowDatePicker(false);
+                    }
                   }}
                 >
                   <Text
@@ -380,12 +417,50 @@ export default function AddOrEditCustomerScreen() {
                       { color: active ? '#FFFFFF' : theme.textSecondary },
                     ]}
                   >
-                    {opt.label}
+                    {opt.days === -1 && customDate
+                      ? customDate.toLocaleDateString('en-GB', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                      })
+                      : opt.label}
                   </Text>
                 </TouchableOpacity>
               );
             })}
           </View>
+
+          {/* Date Picker */}
+          {showDatePicker && (
+            <DateTimePicker
+              value={customDate || new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              minimumDate={new Date()}
+              onValueChange={(event, selectedDate) => {
+                if (Platform.OS === 'android') {
+                  setShowDatePicker(false);
+                }
+                if (selectedDate) {
+                  setCustomDate(selectedDate);
+                  setRevisitDays(-1);
+                }
+              }}
+              onDismiss={() => {
+                setShowDatePicker(false);
+              }}
+            />
+          )}
+
+          {/* iOS pe Done button */}
+          {showDatePicker && Platform.OS === 'ios' && (
+            <TouchableOpacity
+              style={{ marginTop: 8, alignSelf: 'flex-end' }}
+              onPress={() => setShowDatePicker(false)}
+            >
+              <Text style={{ color: theme.tint, fontWeight: '700' }}>Done</Text>
+            </TouchableOpacity>
+          )}
 
           {/* Next Visit Date Notice */}
           <View style={[styles.noticeBox, { backgroundColor: theme.surface }]}>
@@ -394,6 +469,7 @@ export default function AddOrEditCustomerScreen() {
               Next Visit Scheduled: <Text style={{ fontWeight: '700', color: theme.tint }}>{targetNextVisitDate}</Text>
             </Text>
           </View>
+
 
           <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>Customer Feedback & Notes</Text>
           <TextInput

@@ -221,10 +221,17 @@ export default function CustomerDetailScreen() {
           <Text style={styles.visitLogBtnText}>Log Visit Completed Today</Text>
         </TouchableOpacity>
       </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${id}&businessName=${customer.shopName}`)}>
+          <Text style={styles.processOrderBtnText}>View Order List</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${id}&businessName=${customer.shopName}`)}>
-        <Text style={styles.processOrderBtnText}>View Order List</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]}
+          onPress={() => router.push(`/order/add?customerId=${id}`)}>
+          <Text style={styles.processOrderBtnText}>Create Order</Text>
+        </TouchableOpacity>
+      </View>
+
     </ScrollView>
   );
 }
@@ -307,6 +314,8 @@ const styles = StyleSheet.create({
   qtyInput: { height: 42, borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, fontSize: 14 },
   processOrderBtn: {
     height: 42,
+    width: '48%',
+    gap: 12,
     paddingHorizontal: 14,
     borderRadius: 8,
     alignItems: 'center',

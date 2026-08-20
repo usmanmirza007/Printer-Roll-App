@@ -163,11 +163,12 @@ export default function AddOrEditCustomerOrderScreen() {
         await saveRoll(updatedRoll);
       }
       setLoading(false);
-      Alert.alert(
-        'Success',
-        `Order saved successfully!\nProfit: ₨${profit}`,
-        [{ text: 'OK', onPress: () => router.back() }]
-      );
+      router.back()
+      // Alert.alert(
+      //   'Success',
+      //   `Order saved successfully!\nProfit: ₨${profit}`,
+      //   [{ text: 'OK', onPress: () => router.back() }]
+      // );
     } catch (e) {
       setLoading(false);
       console.error(e);

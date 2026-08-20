@@ -121,9 +121,10 @@ export default function AddOrEditRollScreen() {
 
       await saveRoll(rollData);
       setLoading(false);
-      Alert.alert('Success', `Thermal Roll "${title}" saved successfully!`, [
-        { text: 'OK', onPress: () => router.back() },
-      ]);
+      router.back()
+      // Alert.alert('Success', `Thermal Roll "${title}" saved successfully!`, [
+      //   { text: 'OK', onPress: () => router.back() },
+      // ]);
     } catch (e) {
       setLoading(false);
       Alert.alert('Error', 'Failed to save roll details.');
