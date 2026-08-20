@@ -23,7 +23,7 @@ export const COLLECTIONS = {
   ORDERS: `${PREFIX}orders`,
   ROLLS: `${PREFIX}rolls`,
   NOTIFICATIONS: `${PREFIX}notifications`,
-  INVESTMENTS: `${PREFIX}investment`,
+  INVESTMENTS: `${PREFIX}investments`,
 } as const;
 
 export const CUSTOMERS_COLLECTION = COLLECTIONS.CUSTOMERS;
