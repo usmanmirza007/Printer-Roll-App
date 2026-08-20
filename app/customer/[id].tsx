@@ -59,11 +59,13 @@ export default function CustomerDetailScreen() {
 
   const handleWhatsApp = () => {
     const cleanPhone = customer.phone.replace(/[^0-9]/g, '');
-    const msg = encodeURIComponent(
-      `Hello ${customer.name}! Contacting regarding Thermal Roll supply (${customer.rollType}) for ${customer.shopName}.`
-    );
-    Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${msg}`).catch(() => {
-      Linking.openURL(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${msg}`);
+    const msg = `Hello! 👋
+Contacting regarding *Thermal Roll & BarCode Stickers* supply (${customer.rollType}) for *${customer.shopName}*.
+If you need stock, please reply.
+Thank you!`;
+    const encodedMsg = encodeURIComponent(msg);
+    Linking.openURL(`whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`).catch(() => {
+      Linking.openURL(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`);
     });
   };
 

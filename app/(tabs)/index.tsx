@@ -123,15 +123,22 @@ export default function CustomersScreen() {
     });
   };
 
-  const handleWhatsApp = (phone: string, shopName: string) => {
+  const handleWhatsApp = (phone: string, rollType: string, shopName: string) => {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const msg = encodeURIComponent(
-      `Hello! Contacting regarding Thermal Roll supply for ${shopName}.`
-    );
-    const url = `whatsapp://send?phone=${cleanPhone}&text=${msg}`;
-    Linking.openURL(url).catch(() => {
-      Linking.openURL(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${msg}`).catch(() => {
-        Alert.alert('WhatsApp', 'Could not open WhatsApp app.');
+
+    const msg = `Hello! 👋
+Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
+If you need stock, please reply.
+Thank you!`;
+
+    const encodedMsg = encodeURIComponent(msg);
+
+    const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
+    const webUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
+
+    Linking.openURL(whatsappUrl).catch(() => {
+      Linking.openURL(webUrl).catch(() => {
+        Alert.alert('WhatsApp', 'Could not open WhatsApp.');
       });
     });
   };
@@ -250,7 +257,7 @@ export default function CustomersScreen() {
 
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-            onPress={() => handleWhatsApp(item.phone, item.shopName)}
+            onPress={() => handleWhatsApp(item.phone, item.rollType, item.shopName)}
           >
             <Ionicons name="logo-whatsapp" size={15} color="#16A34A" />
             <Text style={[styles.actionText, { color: theme.text }]}>WhatsApp</Text>
