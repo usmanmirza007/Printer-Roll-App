@@ -59,6 +59,22 @@ export interface CustomerOrder {
   orderDate: string; // ISO String format date
 }
 
+export type InvestmentTransactionType = 'Investment' | 'Withdrawal';
+export type InvestmentStatus = 'Active' | 'Completed' | 'Pending';
+
+export interface Investment {
+  id: string;
+  investorId: string;
+  investorName: string;
+  amount: number;
+  transactionType: InvestmentTransactionType;
+  investmentDate: string;
+  status: InvestmentStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ThermalRoll {
   id: string;
   title: string;

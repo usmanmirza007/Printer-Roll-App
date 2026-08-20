@@ -1,27 +1,31 @@
 import { triggerVisitEndPushNotification } from '@/constants/NotificationService';
 import {
   deleteCustomerFromFirestore,
+  deleteInvestmentFromFirestore,
   deleteRollFromFirestore,
   deleteRollOrderFromFirestore,
   getCustomerByIdFromFirestore,
   getCustomerOrderByIdFromFirestore,
   getCustomerOrdersFromFirestore,
   getCustomersFromFirestore,
+  getInvestmentsFromFirestore,
   getNotificationsFromFirestore,
   getRollsFromFirestore,
   saveCustomerToFirestore,
+  saveInvestmentToFirestore,
   saveNotificationToFirestore,
   saveRollOrderToFirestore,
   saveRollToFirestore,
   updateRollOrderToFirestore,
 } from '@/lib/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppNotification, Customer, CustomerOrder, ThermalRoll } from './types';
+import { AppNotification, Customer, CustomerOrder, Investment, ThermalRoll } from './types';
 
 const CUSTOMERS_KEY = '@thermal_roll_customers_v1';
 const CUSTOMERS_ORDER_KEY = '@thermal_roll_customers_orders_v1';
 const ROLLS_KEY = '@thermal_roll_rolls_v1';
 const NOTIFICATIONS_KEY = '@thermal_roll_notifications_v1';
+const INVESTMENTS_KEY = '@thermal_roll_investments_v1';
 
 // Helper to get formatted date string (YYYY-MM-DD)
 export const getTodayDateString = (offsetDays: number = 0): string => {
@@ -180,6 +184,30 @@ export const loadSingleOrder = async (orderId: string): Promise<CustomerOrder | 
     console.error('Error loading single customer order:', error);
     return null;
   }
+};
+
+export const loadInvestments = async (): Promise<Investment[]> => {
+  try {
+    const investments = await getInvestmentsFromFirestore();
+    await AsyncStorage.setItem(INVESTMENTS_KEY, JSON.stringify(investments));
+    return investments;
+  } catch (error) {
+    console.error('Error loading investments:', error);
+    const cached = await AsyncStorage.getItem(INVESTMENTS_KEY);
+    return cached ? JSON.parse(cached) : [];
+  }
+};
+
+export const saveInvestment = async (investment: Investment): Promise<Investment[]> => {
+  const investments = await saveInvestmentToFirestore(investment);
+  await AsyncStorage.setItem(INVESTMENTS_KEY, JSON.stringify(investments));
+  return investments;
+};
+
+export const deleteInvestment = async (id: string): Promise<Investment[]> => {
+  const investments = await deleteInvestmentFromFirestore(id);
+  await AsyncStorage.setItem(INVESTMENTS_KEY, JSON.stringify(investments));
+  return investments;
 };
 
 // Load customers from Firestore with AsyncStorage cache fallback

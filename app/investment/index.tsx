@@ -1,8 +1,11 @@
 import Colors, { Palette } from '@/constants/Colors';
+import { deleteInvestment, loadInvestments } from '@/lib/storage';
+import { Investment } from '@/lib/types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
+  Alert,
   FlatList,
   StyleSheet,
   Text,
@@ -13,16 +16,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-type Investment = {
-  id: string;
-  investorId: string;
-  investorName: string;
-  amount: number;
-  investmentDate: string;
-  status: 'Active' | 'Withdrawn';
-  notes?: string;
-};
-
 const InvestmentsScreen = () => {
   const [search, setSearch] = useState('');
   const colorScheme = useColorScheme();
@@ -30,31 +23,17 @@ const InvestmentsScreen = () => {
   const theme = Colors[isDark ? 'dark' : 'light'];
   const { top } = useSafeAreaInsets();
 
-  // Replace this with Firestore data
-  const [investments] = useState<Investment[]>([
-    {
-      id: 'investment-1',
-      investorId: 'investor-usman',
-      investorName: 'Usman',
-      amount: 300000,
-      investmentDate: '2026-08-18',
-      status: 'Active',
-      notes: 'Initial business investment',
-    },
-    {
-      id: 'investment-2',
-      investorId: 'investor-bilal',
-      investorName: 'Bilal',
-      amount: 200000,
-      investmentDate: '2026-08-15',
-      status: 'Active',
-      notes: 'Business investment',
-    },
-  ]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadInvestments().then(setInvestments);
+    }, [])
+  );
 
   const totalInvestment = useMemo(() => {
     return investments.reduce(
-      (total, item) => total + Number(item.amount || 0),
+    (total, item) => total + (item.transactionType === 'Withdrawal' ? -item.amount : item.amount),
       0,
     );
   }, [investments]);
@@ -88,11 +67,24 @@ const InvestmentsScreen = () => {
   };
 
   const handleEdit = (investment: Investment) => {
-    console.log('Edit investment:', investment.id);
+    Alert.alert('Edit Investment', 'Investment editing is not available yet.');
   };
 
   const handleDelete = (investment: Investment) => {
-    console.log('Delete investment:', investment.id);
+    Alert.alert('Delete Investment', 'Delete this transaction permanently?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setInvestments(await deleteInvestment(investment.id));
+          } catch {
+            Alert.alert('Error', 'Unable to delete this transaction.');
+          }
+        },
+      },
+    ]);
   };
 
   const renderInvestment = ({ item }: { item: Investment }) => {
@@ -170,7 +162,7 @@ const InvestmentsScreen = () => {
                 styles.statusDot,
                 {
                   backgroundColor:
-                    item.status === 'Active'
+                    item.transactionType === 'Investment'
                       ? Palette.success
                       : Palette.warning,
                 },
@@ -182,13 +174,13 @@ const InvestmentsScreen = () => {
                 styles.statusText,
                 {
                   color:
-                    item.status === 'Active'
+                    item.transactionType === 'Investment'
                       ? Palette.success
-                      : Palette.warning,
+                      : Palette.danger,
                 },
               ]}
             >
-              {item.status}
+              {item.transactionType}
             </Text>
           </View>
         </View>

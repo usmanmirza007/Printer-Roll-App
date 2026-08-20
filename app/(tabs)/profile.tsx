@@ -6,9 +6,10 @@ import { useOrders } from '@/hooks/useOrders';
 import {
   getTodayDateString,
   loadCustomers,
+  loadInvestments,
   loadRolls,
 } from '@/lib/storage';
-import { Customer, ThermalRoll } from '@/lib/types';
+import { Customer, Investment, ThermalRoll } from '@/lib/types';
 import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import * as Application from 'expo-application';
 import Constants from 'expo-constants';
@@ -32,6 +33,7 @@ export default function DashboardScreen() {
   const { user, logout } = useAuth();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
   const [reseeding, setReseeding] = useState(false);
   const version = Constants.expoConfig?.version
   const buildNumber =
@@ -40,10 +42,14 @@ export default function DashboardScreen() {
       : Application.nativeBuildVersion || '1';            // Real Build
 
   const fetchData = async () => {
-    const custs = await loadCustomers();
-    const rls = await loadRolls();
+    const [custs, rls, investmentHistory] = await Promise.all([
+      loadCustomers(),
+      loadRolls(),
+      loadInvestments(),
+    ]);
     setCustomers(custs);
     setRolls(rls);
+    setInvestments(investmentHistory);
   };
 
   const { orders, orderCount } = useOrders()
@@ -61,12 +67,22 @@ export default function DashboardScreen() {
   ).length;
 
   const totalStockItems = rolls.reduce((sum, r) => sum + r.stockCount, 0);
+  const totalOutStockItems = orders.reduce((sum, order) => sum + order.quantity, 0);
+  const totalInvest = investments.reduce(
+    (sum, investment) => sum + (investment.transactionType === 'Withdrawal' ? -investment.amount : investment.amount),
+    0,
+  );
+  const investmentByInvestor = investments.reduce<Record<string, number>>((totals, investment) => {
+    const amount = investment.transactionType === 'Withdrawal' ? -investment.amount : investment.amount;
+    totals[investment.investorName] = (totals[investment.investorName] || 0) + amount;
+    return totals;
+  }, {});
   const totalSales = orders.filter((order) => order.status == 'Delivered').reduce((sum, r) => sum + r.totalSale, 0);
-  // const totalProfit = orders
-  //   .filter(order => order.status === 'Delivered')
-  //   .reduce((total, order) => {
-  //     return total + (order.totalSale - order.totalCost);
-  //   }, 0);
+  const totalProfit = orders
+    .filter(order => order.status === 'Delivered')
+    .reduce((total, order) => {
+      return total + (order.totalSale - order.totalCost);
+    }, 0);
 
 
   const categoryCounts: Record<string, number> = {};
@@ -151,20 +167,20 @@ export default function DashboardScreen() {
               <MaterialCommunityIcons name="cash-multiple" size={22} color={Palette.success} />
               <Text style={[styles.kpiLabel, { color: theme.textSecondary, marginLeft: 8, }]}>Total Invest</Text>
             </View>
-            <Text style={[styles.kpiNumber, { color: Palette.success, }]}>{/* ₨{totalInvest.toLocaleString()} */}40000</Text>
+            <Text style={[styles.kpiNumber, { color: Palette.success, }]}>₨{totalInvest.toLocaleString()}</Text>
           </View>
 
           <View style={[styles.investorsContainer, { borderTopColor: theme.border, },]}>
             <View style={styles.investorRow}>
               <Text style={[styles.investorName, { color: theme.text }]}>Usman</Text>
-              <Text style={[styles.investorAmount, { color: theme.text, },]}>{/* ₨{usmanInvest.toLocaleString()} */}Rs30000</Text>
+              <Text style={[styles.investorAmount, { color: theme.text, },]}>₨{(investmentByInvestor.Usman || 0).toLocaleString()}</Text>
             </View>
 
             <View style={styles.investorRow}>
               <Text style={[styles.investorName, { color: theme.text }]}>
                 Bilal
               </Text>
-              <Text style={[styles.investorAmount, { color: theme.text, },]}>{/* ₨{bilalInvest.toLocaleString()} */}40000</Text>
+                <Text style={[styles.investorAmount, { color: theme.text, },]}>₨{(investmentByInvestor.Bilal || 0).toLocaleString()}</Text>
             </View>
           </View>
         </View>
@@ -188,9 +204,20 @@ export default function DashboardScreen() {
         </View>
 
         <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <MaterialCommunityIcons name="truck-minus" size={22} color={Palette.warning} />
+          <Text style={[styles.kpiNumber, { color: Palette.warning }]}>{totalOutStockItems}</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total Out-Stock</Text>
+        </View>
+
+        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
           <MaterialCommunityIcons name="chart-line" size={22} color={theme.tint} />
           <Text style={[styles.kpiNumber, { color: theme.text }]}>₨{totalSales.toLocaleString()}</Text>
           <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total Sales</Text>
+        </View>
+        <View style={[styles.kpiCard, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <MaterialCommunityIcons name="chart-line" size={22} color={theme.tint} />
+          <Text style={[styles.kpiNumber, { color: theme.text }]}>₨{totalProfit.toLocaleString()}</Text>
+          <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total Est Profit</Text>
         </View>
       </View>
       <TouchableOpacity

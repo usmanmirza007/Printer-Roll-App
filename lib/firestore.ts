@@ -1,11 +1,11 @@
-import { CUSTOMERS_COLLECTION, CUSTOMERS_ORDER_COLLECTION, NOTIFICATIONS_COLLECTION, ROLLS_COLLECTION } from '@/constants/environment';
+import { CUSTOMERS_COLLECTION, CUSTOMERS_ORDER_COLLECTION, INVESTMENTS_COLLECTION, NOTIFICATIONS_COLLECTION, ROLLS_COLLECTION } from '@/constants/environment';
 import { db } from '@/lib/firebase';
 import {
   DEFAULT_CUSTOMERS,
   DEFAULT_NOTIFICATIONS,
   DEFAULT_ROLLS
 } from '@/lib/storage';
-import { AppNotification, Customer, CustomerOrder, ThermalRoll } from '@/lib/types';
+import { AppNotification, Customer, CustomerOrder, Investment, ThermalRoll } from '@/lib/types';
 import {
   collection,
   deleteDoc,
@@ -104,7 +104,7 @@ export async function getCustomerByIdFromFirestore(
 
     // 3. Attach orders
     customerData.orderHistory = orderHistory;
-    
+
     return customerData;
   } catch (error) {
     console.error('❌ Error fetching customer by ID:', error);
@@ -372,71 +372,34 @@ export async function seedInitialFirestoreData(): Promise<void> {
   }
 }
 
-// export const createInvestment = async ({
-//   investorId,
-//   investorName,
-//   amount,
-//   investmentDate,
-//   status = 'Active',
-//   notes = '',
-//   createdBy,
-// }: {
-//   investorId: string;
-//   investorName: string;
-//   amount: number;
-//   investmentDate: Date;
-//   status?: 'Active' | 'Withdrawn';
-//   notes?: string;
-//   createdBy: string;
-// }) => {
-//   try {
-//     const investmentRef = await addDoc(
-//       collection(db, 'investments'),
-//       {
-//         investorId,
-//         investorName,
-//         amount: Number(amount),
+export async function getInvestmentsFromFirestore(): Promise<Investment[]> {
+  try {
+    const snapshot = await getDocs(collection(db, INVESTMENTS_COLLECTION));
+    return snapshot.docs
+      .map((investmentDoc) => ({ id: investmentDoc.id, ...investmentDoc.data() } as Investment))
+      .sort((first, second) => second.investmentDate.localeCompare(first.investmentDate));
+  } catch (error) {
+    console.error('❌ Error fetching investments from Firestore:', error);
+    throw error;
+  }
+}
 
-//         investmentDate,
+export async function saveInvestmentToFirestore(investment: Investment): Promise<Investment[]> {
+  try {
+    await setDoc(doc(db, INVESTMENTS_COLLECTION, investment.id), investment, { merge: true });
+    return getInvestmentsFromFirestore();
+  } catch (error) {
+    console.error('❌ Error saving investment to Firestore:', error);
+    throw error;
+  }
+}
 
-//         status,
-
-//         notes,
-
-//         createdBy,
-
-//         createdAt: serverTimestamp(),
-//         updatedAt: serverTimestamp(),
-//       }
-//     );
-
-//     return {
-//       success: true,
-//       id: investmentRef.id,
-//     };
-//   } catch (error) {
-//     console.error('Create investment error:', error);
-
-//     throw error;
-//   }
-// };
-
-// export const getInvestments = async () => {
-//   try {
-//     const q = query(
-//       collection(db, 'investments'),
-//       orderBy('createdAt', 'desc')
-//     );
-
-//     const snapshot = await getDocs(q);
-
-//     return snapshot.docs.map(doc => ({
-//       id: doc.id,
-//       ...doc.data(),
-//     }));
-//   } catch (error) {
-//     console.error('Get investments error:', error);
-
-//     throw error;
-//   }
-// };
+export async function deleteInvestmentFromFirestore(id: string): Promise<Investment[]> {
+  try {
+    await deleteDoc(doc(db, INVESTMENTS_COLLECTION, id));
+    return getInvestmentsFromFirestore();
+  } catch (error) {
+    console.error('❌ Error deleting investment from Firestore:', error);
+    throw error;
+  }
+}

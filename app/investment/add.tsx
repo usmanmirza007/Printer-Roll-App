@@ -1,4 +1,6 @@
 import Colors, { Palette } from '@/constants/Colors';
+import { saveInvestment } from '@/lib/storage';
+import { Investment } from '@/lib/types';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
@@ -101,31 +103,21 @@ const AddInvestmentScreen = () => {
     try {
       setLoading(true);
 
-      /**
-       * Firestore function goes here.
-       *
-       * Example:
-       *
-       * await createInvestment({
-       *   investorId: investor.id,
-       *   investorName: investor.name,
-       *   amount: numericAmount,
-       *   investmentDate,
-       *   type: transactionType,
-       *   status,
-       *   notes,
-       * });
-       */
-
-      console.log({
+      const now = new Date().toISOString();
+      const investment: Investment = {
+        id: `investment-${Date.now()}`,
         investorId: investor.id,
         investorName: investor.name,
         amount: numericAmount,
-        investmentDate,
-        type: transactionType,
+        investmentDate: investmentDate.toISOString(),
+        transactionType,
         status,
-        notes,
-      });
+        notes: notes.trim(),
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      await saveInvestment(investment);
 
       Alert.alert(
         'Success',
@@ -133,9 +125,7 @@ const AddInvestmentScreen = () => {
         [
           {
             text: 'OK',
-            onPress: () => {
-              // onSuccess?.();
-            },
+            onPress: () => router.back(),
           },
         ],
       );
