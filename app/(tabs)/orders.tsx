@@ -8,14 +8,14 @@ import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-  FlatList,
-  Pressable,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    FlatList,
+    Pressable,
+    RefreshControl,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 const STATUS_FILTERS: (OrderStatus | 'All')[] = [
@@ -109,7 +109,7 @@ export default function OrdersScreen() {
             borderColor: theme.border,
           },
         ]}
-        onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
+        onPress={() => router.push(`/order/view?id=${item.id}&customerId=${item.customerId}`)}
       >
         {/* Top Header */}
         <View style={styles.cardTop}>
@@ -176,7 +176,7 @@ export default function OrdersScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-              onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
+              onPress={() => router.push(`/order/view?id=${item.id}&customerId=${item.customerId}`)}
             >
               <Ionicons name="eye-outline" size={15} color={theme.tint} />
               <Text style={[styles.actionText, { color: theme.text }]}>View Details</Text>
@@ -188,7 +188,7 @@ export default function OrdersScreen() {
                 styles.iconOnlyBtn,
                 { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
               ]}
-              onPress={() => router.push(`/order/${item.id}?type=edit&customerId=${item.customerId}`)}
+              onPress={() => router.push(`/order/${item.id}?customerId=${item.customerId}`)}
             >
               <Feather name="edit-2" size={15} color={theme.textSecondary} />
             </TouchableOpacity>

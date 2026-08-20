@@ -1,9 +1,9 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { deleteCustomerOrder, loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll } from '@/lib/storage';
+import { deleteCustomerOrder, loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll, updateCustomerOrder } from '@/lib/storage';
 import { Customer, CustomerOrder, OrderStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -31,13 +31,15 @@ export default function AddOrEditCustomerOrderScreen() {
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
   const { top } = useSafeAreaInsets();
+  const pathname = usePathname();
 
   const { customerId = '', id = '', type = '' } = useLocalSearchParams<{
     customerId?: string;
     id?: string;
     type?: string;
   }>();
-  const isEditMode = type === 'edit';
+  const isViewMode = pathname === '/order/view' || type === 'view';
+  const isEditMode = !!id && !isViewMode;
 
   // Form state
   const [customers, setCustomers] = useState<Customer | null>(null);
@@ -47,6 +49,7 @@ export default function AddOrEditCustomerOrderScreen() {
   const [unitCostRate, setUnitCostRate] = useState('120');
   const [unitSaleRate, setUnitSaleRate] = useState('135');
   const [status, setStatus] = useState<OrderStatus>('Pending');
+  const [originalOrder, setOriginalOrder] = useState<CustomerOrder | null>(null);
   const [loading, setLoading] = useState(false);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
   // const [selectedRoll, setSelectedRoll] = useState<ThermalRoll | null>(null);
@@ -76,8 +79,12 @@ export default function AddOrEditCustomerOrderScreen() {
 
   // If editing, load existing order (you can expand this later)
   useEffect(() => {
+    if (!id || (!isEditMode && !isViewMode)) return;
+
     loadSingleOrder(id).then((data: any) => {
       if (data) {
+        setOriginalOrder(data as CustomerOrder);
+        setSelectedCustomerId(data.customerId);
         setRollType(data.rollType);
         setQuantity(data.quantity.toString());
         setUnitCostRate(data.unitCostRate.toString());
@@ -85,7 +92,7 @@ export default function AddOrEditCustomerOrderScreen() {
         setStatus(data.status);
       }
     });
-  }, [id, isEditMode]);
+  }, [id, isEditMode, isViewMode]);
 
   // Auto calculations
   const qty = parseFloat(quantity) || 0;
@@ -99,10 +106,24 @@ export default function AddOrEditCustomerOrderScreen() {
 
 
   const handleSave = async () => {
-    const filterRoll = rolls.find((roll) => roll.title.replaceAll('Thermal Roll', '').trim() == rollType)
+    const filterRoll = rolls.find((roll) => roll.title.replaceAll('Thermal Roll', '').trim() === rollType);
+    const previousRoll = isEditMode && originalOrder
+      ? rolls.find(
+          (roll) =>
+            roll.id === originalOrder.rollId ||
+            roll.title.replaceAll('Thermal Roll', '').trim() === originalOrder.rollType
+        )
+      : undefined;
+    const availableStock = filterRoll && previousRoll?.id === filterRoll.id
+      ? filterRoll.stockCount + (originalOrder?.quantity || 0)
+      : filterRoll?.stockCount || 0;
 
     if (!selectedCustomerId) {
       Alert.alert('Validation Error', 'Please select a customer.');
+      return;
+    }
+    if (isEditMode && !originalOrder) {
+      Alert.alert('Please wait', 'The existing order is still loading.');
       return;
     }
     if (qty <= 0) {
@@ -119,10 +140,10 @@ export default function AddOrEditCustomerOrderScreen() {
       return;
     }
 
-    if (filterRoll && filterRoll.stockCount < qty) {
+    if (filterRoll && availableStock < qty) {
       Alert.alert(
         'Insufficient Stock',
-        `Current available stock for ${filterRoll.title} is ${filterRoll.stockCount} rolls.`
+        `Current available stock for ${filterRoll.title} is ${availableStock} rolls.`
       );
       return;
     }
@@ -143,23 +164,28 @@ export default function AddOrEditCustomerOrderScreen() {
         totalSale,
         profit,
         status,
-        orderDate: new Date().toISOString(),
+        orderDate: originalOrder?.orderDate || new Date().toISOString(),
       };
 
-      const updatedRoll: ThermalRoll = {
-        id: filterRoll?.id || `roll-${rollType.replace(/\s/g, '-').toLowerCase()}`,
-        description: filterRoll?.description || '',
-        meterLength: filterRoll?.meterLength || 40,
-        paperWidth: filterRoll?.paperWidth || '80mm Standard POS',
-        purchaseRate: costRate,
-        wholesaleRate: saleRate,
-        stockCount: filterRoll ? filterRoll.stockCount - qty : 0, // Assuming initial stock is 100 for simplicity
-        minStockAlert: filterRoll?.minStockAlert || 10,
-        title: filterRoll.title,
-      };
+      const updatedRolls = isEditMode && originalOrder
+        ? rolls
+            .filter((roll) => roll.id === previousRoll?.id || roll.id === filterRoll.id)
+            .map((roll) => ({
+              ...roll,
+              stockCount: roll.id === previousRoll?.id
+                ? roll.stockCount + originalOrder.quantity - (roll.id === filterRoll.id ? qty : 0)
+                : roll.stockCount - qty,
+            }))
+        : filterRoll
+          ? [{ ...filterRoll, stockCount: filterRoll.stockCount - qty }]
+          : [];
 
-      await saveCustomerOrder(orderData); // make sure this function exists in storage
-      if (updatedRoll) {
+      if (isEditMode) {
+        await updateCustomerOrder(orderData);
+      } else {
+        await saveCustomerOrder(orderData);
+      }
+      for (const updatedRoll of updatedRolls) {
         await saveRoll(updatedRoll);
       }
       setLoading(false);
@@ -220,7 +246,7 @@ export default function AddOrEditCustomerOrderScreen() {
               <Ionicons name="arrow-back" size={24} color={theme.text} />
             </TouchableOpacity>
             <Text style={[styles.headerTitle, { color: theme.text }]}>
-              {isEditMode ? 'Edit Order' : 'New Order'}
+              {isViewMode ? 'Order Details' : isEditMode ? 'Edit Order' : 'New Order'}
             </Text>
           </View>
           <TouchableOpacity
@@ -285,11 +311,13 @@ export default function AddOrEditCustomerOrderScreen() {
                       },
                   ]}
                   onPress={() => {
+                    if (isViewMode) return;
                     setRollType(title)
                     // setSelectedRoll(rt)
                     setUnitCostRate(rt.purchaseRate.toString())
                     setUnitSaleRate(rt.wholesaleRate.toString())
                   }}
+                  disabled={isViewMode}
                 >
                   <Text
                     style={[
@@ -315,6 +343,7 @@ export default function AddOrEditCustomerOrderScreen() {
             keyboardType="numeric"
             value={quantity}
             onChangeText={setQuantity}
+            editable={!isViewMode}
           />
         </View>
 
@@ -341,6 +370,7 @@ export default function AddOrEditCustomerOrderScreen() {
                 keyboardType="numeric"
                 value={unitCostRate}
                 onChangeText={setUnitCostRate}
+                editable={!isViewMode}
               />
             </View>
 
@@ -362,6 +392,7 @@ export default function AddOrEditCustomerOrderScreen() {
                 keyboardType="numeric"
                 value={unitSaleRate}
                 onChangeText={setUnitSaleRate}
+                editable={!isViewMode}
               />
             </View>
           </View>
@@ -415,7 +446,10 @@ export default function AddOrEditCustomerOrderScreen() {
                         borderColor: theme.border,
                       },
                   ]}
-                  onPress={() => setStatus(st)}
+                  onPress={() => {
+                    if (!isViewMode) setStatus(st);
+                  }}
+                  disabled={isViewMode}
                 >
                   <Text
                     style={[
@@ -432,7 +466,7 @@ export default function AddOrEditCustomerOrderScreen() {
         </View>
 
         {/* Save Button */}
-        <TouchableOpacity
+        {!isViewMode && <TouchableOpacity
           style={[
             styles.saveBtn,
             { backgroundColor: theme.tint },
@@ -444,7 +478,7 @@ export default function AddOrEditCustomerOrderScreen() {
           <Text style={styles.saveBtnText}>
             {loading ? 'Saving...' : isEditMode ? 'Update Order' : 'Create Order'}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>}
       </ScrollView>
     </KeyboardAvoidingView>
   );

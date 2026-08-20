@@ -13,6 +13,7 @@ import {
   saveNotificationToFirestore,
   saveRollOrderToFirestore,
   saveRollToFirestore,
+  updateRollOrderToFirestore,
 } from '@/lib/firestore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppNotification, Customer, CustomerOrder, ThermalRoll } from './types';
@@ -255,6 +256,12 @@ export const saveCustomerOrder = async (customerOrder: CustomerOrder): Promise<C
     console.error('Error saving roll:', error);
     return await loadCustomersOrder(customerOrder.customerId);
   }
+};
+
+export const updateCustomerOrder = async (customerOrder: CustomerOrder): Promise<CustomerOrder[]> => {
+  const orders = await updateRollOrderToFirestore(customerOrder);
+  await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(orders));
+  return orders;
 };
 
 // Delete customer order in Firestore

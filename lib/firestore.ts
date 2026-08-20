@@ -113,6 +113,8 @@ export async function getCustomerByIdFromFirestore(
 }
 export async function getCustomerOrderByIdFromFirestore(customerOrderId: string): Promise<CustomerOrder | null> {
   try {
+    if (!customerOrderId.trim()) return null;
+
     const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrderId);
     const snapshot = await getDoc(docRef);
 
@@ -266,6 +268,18 @@ export async function saveRollOrderToFirestore(customerOrder: CustomerOrder): Pr
   } catch (error) {
     console.error('❌ Error saving roll order to Firestore:', error);
     return [];
+  }
+}
+
+/** Update an existing customer order in Firestore. */
+export async function updateRollOrderToFirestore(customerOrder: CustomerOrder): Promise<CustomerOrder[]> {
+  try {
+    const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrder.id);
+    await setDoc(docRef, customerOrder, { merge: true });
+    return await getCustomerOrdersFromFirestore(customerOrder.customerId);
+  } catch (error) {
+    console.error('❌ Error updating roll order in Firestore:', error);
+    throw error;
   }
 }
 

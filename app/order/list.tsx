@@ -112,7 +112,7 @@ export default function OrderListScreen() {
             borderColor: theme.border,
           },
         ]}
-        onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
+        onPress={() => router.push(`/order/view?id=${item.id}&customerId=${item.customerId}`)}
       >
         {/* Top Header */}
         <View style={styles.cardTop}>
@@ -180,7 +180,7 @@ export default function OrderListScreen() {
 
             <TouchableOpacity
               style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-              onPress={() => router.push(`/order/${item.id}?type=view&customerId=${item.customerId}`)}
+              onPress={() => router.push(`/order/view?id=${item.id}&customerId=${item.customerId}`)}
             >
               <Ionicons name="eye-outline" size={15} color={theme.tint} />
               <Text style={[styles.actionText, { color: theme.text }]}>View Details</Text>
@@ -192,7 +192,7 @@ export default function OrderListScreen() {
                 styles.iconOnlyBtn,
                 { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' },
               ]}
-              onPress={() => router.push(`/order/${item.id}?type=edit&customerId=${item.customerId}`)}
+              onPress={() => router.push(`/order/${item.id}?customerId=${item.customerId}`)}
             >
               <Feather name="edit-2" size={14} color={theme.textSecondary} />
             </TouchableOpacity>
