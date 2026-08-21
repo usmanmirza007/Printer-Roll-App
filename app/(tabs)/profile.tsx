@@ -154,13 +154,13 @@ export default function DashboardScreen() {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.logoutBadge} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={18} color="#FFFFFF" />
+        <TouchableOpacity style={styles.logoutBadge} onPress={() => router.push('/investment')}>
+          <Ionicons name="trending-up" size={18} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
 
       {/* Metric Cards Grid */}
-      <View style={styles.kpiGrid}>
+      <View style={[styles.kpiGrid, {marginBottom: 0}]}>
         <View style={[styles.kpiCard, styles.kpiCardFullWidth, { backgroundColor: theme.card, borderColor: theme.border, },]}>
           <View style={styles.investHeader}>
             <View style={styles.investTitleRow}>
@@ -220,28 +220,7 @@ export default function DashboardScreen() {
           <Text style={[styles.kpiLabel, { color: theme.textSecondary }]}>Total Est Profit</Text>
         </View>
       </View>
-      <TouchableOpacity
-        style={[
-          styles.saveButton,
-          {
-            marginTop: -15,
-            marginBottom: 10,
-            backgroundColor: theme.tint,
-          },
-        ]}
-        onPress={() => router.push('/investment')}>
-        <Ionicons
-          name="add"
-          size={21}
-          color={Palette.white}
-        />
 
-        <Text style={styles.saveText}>
-          Add Invest
-        </Text>
-      </TouchableOpacity>
-
-      {/* Market Distribution */}
       <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <Text style={[styles.cardTitle, { color: theme.tint }]}>Customer Market Distribution</Text>
 
@@ -326,10 +305,10 @@ const styles = StyleSheet.create({
   },
   kpiGrid: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 14 },
   kpiCard: {
-    width: '48%',
+    width: '48.5%',
     borderRadius: 10,
     padding: 12,
-    marginBottom: 10,
+    marginBottom: 14,
     alignItems: 'center',
     borderWidth: 1,
   },

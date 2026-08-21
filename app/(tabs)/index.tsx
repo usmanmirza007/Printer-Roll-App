@@ -296,8 +296,8 @@ Thank you!`;
             onChangeText={setSearchQuery}
           />
           {searchQuery !== '' && (
-            <Pressable onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={16} color={theme.textSecondary} />
+            <Pressable hitSlop={20} onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={24} color={theme.textSecondary} />
             </Pressable>
           )}
         </View>

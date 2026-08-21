@@ -8,14 +8,14 @@ import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
-    FlatList,
-    Pressable,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 const STATUS_FILTERS: (OrderStatus | 'All')[] = [
@@ -229,8 +229,8 @@ export default function OrdersScreen() {
             onChangeText={setSearchQuery}
           />
           {searchQuery !== '' && (
-            <Pressable onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={16} color={theme.textSecondary} />
+            <Pressable hitSlop={20} onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={24} color={theme.textSecondary} />
             </Pressable>
           )}
         </View>
