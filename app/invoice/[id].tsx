@@ -8,6 +8,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,11 +25,26 @@ const COMPANY = {
   phone1: '0335-0604017',
   phone2: '0337-0495656',
   address: 'Lahore, Punjab, Pakistan',
-  bankName: 'HBL',
-  accountTitle: 'Mughal Thermal Printer Roll',
-  accountNo: '1234567890123',
-  iban: 'PK00HABB0000001234567890',
 };
+
+const BANK_ACCOUNTS = [
+  {
+    id: 'usman',
+    owner: 'Muhammad Usman',
+    bankName: 'HBL',
+    accountTitle: 'Muhammad Usman',
+    accountNo: '1234567890123',
+    iban: 'PK00HABB000000000000000',
+  },
+  {
+    id: 'bilal',
+    owner: 'Muhammad Bilal',
+    bankName: 'Meezan Bank',
+    accountTitle: 'Muhammad Bilal Mirza',
+    accountNo: '9876543210987',
+    iban: 'PK00MEZN000000000000000',
+  },
+] as const;
 
 type OrderItem = {
   no: string;
@@ -68,6 +84,8 @@ export default function InvoiceScreen() {
   const [discount, setDiscount] = useState<number>(0);
   const [shipping, setShipping] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
+  const [includeBankDetails, setIncludeBankDetails] = useState(false);
+  const [selectedBankId, setSelectedBankId] = useState<(typeof BANK_ACCOUNTS)[number]['id']>('usman');
   const { top } = useSafeAreaInsets();
 
   const fetchDetail = async () => {
@@ -161,6 +179,8 @@ export default function InvoiceScreen() {
     total: total,
   };
 
+  const selectedBank = BANK_ACCOUNTS.find((account) => account.id === selectedBankId);
+
   const generateHTML = () => {
     const itemsRows = order.items
       .map(
@@ -226,13 +246,16 @@ export default function InvoiceScreen() {
             Phone: ${order.customer.phone}
           </div>
           <div class="meta-box">
-            <div style="margin-top:12px;text-align:left;background:#f8f9fc;padding:12px;border-radius:8px;border-left:4px solid #c9a227;line-height:1.7;">
+            ${includeBankDetails && selectedBank ? `
+            <div style="margin-top:0px;text-align:left;background:#f8f9fc;padding:12px;border-radius:8px;border-left:4px solid #c9a227;line-height:1.7;">
               <strong>BANK DETAILS</strong><br>
-              Bank Name: ${COMPANY.bankName}<br>
-              Account Title: ${COMPANY.accountTitle}<br>
-              Account No: ${COMPANY.accountNo}<br>
-              IBAN No: ${COMPANY.iban}
+              Account Owner: ${selectedBank.owner}<br>
+              Bank Name: ${selectedBank.bankName}<br>
+              Account Title: ${selectedBank.accountTitle}<br>
+              Account No: ${selectedBank.accountNo}<br>
+              IBAN No: ${selectedBank.iban}
             </div>
+            ` : ''}
           </div>
         </div>
 
@@ -276,6 +299,11 @@ export default function InvoiceScreen() {
   };
 
   const handleDownloadAndShare = async () => {
+    if (includeBankDetails && !selectedBank) {
+      Alert.alert('Select bank account', 'Choose the bank account to show on the invoice.');
+      return;
+    }
+
     try {
       setSharing(true);
       const html = generateHTML();
@@ -317,6 +345,52 @@ export default function InvoiceScreen() {
         <Text style={styles.total}>
           Total: Rs. {order.total.toLocaleString()}
         </Text>
+
+        <View style={styles.bankOptions}>
+          <Pressable
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: includeBankDetails }}
+            style={styles.optionRow}
+            onPress={() => setIncludeBankDetails((current) => !current)}
+          >
+            <View style={[styles.checkbox, includeBankDetails && styles.checkboxSelected]}>
+              {includeBankDetails && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+            <View>
+              <Text style={styles.optionTitle}>Share bank details on invoice</Text>
+              <Text style={styles.optionHint}>For customers paying by online transfer</Text>
+            </View>
+          </Pressable>
+
+          {includeBankDetails && (
+            <View style={styles.accountList}>
+              <Text style={styles.accountLabel}>Select account owner</Text>
+              {BANK_ACCOUNTS.map((account) => (
+                <Pressable
+                  key={account.id}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: selectedBankId === account.id }}
+                  style={styles.optionRow}
+                  onPress={() => setSelectedBankId(account.id)}
+                >
+                  <View style={styles.radioOuter}>
+                    {selectedBankId === account.id && <View style={styles.radioInner} />}
+                  </View>
+                  <View>
+                    <Text style={styles.optionTitle}>{account.owner}</Text>
+                    <Text style={styles.optionHint}>{account.bankName} | A/C {account.accountNo}</Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          )}
+
+          {includeBankDetails && selectedBank && (
+            <Text style={styles.previewNote}>
+              {selectedBank.owner}'s bank details will appear in the PDF.
+            </Text>
+          )}
+        </View>
       </ScrollView>
 
       <View style={styles.footer}>
@@ -357,6 +431,39 @@ const styles = StyleSheet.create({
   invoiceNo: { fontSize: 16, color: '#c9a227', marginTop: 6 },
   customer: { fontSize: 16, marginTop: 12 },
   total: { fontSize: 18, fontWeight: '700', marginTop: 8, color: '#0d1b4c' },
+  bankOptions: {
+    marginTop: 24,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#e4e7ef',
+    borderRadius: 12,
+  },
+  optionRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
+  optionTitle: { fontSize: 15, fontWeight: '600', color: '#0d1b4c' },
+  optionHint: { color: '#687083', fontSize: 12, marginTop: 3 },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderWidth: 2,
+    borderColor: '#aab1c2',
+    borderRadius: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxSelected: { backgroundColor: '#0d1b4c', borderColor: '#0d1b4c' },
+  accountList: { marginTop: 8, borderTopWidth: 1, borderTopColor: '#eef0f5', paddingTop: 8 },
+  accountLabel: { color: '#687083', fontSize: 12, fontWeight: '700', marginBottom: 2 },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderWidth: 2,
+    borderColor: '#0d1b4c',
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0d1b4c' },
+  previewNote: { color: '#0d1b4c', fontSize: 12, marginTop: 8 },
   footer: { padding: 16, borderTopWidth: 1, borderColor: '#eee' },
   btn: {
     flexDirection: 'row',
