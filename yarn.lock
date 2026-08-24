@@ -1093,6 +1093,11 @@
   resolved "https://registry.npmjs.org/@expo/schema-utils/-/schema-utils-0.1.9.tgz"
   integrity sha512-t9bYwG4Z0yCVzHYJoDMci1OFq2FkBkhStlfUGSkspKYTwB/84+x6sY+CXCgdhkQNQtvWaugW5KUs9YZfAXq9Sg==
 
+"@expo/schema-utils@^57.0.2":
+  version "57.0.2"
+  resolved "https://registry.yarnpkg.com/@expo/schema-utils/-/schema-utils-57.0.2.tgz#abbce2902bd23a338691d600815a6093cc6f4403"
+  integrity sha512-fMu/jyN0l1Wzv7XkeWR4IYCx1M8ryui3FdBNGrWwbRgJ7EhxXxK8E2jxP2W3pbgUwUY0V3hG8+GyfCZwny+Lxw==
+
 "@expo/sdk-runtime-versions@^1.0.0":
   version "1.0.0"
   resolved "https://registry.npmjs.org/@expo/sdk-runtime-versions/-/sdk-runtime-versions-1.0.0.tgz"
@@ -1702,11 +1707,6 @@
   dependencies:
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
-
-"@notifee/react-native@^9.1.8":
-  version "9.1.8"
-  resolved "https://registry.yarnpkg.com/@notifee/react-native/-/react-native-9.1.8.tgz#3d55cb3fbcc21f9e35931e366afdf64b294da891"
-  integrity sha512-Az/dueoPerJsbbjRxu8a558wKY+gONUrfoy3Hs++5OqbeMsR0dYe6P+4oN6twrLFyzAhEA1tEoZRvQTFDRmvQg==
 
 "@protobufjs/aspromise@^1.1.1", "@protobufjs/aspromise@^1.1.2":
   version "1.1.2"
@@ -3114,6 +3114,15 @@ expo-asset@~12.0.13:
   dependencies:
     "@expo/image-utils" "^0.8.8"
     expo-constants "~18.0.13"
+
+expo-build-properties@^57.0.14:
+  version "57.0.14"
+  resolved "https://registry.yarnpkg.com/expo-build-properties/-/expo-build-properties-57.0.14.tgz#414267da464e20a250c569520bb510542d299ec3"
+  integrity sha512-gIU7e37gHWDcozQPelPzGlIa+lg8s8/O/gSuU/M7isy46NMdrBZIu/1TCPuL6LwRUCErNvuzNs3t6ljtiGSOkw==
+  dependencies:
+    "@expo/schema-utils" "^57.0.2"
+    resolve-from "^5.0.0"
+    semver "^7.6.0"
 
 expo-constants@~18.0.13:
   version "18.0.13"
@@ -4814,7 +4823,7 @@ pirates@^4.0.1, pirates@^4.0.4:
   resolved "https://registry.npmjs.org/pirates/-/pirates-4.0.7.tgz"
   integrity sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==
 
-plist@^3.0.5, plist@^3.1.1:
+plist@^3.0.5, plist@^3.1.0, plist@^3.1.1:
   version "3.1.1"
   resolved "https://registry.npmjs.org/plist/-/plist-3.1.1.tgz"
   integrity sha512-ZIfcLJC+7E7FBFnDxm9MPmt7D+DidyQ26lewieO75AdhA2ayMtsJSES0iWzqJQbcVRSrTufQoy0DR94xHue0oA==
@@ -4991,6 +5000,16 @@ react-native-is-edge-to-edge@^1.1.6, react-native-is-edge-to-edge@^1.2.1:
   version "1.3.1"
   resolved "https://registry.npmjs.org/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.3.1.tgz"
   integrity sha512-NIXU/iT5+ORyCc7p0z2nnlkouYKX425vuU1OEm6bMMtWWR9yvb+Xg5AZmImTKoF9abxCPqrKC3rOZsKzUYgYZA==
+
+react-native-notify-kit@^10.6.0:
+  version "10.6.0"
+  resolved "https://registry.yarnpkg.com/react-native-notify-kit/-/react-native-notify-kit-10.6.0.tgz#7f244ec015e11b6dc00b9e1eb6c9330061dfec86"
+  integrity sha512-S5q0IU6pekoqIEwbpYAOV43nDgnm8RYKBLl19/8JmG/SCydFcI5+YVXPhgZcVTph/ZPT1kBWmY3EyafKqLKStA==
+  optionalDependencies:
+    chalk "^4.1.0"
+    commander "^12.0.0"
+    plist "^3.1.0"
+    xcode "^3.0.1"
 
 react-native-reanimated@~4.1.1:
   version "4.1.7"

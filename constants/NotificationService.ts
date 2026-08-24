@@ -1,287 +1,364 @@
-// import notifee, { AndroidBadgeIconType, AndroidImportance } from '@notifee/react-native';
-// @ts-ignore
-// import messaging from '@react-native-firebase/messaging';
-import { Alert, PermissionsAndroid, Platform } from 'react-native';
+// import AsyncStorage from '@react-native-async-storage/async-storage';
+// import {
+//   AuthorizationStatus,
+//   getInitialNotification,
+//   getMessaging,
+//   getToken,
+//   onMessage,
+//   onNotificationOpenedApp,
+//   registerDeviceForRemoteMessages,
+//   requestPermission,
+//   setBackgroundMessageHandler,
+// } from '@react-native-firebase/messaging';
+// import { Alert, PermissionsAndroid, Platform } from 'react-native';
+// import notifee, { AndroidBadgeIconType, AndroidImportance } from 'react-native-notify-kit';
 
-let navigationRef: any = null;
-const API_URL = 'https://ozchat-bb236cfd06d9.herokuapp.com/api';
-// const API_URL = 'https://b417a0e242a7.ngrok-free.app/api';
-/**
- * :white_check_mark: Set navigation reference (for deep linking)
- */
-export function setNotificationNavigation(navigation: any) {
-  navigationRef = navigation;
-}
+// const messaging = getMessaging();
 
-/**
- * :white_check_mark: Request Push Notification Permission
- */
-export async function requestNotificationPermission() {
-  try {
-    if (Platform.OS === 'android') {
-      const grant = await PermissionsAndroid.request(
-        PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-      );
-      return grant === 'granted';
-    }
+// let navigationRef: any = null;
+// const API_URL = 'https://ozchat-bb236cfd06d9.herokuapp.com/api';
+// // const API_URL = 'https://b417a0e242a7.ngrok-free.app/api';
 
-    // For iOS, request permission with badge, alert, and sound
-    // const authStatus = await messaging().requestPermission({
-    //   alert: true,
-    //   badge: true,
-    //   sound: true,
-    // });
+// /**
+//  * ✅ Set navigation reference (for deep linking)
+//  */
+// export function setNotificationNavigation(navigation: any) {
+//   navigationRef = navigation;
+// }
 
-    // const enabled =
-    //   authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-    //   authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+// // ✅ Register ONLY ONCE at module level
+// setBackgroundMessageHandler(messaging, async (remoteMessage) => {
+//   console.log('Background message:', remoteMessage);
+//   try {
+//     // await notifee.incrementBadgeCount(1);
+//   } catch (e) {
+//     console.log('Badge error:', e);
+//   }
+// });
 
-    // // Also request badge permission via notifee for iOS
-    // if (enabled) {
-    //   try {
-    //     // await notifee.requestPermission({ badge: true });
-    //     console.log(':white_check_mark: iOS badge permission requested');
-    //   } catch (badgeError) {
-    //     console.error(':x: Error requesting iOS badge permission:', badgeError);
-    //   }
-    // }
+// /**
+//  * ✅ Request Push Notification Permission
+//  */
+// export async function requestNotificationPermission() {
+//   try {
+//     if (Platform.OS === 'android') {
+//       const grant = await PermissionsAndroid.request(
+//         PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+//       );
+//       return grant === PermissionsAndroid.RESULTS.GRANTED;
+//     }
 
-    // return enabled;
-  } catch (err) {
-    console.error(':x: Permission Error:', err);
-    return false;
-  }
-}
+//     // iOS
+//     const authStatus = await requestPermission(messaging, {
+//       alert: true,
+//       badge: true,
+//       sound: true,
+//     });
 
-/**
- * :white_check_mark: Get FCM Token
- */
-export async function getFCMToken() {
-  try {
-    // await messaging().registerDeviceForRemoteMessages();
-    // const token = await messaging().getToken();
+//     const enabled =
+//       authStatus === AuthorizationStatus.AUTHORIZED ||
+//       authStatus === AuthorizationStatus.PROVISIONAL;
 
-    // if (token) {
-    //   console.log(':white_check_mark: FCM Token:', token, token.substring(0, 20) + '...');
-    //   await AsyncStorage.setItem('fcmToken', token);
-    // }
-    // return token;
-  } catch (err) {
-    console.error(':x: Token Error:', err);
-    return null;
-  }
-}
+//     if (enabled) {
+//       try {
+//         // await notifee.requestPermission({ badge: true });
+//         console.log('✅ iOS badge permission requested');
+//       } catch (badgeError) {
+//         console.error('❌ Error requesting iOS badge permission:', badgeError);
+//       }
+//     }
 
-/**
- * :white_check_mark: Register token to backend
- */
-export async function registerFCMToken(uid: string, email: string, accesssToken?: string) {
-  try {
-    const fcmToken = await getFCMToken();
-    if (!fcmToken) return false;
+//     return enabled;
+//   } catch (err) {
+//     console.error('❌ Permission Error:', err);
+//     return false;
+//   }
+// }
 
-    const response = await fetch(
-      `${API_URL}/register-device`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accesssToken}` },
-        body: JSON.stringify({
-          deviceToken: fcmToken,
-          uid: uid,
-          email: email,
-        }),
-      }
-    );
+// /**
+//  * ✅ Get FCM Token
+//  */
+// export async function getFCMToken() {
+//   try {
+//     await registerDeviceForRemoteMessages(messaging);
+//     const token = await getToken(messaging);
 
-    const result = await response.json();
-    console.log('Register Result:', result);
+//     if (token) {
+//       console.log('✅ FCM Token:', token.substring(0, 20) + '...');
+//       await AsyncStorage.setItem('fcmToken', token);
+//     }
+//     return token;
+//   } catch (err) {
+//     console.error('❌ Token Error:', err);
+//     return null;
+//   }
+// }
 
-    return fcmToken
-  } catch (err) {
-    Alert.alert('Error', 'Failed to register device for notifications.');
-    console.error(':x: Register Error:', err);
-  }
-}
-export async function sendPushNotification(accesssToken: string, title: string, body: string, uid: string) {
-  try {
+// /**
+//  * ✅ Register token to backend
+//  */
+// export async function registerFCMToken(
+//   uid: string,
+//   email: string,
+//   accessToken?: string
+// ) {
+//   try {
+//     const fcmToken = await getFCMToken();
+//     if (!fcmToken) return false;
 
-    const response = await fetch(
-      `${API_URL}/send-notification`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accesssToken}` },
-        body: JSON.stringify({
-          title: title,
-          body: body,
-          uid: uid,
-        }),
-      }
-    );
+//     const response = await fetch(`${API_URL}/register-device`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${accessToken}`,
+//       },
+//       body: JSON.stringify({
+//         deviceToken: fcmToken,
+//         uid,
+//         email,
+//       }),
+//     });
 
-    const result = await response.json();
-    console.log('Register Result:', result);
+//     const result = await response.json();
+//     console.log('Register Result:', result);
 
-} catch (err) {
-    console.error(':x: Register Error:', err);
-  }
-}
+//     return fcmToken;
+//   } catch (err) {
+//     Alert.alert('Error', 'Failed to register device for notifications.');
+//     console.error('❌ Register Error:', err);
+//     return false;
+//   }
+// }
 
-/**
- * Trigger local notification and FCM push call when customer visit time ends or is completed
- */
-export async function triggerVisitEndPushNotification(
-  shopName: string,
-  nextVisitDate: string,
-  uid?: string,
-  accessToken?: string
-) {
-  const title = `Visit Logged: ${shopName}`;
-  const body = `Next visit scheduled for ${nextVisitDate}. Thermal roll order status updated.`;
+// /**
+//  * ✅ Send push notification via backend
+//  */
+// export async function sendPushNotification(
+//   accessToken: string,
+//   title: string,
+//   body: string,
+//   uid: string
+// ) {
+//   try {
+//     const response = await fetch(`${API_URL}/send-notification`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${accessToken}`,
+//       },
+//       body: JSON.stringify({
+//         title,
+//         body,
+//         uid,
+//       }),
+//     });
 
-  try {
-    // 1. Display local notification via Notifee
-    // await notifee.displayNotification({
-    //   title,
-    //   body,
-    //   android: {
-    //     channelId: 'default',
-    //     importance: AndroidImportance.HIGH,
-    //     pressAction: { id: 'default' },
-    //   },
-    //   ios: {
-    //     foregroundPresentationOptions: { alert: true, badge: true, sound: true },
-    //   },
-    // });
+//     const result = await response.json();
+//     console.log('Send Notification Result:', result);
+//   } catch (err) {
+//     console.error('❌ Send Notification Error:', err);
+//   }
+// }
 
-    // 2. If user UID and access token are available, call backend push API
-    if (uid && accessToken) {
-      await sendPushNotification(accessToken, title, body, uid);
-    }
-  } catch (err) {
-    console.error('Error triggering visit end push notification:', err);
-  }
-}
+// /**
+//  * Trigger local notification + FCM push when visit ends
+//  */
+// export async function triggerVisitEndPushNotification(
+//   shopName: string,
+//   nextVisitDate: string,
+//   uid?: string,
+//   accessToken?: string
+// ) {
+//   const title = `Visit Logged: ${shopName}`;
+//   const body = `Next visit scheduled for ${nextVisitDate}. Thermal roll order status updated.`;
 
+//   try {
+//     await notifee.displayNotification({
+//       title,
+//       body,
+//       android: {
+//         channelId: 'default',
+//         importance: AndroidImportance.HIGH,
+//         pressAction: { id: 'default' },
+//       },
+//       ios: {
+//         foregroundPresentationOptions: {
+//           alert: true,
+//           badge: true,
+//           sound: true,
+//         },
+//       },
+//     });
 
-/**
- * :white_check_mark: Handle foreground notifications
- */
+//     if (uid && accessToken) {
+//       await sendPushNotification(accessToken, title, body, uid);
+//     }
+//   } catch (err) {
+//     console.error('Error triggering visit end push notification:', err);
+//   }
+// }
 
-export async function showForegroundNotification(remoteMessage: any) {
-  const { notification } = remoteMessage;
-  console.log('remoteMessage', remoteMessage);
+// /**
+//  * ✅ Handle foreground notifications
+//  */
+// export async function showForegroundNotification(remoteMessage: any) {
+//   const { notification } = remoteMessage;
+//   console.log('remoteMessage', remoteMessage);
 
-  // await notifee.displayNotification({
-  //   title: notification?.title || 'New Message',
-  //   body: notification?.body || 'You have a new notification',
-  //   android: {
-  //     channelId: 'default',
-  //     importance: AndroidImportance.HIGH,
-  //     pressAction: { id: 'default' },
-  //     largeIcon: 'ic_launchers_round',
-  //     badgeIconType: AndroidBadgeIconType.LARGE,
-  //   },
-  //   ios: {
-  //     foregroundPresentationOptions: {
-  //       alert: true,
-  //       badge: true,
-  //       sound: true,
-  //     },
-  //   },
-  //   data: {
+//   await notifee.displayNotification({
+//     title: notification?.title || 'New Message',
+//     body: notification?.body || 'You have a new notification',
+//     android: {
+//       channelId: 'default',
+//       importance: AndroidImportance.HIGH,
+//       pressAction: { id: 'default' },
+//       largeIcon: 'ic_launchers_round',
+//       badgeIconType: AndroidBadgeIconType.LARGE,
+//     },
+//     ios: {
+//       foregroundPresentationOptions: {
+//         alert: true,
+//         badge: true,
+//         sound: true,
+//       },
+//     },
+//     data: {},
+//   });
+// }
 
-  //   }
+// /**
+//  * ✅ Handle navigation when notification is pressed
+//  */
+// export function handleNotificationNavigation(remoteMessage: any, user: any) {
+//   if (remoteMessage && Platform.OS === 'ios' && user?.uid) {
+//     updateBadgeCountOnServer(
+//       user.uid,
+//       1,
+//       (user as any)?.stsTokenManager?.accessToken
+//     );
+//   }
+//   if (!navigationRef) return;
 
-  // });
-}
+//   const { data } = remoteMessage;
+//   if (!data) {
+//     navigationRef.navigate('Notifications');
+//     return;
+//   }
 
-/**
- * :white_check_mark: Handle navigation when notification pressed
- */
-export function handleNotificationNavigation(remoteMessage: any) {
-  if (!navigationRef) return;
+//   switch (data.type) {
+//     case 'document_expiring':
+//       navigationRef.navigate('Documents', {
+//         documentId: data.sourceId,
+//         highlightDocument: true,
+//       });
+//       break;
+//     default:
+//       navigationRef.navigate('Notifications');
+//   }
+// }
 
-  const { data } = remoteMessage;
-  if (!data) {
-    navigationRef.navigate('Notifications');
-    return;
-  }
+// /**
+//  * ✅ Clear listeners (optional)
+//  */
+// export function cleanupNotificationListeners() {
+//   console.log('✅ Notification listeners cleaned');
+// }
 
-  switch (data.type) {
-    case 'document_expiring':
-      navigationRef.navigate('Documents', {
-        documentId: data.sourceId,
-        highlightDocument: true,
-      });
-      break;
-    default:
-      navigationRef.navigate('Notifications');
-  }
-}
+// /**
+//  * ✅ Update badge count on server
+//  */
+// export async function updateBadgeCountOnServer(
+//   uid: string,
+//   badgeCount: number,
+//   accessToken: string
+// ) {
+//   if (!uid) {
+//     console.log('⚠️ Cannot update badge count: No UID provided');
+//     return;
+//   }
 
-/**
- * :white_check_mark: Clear listeners (optional)
- */
-export function cleanupNotificationListeners() {
-  console.log(':white_check_mark: Notification listeners cleaned');
-}
+//   try {
+//     console.log(`🔄 Updating server badge count to ${badgeCount}`);
+//     const response = await fetch(`${API_URL}/decrement-badge`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${accessToken}`,
+//       },
+//       body: JSON.stringify({ uid, badgeCount }),
+//     });
 
-/**
- * :white_check_mark: Update badge count on server
- */
-export async function updateBadgeCountOnServer(uid: string, badgeCount: number, accesssToken: string) {
-  if (!uid) {
-    console.log(':warning: Cannot update badge count: No UID provided');
-    return;
-  }
+//     if (!response.ok) {
+//       console.error('❌ Server returned error for badge update:', response.status);
+//     } else {
+//       console.log('✅ Server badge update successful');
+//     }
+//   } catch (error) {
+//     console.error('❌ Failed to update badge count on server', error);
+//   }
+// }
 
-  try {
-    // await notifee.decrementBadgeCount(1)
+// /**
+//  * ✅ Reset Badge Count (Local + Server)
+//  */
+// export async function resetAppBadge(uid: string, accessToken: string) {
+//   try {
+//     console.log('🔄 Resetting server badge count');
+//     const response = await fetch(`${API_URL}/reset-badge`, {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//         Authorization: `Bearer ${accessToken}`,
+//       },
+//       body: JSON.stringify({ uid }),
+//     });
 
-    console.log(`:arrows_counterclockwise: Updating server badge count to ${badgeCount}`);
-    const response = await fetch(`${API_URL}/decrement-badge`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accesssToken}` },
-      body: JSON.stringify({ uid, badgeCount })
-    });
+//     if (!response.ok) {
+//       console.error('❌ Server returned error for badge reset:', response.status);
+//     } else {
+//       // await notifee.setBadgeCount(0);
+//       console.log('✅ Server badge reset successful');
+//     }
+//   } catch (error) {
+//     console.error('❌ Error resetting app badge:', error);
+//   }
+// }
 
-    if (!response.ok) {
-      console.error(':x: Server returned error for badge update:', response.status);
-    } else {
-      console.log(':white_check_mark: Server badge update successful');
-    }
-  } catch (error) {
-    console.error(':x: Failed to update badge count on server', error);
-  }
-}
+// /**
+//  * ✅ Register background + foreground listeners
+//  * Call this once (preferably in root _layout.tsx)
+//  */
+// export function setupNotificationListeners(user: any) {
 
-/**
- * :white_check_mark: Reset Badge Count (Local + Server)
- * This is the SINGLE generic handler for app opens.
- */
-export async function resetAppBadge(uid: string, accesssToken: string) {
-  try {
-    // 1. Reset iOS local badge
-    try {
+//   // Foreground messages
+//   const unsubscribeOnMessage = onMessage(messaging, async (remoteMessage) => {
+//     await showForegroundNotification(remoteMessage);
+//   });
 
-      console.log(`:arrows_counterclockwise: Updating server badge count`);
-      const response = await fetch(`${API_URL}/reset-badge`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accesssToken}` },
-        body: JSON.stringify({ uid })
-      });
+//   // App opened from background
+//   const unsubscribeOpened = onNotificationOpenedApp(messaging, (remoteMessage) => {
+//     handleNotificationNavigation(remoteMessage, user);
+//   });
 
-      if (!response.ok) {
-        console.error(':x: Server returned error for badge update:', response.status);
-      } else {
-        // await notifee.setBadgeCount(0)
-        console.log(':white_check_mark: Server badge update successful');
-      }
-    } catch (error) {
-      console.error(':x: Failed to update badge count on server', error);
-    }
+//   // App opened from quit state
+//   getInitialNotification(messaging).then((remoteMessage) => {
+//     if (remoteMessage) {
+//       handleNotificationNavigation(remoteMessage, user);
+//     }
+//   });
 
-  } catch (error) {
-    console.error(':x: Error resetting app badge:', error);
-  }
-}
+//   if (user?.uid && user?.email) {
+//     registerFCMToken(
+//       user.uid,
+//       user.email,
+//       (user as any)?.stsTokenManager?.accessToken
+//     ).catch((err) => {
+//       console.error('Failed to register FCM token:', err);
+//     });
+//   }
+
+//   return () => {
+//     unsubscribeOnMessage();
+//     unsubscribeOpened();
+//   };
+// }
