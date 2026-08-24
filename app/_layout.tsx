@@ -1,9 +1,6 @@
 import { useColorScheme } from '@/components/useColorScheme';
-import {
-  registerFCMToken,
-  requestNotificationPermission
-} from '@/constants/NotificationService';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
+
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -11,9 +8,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
-
 export { ErrorBoundary } from 'expo-router';
-
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -51,21 +46,21 @@ function MainContent() {
   const router = useRouter();
 
   // useEffect(() => {
-    // async function initChannel() {
-    //   try {
-    //     await notifee.createChannel({
-    //       id: 'default',
-    //       name: 'Default Channel',
-    //       importance: AndroidImportance.HIGH,
-    //       badge: true,
-    //       sound: 'default',
-    //     });
-    //     await notifee.requestPermission({ badge: true });
-    //   } catch (e) {
-    //     console.error('Error setting up notification channel:', e);
-    //   }
-    // }
-    // initChannel();
+  //   async function initChannel() {
+  //     try {
+  //       await notifee.createChannel({
+  //         id: 'default',
+  //         name: 'Default Channel',
+  //         importance: AndroidImportance.HIGH,
+  //         badge: true,
+  //         sound: 'default',
+  //       });
+  //       await notifee.requestPermission({ badge: true });
+  //     } catch (e) {
+  //       console.error('Error setting up notification channel:', e);
+  //     }
+  //   }
+  //   initChannel();
   // }, []);
 
   useEffect(() => {
@@ -79,60 +74,15 @@ function MainContent() {
     }
   }, [user, loading, segments]);
 
-  useEffect(() => {
-    if (!user) return;
+  // useEffect(() => {
+  //   if (!user) return;
 
-    const initializeNotifications = async () => {
-      try {
-        const hasPermission = await requestNotificationPermission();
-        if (!hasPermission) return;
+  //   const unsubscribe = setupNotificationListeners(user);
 
-        // messaging().setBackgroundMessageHandler(async (remoteMessage: any) => {
-        //   try {
-        //     // await notifee.incrementBadgeCount(1);
-        //   } catch (e) { }
-        // });
-
-        // const unsubscribe = messaging().onMessage(async (remoteMessage: any) => {
-        //   showForegroundNotification(remoteMessage);
-        // });
-
-        // messaging().onNotificationOpenedApp(async (remoteMessage: any) => {
-        //   if (Platform.OS === 'ios' && user?.uid) {
-        //     await updateBadgeCountOnServer(
-        //       user.uid,
-        //       1,
-        //       (user as any)?.stsTokenManager?.accessToken
-        //     );
-        //   }
-        // });
-
-        // messaging()
-        //   .getInitialNotification()
-        //   .then((msg: any) => {
-        //     if (msg && Platform.OS === 'ios' && user?.uid) {
-        //       updateBadgeCountOnServer(
-        //         user.uid,
-        //         1,
-        //         (user as any)?.stsTokenManager?.accessToken
-        //       );
-        //     }
-        //   });
-
-        if (user.uid && user.email) {
-          await registerFCMToken(
-            user.uid,
-            user.email,
-            (user as any)?.stsTokenManager?.accessToken
-          );
-        }
-      } catch (error) {
-        console.error('Error initializing notifications:', error);
-      }
-    };
-
-    // initializeNotifications();
-  }, [user]);
+  //   return () => {
+  //     unsubscribe();
+  //   };
+  // }, [user]);
 
   // Auth loading ke time bhi same component tree rakho
   if (loading) {
