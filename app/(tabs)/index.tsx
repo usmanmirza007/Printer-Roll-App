@@ -16,6 +16,7 @@ import {
   Alert,
   FlatList,
   Linking,
+  Modal,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -58,6 +59,12 @@ export default function CustomersScreen() {
   const [selectedStatus, setSelectedStatus] = useState<CustomerStatus | 'All'>('All');
   const [refreshing, setRefreshing] = useState(false);
   const { user } = useAuth();
+  const [whatsappModalVisible, setWhatsappModalVisible] = useState(false);
+  const [selectedWhatsAppData, setSelectedWhatsAppData] = useState<{
+    phone: string;
+    rollType: string;
+    shopName: string;
+  } | null>(null);
 
   // const {
   //   orders,
@@ -66,6 +73,11 @@ export default function CustomersScreen() {
   //   error,
   //   refetch,
   // } = useCustomerOrders(customerId);
+
+  const openWhatsAppModal = (phone: string, rollType: string, shopName: string) => {
+    setSelectedWhatsAppData({ phone, rollType, shopName });
+    setWhatsappModalVisible(true);
+  };
 
   const fetchCustomerData = async () => {
     try {
@@ -123,7 +135,7 @@ export default function CustomersScreen() {
     });
   };
 
-  const handleWhatsApp = (phone: string, rollType: string, shopName: string) => {
+  const handleWhatsApp = async (phone: string, rollType: string, shopName: string) => {
     const cleanPhone = phone.replace(/[^0-9]/g, '');
 
     const msg = `Hello! 👋
@@ -133,14 +145,65 @@ Thank you!`;
 
     const encodedMsg = encodeURIComponent(msg);
 
+    // const businessUrl = `whatsapp-business://send?phone=${cleanPhone}&text=${encodedMsg}`;
+    const businessUrl = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
     const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
     const webUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
 
-    Linking.openURL(whatsappUrl).catch(() => {
-      Linking.openURL(webUrl).catch(() => {
-        Alert.alert('WhatsApp', 'Could not open WhatsApp.');
-      });
-    });
+    try {
+      // Prefer WhatsApp Business
+      const canOpenBusiness = await Linking.canOpenURL(businessUrl);
+      if (canOpenBusiness) {
+        await Linking.openURL(businessUrl);
+        return;
+      }
+
+      // Fallback to regular WhatsApp
+      const canOpenWhatsApp = await Linking.canOpenURL(whatsappUrl);
+      if (canOpenWhatsApp) {
+        await Linking.openURL(whatsappUrl);
+        return;
+      }
+
+      // Fallback to web
+      await Linking.openURL(webUrl);
+    } catch (error) {
+      Alert.alert('WhatsApp', 'Could not open WhatsApp.');
+    }
+  };
+
+  const openWhatsApp = async (type: 'whatsapp' | 'business') => {
+    if (!selectedWhatsAppData) return;
+
+    setWhatsappModalVisible(false);
+
+    const { phone, rollType, shopName } = selectedWhatsAppData;
+    const cleanPhone = phone.replace(/[^0-9]/g, '');
+
+    const msg = `Hello! 👋
+Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
+If you need stock, please reply.
+Thank you!`;
+
+    const encodedMsg = encodeURIComponent(msg);
+    const url = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
+    const whatsappScheme = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
+
+    try {
+      if (type === 'whatsapp') {
+        const canOpen = await Linking.canOpenURL(whatsappScheme);
+        if (canOpen) {
+          await Linking.openURL(whatsappScheme);
+        } else {
+          await Linking.openURL(url);
+        }
+      } else {
+        // Business
+        await Linking.openURL(url);
+      }
+    } catch (error) {
+      Alert.alert('WhatsApp', 'Could not open WhatsApp.');
+    }
   };
 
 
@@ -257,7 +320,7 @@ Thank you!`;
 
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-            onPress={() => handleWhatsApp(item.phone, item.rollType, item.shopName)}
+            onPress={() => openWhatsAppModal(item.phone, item.rollType, item.shopName)}
           >
             <Ionicons name="logo-whatsapp" size={15} color="#16A34A" />
             <Text style={[styles.actionText, { color: theme.text }]}>WhatsApp</Text>
@@ -412,6 +475,51 @@ Thank you!`;
         <Ionicons name="add" size={24} color="#FFFFFF" />
         <Text style={styles.fabText}>New Customer</Text>
       </TouchableOpacity>
+
+
+
+      {/* WhatsApp Selection Modal */}
+      <Modal
+        visible={whatsappModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setWhatsappModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Open with</Text>
+
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => openWhatsApp('whatsapp')}
+            >
+              <Ionicons name="logo-whatsapp" size={22} color="#16A34A" />
+              <Text style={[styles.modalOptionText, { color: theme.text }]}>
+                WhatsApp
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => openWhatsApp('business')}
+            >
+              <Ionicons name="logo-whatsapp" size={22} color="#128C7E" />
+              <Text style={[styles.modalOptionText, { color: theme.text }]}>
+                WhatsApp Business
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalCancel}
+              onPress={() => setWhatsappModalVisible(false)}
+            >
+              <Text style={[styles.modalCancelText, { color: theme.textSecondary }]}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -554,4 +662,43 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   fabText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700', marginLeft: 4 },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%',
+    borderRadius: 14,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    gap: 12,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalCancel: {
+    marginTop: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
 });
