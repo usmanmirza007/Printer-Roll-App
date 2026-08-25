@@ -136,43 +136,6 @@ export default function CustomersScreen() {
     });
   };
 
-  const handleWhatsApp = async (phone: string, rollType: string, shopName: string) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-
-    const msg = `Hello! 👋
-Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
-If you need stock, please reply.
-Thank you!`;
-
-    const encodedMsg = encodeURIComponent(msg);
-
-    // const businessUrl = `whatsapp-business://send?phone=${cleanPhone}&text=${encodedMsg}`;
-    const businessUrl = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
-    const whatsappUrl = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
-    const webUrl = `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodedMsg}`;
-
-    try {
-      // Prefer WhatsApp Business
-      const canOpenBusiness = await Linking.canOpenURL(businessUrl);
-      if (canOpenBusiness) {
-        await Linking.openURL(businessUrl);
-        return;
-      }
-
-      // Fallback to regular WhatsApp
-      const canOpenWhatsApp = await Linking.canOpenURL(whatsappUrl);
-      if (canOpenWhatsApp) {
-        await Linking.openURL(whatsappUrl);
-        return;
-      }
-
-      // Fallback to web
-      await Linking.openURL(webUrl);
-    } catch (error) {
-      Alert.alert('WhatsApp', 'Could not open WhatsApp.');
-    }
-  };
-
   const openWhatsApp = async (type: 'whatsapp' | 'business') => {
     if (!selectedWhatsAppData) return;
 
@@ -184,7 +147,6 @@ Thank you!`;
       cleanPhone = '92' + cleanPhone.slice(1);
     }
     const ownerName = name == 'Unknown' ? '' : name
-    console.log('cleanPhone', phone, cleanPhone);
 
     const msg = `Hello! ${ownerName}👋
 Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
