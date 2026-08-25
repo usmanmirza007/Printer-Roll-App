@@ -35,6 +35,7 @@ export default function CustomerDetailScreen() {
     phone: string;
     rollType: string;
     shopName: string;
+    name: string
   } | null>(null);
 
   const fetchDetail = async () => {
@@ -65,7 +66,7 @@ export default function CustomerDetailScreen() {
   };
 
   const openWhatsAppModal = () => {
-    setSelectedWhatsAppData({ phone: customer.phone, rollType: customer.rollType, shopName: customer.shopName });
+    setSelectedWhatsAppData({ phone: customer.phone, rollType: customer.rollType, shopName: customer.shopName, name: customer.name });
     setWhatsappModalVisible(true);
   };
 
@@ -75,10 +76,11 @@ export default function CustomerDetailScreen() {
 
     setWhatsappModalVisible(false);
 
-    const { phone, rollType, shopName } = selectedWhatsAppData;
+    const { phone, rollType, shopName, name } = selectedWhatsAppData;
     const cleanPhone = phone.replace(/[^0-9]/g, '');
-
-    const msg = `Hello! 👋
+    const ownerName = name.includes('Unknown') ? '' : name
+    
+    const msg = `Hello! ${ownerName}👋
   Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
   If you need stock, please reply.
   Thank you!`;
