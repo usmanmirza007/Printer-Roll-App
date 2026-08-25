@@ -78,7 +78,7 @@ export default function CustomerDetailScreen() {
 
     const { phone, rollType, shopName, name } = selectedWhatsAppData;
     const cleanPhone = phone.replace(/[^0-9]/g, '');
-    const ownerName = name.includes('Unknown') ? '' : name
+    const ownerName = name == 'Unknown' ? '' : name
     
     const msg = `Hello! ${ownerName}👋
   Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.

@@ -1,6 +1,5 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { triggerVisitEndPushNotification } from '@/constants/NotificationService';
 import { useAuth } from '@/context/AuthContext';
 import {
   generateAutomaticNotifications,
@@ -94,12 +93,12 @@ export default function NotificationsScreen() {
   const handleTestPushNotification = async () => {
     const token = (user as any)?.stsTokenManager?.accessToken;
     const nextDate = new Date().toISOString().split('T')[0];
-    await triggerVisitEndPushNotification(
-      'Test Shop Visit',
-      nextDate,
-      user?.uid,
-      token
-    );
+    // await triggerVisitEndPushNotification(
+    //   'Test Shop Visit',
+    //   nextDate,
+    //   user?.uid,
+    //   token
+    // );
     Alert.alert('Push Sent', 'Test push notification sent successfully!');
   };
 

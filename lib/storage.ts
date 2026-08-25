@@ -1,4 +1,4 @@
-import { triggerVisitEndPushNotification } from '@/constants/NotificationService';
+// import { triggerVisitEndPushNotification } from '@/constants/NotificationService';
 import {
   deleteCustomerFromFirestore,
   deleteInvestmentFromFirestore,
@@ -399,7 +399,7 @@ export const recordCustomerVisit = async (
   const updatedNotifs = [visitNotif, ...notifs];
 
   // Trigger Push Notification for visit time end / completion
-  await triggerVisitEndPushNotification(cust.shopName, nextVisitStr, userUid, accessToken);
+  // await triggerVisitEndPushNotification(cust.shopName, nextVisitStr, userUid, accessToken);
 
   return { customers: newCustomers, notifications: updatedNotifs };
 };
