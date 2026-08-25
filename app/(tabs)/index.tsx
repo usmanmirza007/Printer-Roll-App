@@ -64,6 +64,7 @@ export default function CustomersScreen() {
     phone: string;
     rollType: string;
     shopName: string;
+    name: string
   } | null>(null);
 
   // const {
@@ -74,8 +75,8 @@ export default function CustomersScreen() {
   //   refetch,
   // } = useCustomerOrders(customerId);
 
-  const openWhatsAppModal = (phone: string, rollType: string, shopName: string) => {
-    setSelectedWhatsAppData({ phone, rollType, shopName });
+  const openWhatsAppModal = (phone: string, rollType: string, shopName: string, name: string) => {
+    setSelectedWhatsAppData({ phone, rollType, shopName, name });
     setWhatsappModalVisible(true);
   };
 
@@ -177,10 +178,11 @@ Thank you!`;
 
     setWhatsappModalVisible(false);
 
-    const { phone, rollType, shopName } = selectedWhatsAppData;
+    const { phone, rollType, shopName, name } = selectedWhatsAppData;
     const cleanPhone = phone.replace(/[^0-9]/g, '');
+    const ownerName = name.includes('Unknown') ? '' : name
 
-    const msg = `Hello! 👋
+    const msg = `Hello! ${ownerName}👋
 Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
 If you need stock, please reply.
 Thank you!`;
@@ -320,7 +322,7 @@ Thank you!`;
 
           <TouchableOpacity
             style={[styles.actionBtn, { backgroundColor: isDark ? '#1E293B' : '#F1F5F9' }]}
-            onPress={() => openWhatsAppModal(item.phone, item.rollType, item.shopName)}
+            onPress={() => openWhatsAppModal(item.phone, item.rollType, item.shopName, item.name)}
           >
             <Ionicons name="logo-whatsapp" size={15} color="#16A34A" />
             <Text style={[styles.actionText, { color: theme.text }]}>WhatsApp</Text>
