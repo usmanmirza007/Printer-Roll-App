@@ -77,9 +77,13 @@ export default function CustomerDetailScreen() {
     setWhatsappModalVisible(false);
 
     const { phone, rollType, shopName, name } = selectedWhatsAppData;
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
+
+    let cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '92' + cleanPhone.slice(1);
+    }
     const ownerName = name == 'Unknown' ? '' : name
-    
+
     const msg = `Hello! ${ownerName}👋
   Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
   If you need stock, please reply.
