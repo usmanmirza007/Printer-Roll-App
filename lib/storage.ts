@@ -48,6 +48,17 @@ export const DEFAULT_ROLLS: ThermalRoll[] = [
     description: 'High sensitivity thermal paper roll for POS receipt printers.',
   },
   {
+    id: 'roll-13m',
+    title: '13 Meter Thermal Roll',
+    meterLength: 13,
+    paperWidth: '80mm Standard POS',
+    purchaseRate: 45,
+    wholesaleRate: 60,
+    stockCount: 50,
+    minStockAlert: 10,
+    description: 'High sensitivity thermal paper roll for POS receipt printers.',
+  },
+  {
     id: 'roll-50m',
     title: '50 Meter Thermal Roll',
     meterLength: 50,
