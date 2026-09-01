@@ -249,7 +249,23 @@ export async function getRollsFromFirestore(): Promise<ThermalRoll[]> {
 export async function saveRollToFirestore(roll: ThermalRoll): Promise<ThermalRoll[]> {
   try {
     const docRef = doc(db, ROLLS_COLLECTION, roll.id);
-    await setDoc(docRef, roll, { merge: true });
+    const sanitizedRoll = { ...roll } as ThermalRoll;
+
+    if (sanitizedRoll.productType !== 'barcode') {
+      delete sanitizedRoll.stickerWidth;
+      delete sanitizedRoll.stickerHeight;
+      delete sanitizedRoll.stickerCount;
+      delete sanitizedRoll.barcodeColumns;
+    }
+
+    Object.keys(sanitizedRoll).forEach((key) => {
+      const value = sanitizedRoll[key as keyof ThermalRoll];
+      if (value === undefined) {
+        delete sanitizedRoll[key as keyof ThermalRoll];
+      }
+    });
+
+    await setDoc(docRef, sanitizedRoll, { merge: true });
     return await getRollsFromFirestore();
   } catch (error) {
     console.error('❌ Error saving roll to Firestore:', error);
