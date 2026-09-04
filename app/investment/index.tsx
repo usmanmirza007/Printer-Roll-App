@@ -5,6 +5,7 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   StyleSheet,
@@ -24,10 +25,12 @@ const InvestmentsScreen = () => {
   const { top } = useSafeAreaInsets();
 
   const [investments, setInvestments] = useState<Investment[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
-      loadInvestments().then(setInvestments);
+      setLoading(true);
+      loadInvestments().then(setInvestments).finally(() => setLoading(false));
     }, [])
   );
 
@@ -529,7 +532,10 @@ const InvestmentsScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
+          loading ? <View style={styles.emptyContainer}>
+            <ActivityIndicator size="large" color={theme.tint} />
+            <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Loading investments...</Text>
+          </View> : <View style={styles.emptyContainer}>
             <MaterialCommunityIcons
               name="cash-remove"
               size={54}

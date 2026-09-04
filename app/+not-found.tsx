@@ -1,4 +1,5 @@
-import { Link, Stack } from 'expo-router';
+import { Stack } from 'expo-router';
+import { Link } from 'expo-router/build/link/Link';
 import { StyleSheet } from 'react-native';
 
 import { Text, View } from '@/components/Themed';

@@ -18,7 +18,6 @@ import {
   saveRollToFirestore,
   updateRollOrderToFirestore,
 } from '@/lib/firestore';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AppNotification, Customer, CustomerOrder, Investment, ThermalRoll } from './types';
 
 const CUSTOMERS_KEY = '@thermal_roll_customers_v1';
@@ -168,12 +167,10 @@ export const DEFAULT_NOTIFICATIONS: AppNotification[] = [
 export const loadCustomers = async (): Promise<Customer[]> => {
   try {
     const firestoreData = await getCustomersFromFirestore();
-    await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(firestoreData));
     return firestoreData;
   } catch (error) {
     console.error('Error loading customers:', error);
-    const cached = await AsyncStorage.getItem(CUSTOMERS_KEY);
-    return cached ? JSON.parse(cached) : [];
+    return [];
   }
 };
 
@@ -200,24 +197,20 @@ export const loadSingleOrder = async (orderId: string): Promise<CustomerOrder | 
 export const loadInvestments = async (): Promise<Investment[]> => {
   try {
     const investments = await getInvestmentsFromFirestore();
-    await AsyncStorage.setItem(INVESTMENTS_KEY, JSON.stringify(investments));
     return investments;
   } catch (error) {
     console.error('Error loading investments:', error);
-    const cached = await AsyncStorage.getItem(INVESTMENTS_KEY);
-    return cached ? JSON.parse(cached) : [];
+    return [];
   }
 };
 
 export const saveInvestment = async (investment: Investment): Promise<Investment[]> => {
   const investments = await saveInvestmentToFirestore(investment);
-  await AsyncStorage.setItem(INVESTMENTS_KEY, JSON.stringify(investments));
   return investments;
 };
 
 export const deleteInvestment = async (id: string): Promise<Investment[]> => {
   const investments = await deleteInvestmentFromFirestore(id);
-  await AsyncStorage.setItem(INVESTMENTS_KEY, JSON.stringify(investments));
   return investments;
 };
 
@@ -225,12 +218,10 @@ export const deleteInvestment = async (id: string): Promise<Investment[]> => {
 export const loadCustomersOrder = async (customerId: string): Promise<CustomerOrder[]> => {
   try {
     const firestoreData = await getCustomerOrdersFromFirestore(customerId);
-    await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(firestoreData));
     return firestoreData;
   } catch (error) {
     console.error('Error loading customers:', error);
-    const cached = await AsyncStorage.getItem(CUSTOMERS_ORDER_KEY);
-    return cached ? JSON.parse(cached) : [];
+    return [];
   }
 };
 
@@ -238,7 +229,6 @@ export const loadCustomersOrder = async (customerId: string): Promise<CustomerOr
 export const saveCustomer = async (customer: Customer): Promise<Customer[]> => {
   try {
     const updated = await saveCustomerToFirestore(customer);
-    await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updated));
     await generateAutomaticNotifications(updated, await loadRolls());
     return updated;
   } catch (error) {
@@ -251,7 +241,6 @@ export const saveCustomer = async (customer: Customer): Promise<Customer[]> => {
 export const deleteCustomer = async (id: string): Promise<Customer[]> => {
   try {
     const updated = await deleteCustomerFromFirestore(id);
-    await AsyncStorage.setItem(CUSTOMERS_KEY, JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Error deleting customer:', error);
@@ -263,12 +252,11 @@ export const deleteCustomer = async (id: string): Promise<Customer[]> => {
 export const loadRolls = async (): Promise<ThermalRoll[]> => {
   try {
     const firestoreData = await getRollsFromFirestore();
-    await AsyncStorage.setItem(ROLLS_KEY, JSON.stringify(firestoreData));
     return firestoreData;
   } catch (error) {
     console.error('Error loading rolls:', error);
-    const cached = await AsyncStorage.getItem(ROLLS_KEY);
-    return cached ? JSON.parse(cached) : DEFAULT_ROLLS;
+
+    return [];
   }
 };
 
@@ -276,7 +264,6 @@ export const loadRolls = async (): Promise<ThermalRoll[]> => {
 export const saveRoll = async (roll: ThermalRoll): Promise<ThermalRoll[]> => {
   try {
     const updated = await saveRollToFirestore(roll);
-    await AsyncStorage.setItem(ROLLS_KEY, JSON.stringify(updated));
     await generateAutomaticNotifications(await loadCustomers(), updated);
     return updated;
   } catch (error) {
@@ -289,7 +276,6 @@ export const saveRoll = async (roll: ThermalRoll): Promise<ThermalRoll[]> => {
 export const saveCustomerOrder = async (customerOrder: CustomerOrder): Promise<CustomerOrder[]> => {
   try {
     const order = await saveRollOrderToFirestore(customerOrder);
-    await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(order));
     return order;
   } catch (error) {
     console.error('Error saving roll:', error);
@@ -299,7 +285,6 @@ export const saveCustomerOrder = async (customerOrder: CustomerOrder): Promise<C
 
 export const updateCustomerOrder = async (customerOrder: CustomerOrder): Promise<CustomerOrder[]> => {
   const orders = await updateRollOrderToFirestore(customerOrder);
-  await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(orders));
   return orders;
 };
 
@@ -310,7 +295,6 @@ export const deleteCustomerOrder = async (
 ): Promise<CustomerOrder[]> => {
   try {
     const updated = await deleteRollOrderFromFirestore(id, customerId);
-    await AsyncStorage.setItem(CUSTOMERS_ORDER_KEY, JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Error deleting customer order:', error);
@@ -322,7 +306,6 @@ export const deleteCustomerOrder = async (
 export const deleteRoll = async (id: string): Promise<ThermalRoll[]> => {
   try {
     const updated = await deleteRollFromFirestore(id);
-    await AsyncStorage.setItem(ROLLS_KEY, JSON.stringify(updated));
     return updated;
   } catch (error) {
     console.error('Error deleting roll:', error);
@@ -334,12 +317,10 @@ export const deleteRoll = async (id: string): Promise<ThermalRoll[]> => {
 export const loadNotifications = async (): Promise<AppNotification[]> => {
   try {
     const firestoreData = await getNotificationsFromFirestore();
-    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(firestoreData));
     return firestoreData;
   } catch (error) {
     console.error('Error loading notifications:', error);
-    const cached = await AsyncStorage.getItem(NOTIFICATIONS_KEY);
-    return cached ? JSON.parse(cached) : [];
+    return [];
   }
 };
 
@@ -349,7 +330,6 @@ export const saveNotifications = async (notifications: AppNotification[]): Promi
     for (const notif of notifications) {
       await saveNotificationToFirestore(notif);
     }
-    await AsyncStorage.setItem(NOTIFICATIONS_KEY, JSON.stringify(notifications));
   } catch (error) {
     console.error('Error saving notifications:', error);
   }

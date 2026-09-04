@@ -94,6 +94,21 @@ export default function TabLayout() {
         }}
       />
 
+      <Tabs.Screen
+        name="debit"
+        options={{
+          title: 'Debit',
+          headerTitle: 'Debit Orders',
+          tabBarIcon: ({ color, focused }) => (
+            <MaterialCommunityIcons
+              name={focused ? 'cash-minus' : 'cash-minus'}
+              size={25}
+              color={color}
+            />
+          ),
+        }}
+      />
+
       {/* 2. Rolls Inventory Tab */}
       <Tabs.Screen
         name="rolls"

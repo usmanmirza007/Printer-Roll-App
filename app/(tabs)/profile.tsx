@@ -16,6 +16,7 @@ import Constants from 'expo-constants';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Clipboard,
   ScrollView,
@@ -35,6 +36,7 @@ export default function DashboardScreen() {
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
   const [reseeding, setReseeding] = useState(false);
+  const [loading, setLoading] = useState(true);
   const version = Constants.expoConfig?.version
   const buildNumber =
     Constants.executionEnvironment === 'storeClient'
@@ -42,14 +44,19 @@ export default function DashboardScreen() {
       : Application.nativeBuildVersion || '1';            // Real Build
 
   const fetchData = async () => {
-    const [custs, rls, investmentHistory] = await Promise.all([
-      loadCustomers(),
-      loadRolls(),
-      loadInvestments(),
-    ]);
-    setCustomers(custs);
-    setRolls(rls);
-    setInvestments(investmentHistory);
+    try {
+      setLoading(true);
+      const [custs, rls, investmentHistory] = await Promise.all([
+        loadCustomers(),
+        loadRolls(),
+        loadInvestments(),
+      ]);
+      setCustomers(custs);
+      setRolls(rls);
+      setInvestments(investmentHistory);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const { orders, orderCount } = useOrders()
@@ -132,6 +139,15 @@ export default function DashboardScreen() {
       },
     ]);
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingBox, { backgroundColor: theme.background }]}>
+        <ActivityIndicator size="large" color={theme.tint} />
+        <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading dashboard...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView
@@ -279,6 +295,8 @@ export default function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingBox: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { marginTop: 10, fontSize: 14 },
   container: { flex: 1 },
   scrollContent: { padding: 16, paddingBottom: 40 },
   profileCard: {

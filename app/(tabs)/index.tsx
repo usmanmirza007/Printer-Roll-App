@@ -13,6 +13,7 @@ import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Linking,
@@ -58,6 +59,7 @@ export default function CustomersScreen() {
   const [selectedCategory, setSelectedCategory] = useState<MarketCategory | 'All'>('All');
   const [selectedStatus, setSelectedStatus] = useState<CustomerStatus | 'All'>('All');
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const [whatsappModalVisible, setWhatsappModalVisible] = useState(false);
   const [selectedWhatsAppData, setSelectedWhatsAppData] = useState<{
@@ -82,12 +84,15 @@ export default function CustomersScreen() {
 
   const fetchCustomerData = async () => {
     try {
+      setLoading(true);
       const data = await loadCustomers();
       const rolls = await loadRolls();
       setCustomers(data);
       await generateAutomaticNotifications(data, rolls);
     } catch (e) {
       console.error('Failed to load customers:', e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -422,7 +427,10 @@ Thank you!`;
         contentContainerStyle={styles.listPadding}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
-          <View style={styles.emptyBox}>
+          loading ? <View style={styles.emptyBox}>
+            <ActivityIndicator size="large" color={theme.tint} />
+            <Text style={[styles.emptySub, { color: theme.textSecondary }]}>Loading customers...</Text>
+          </View> : <View style={styles.emptyBox}>
             <MaterialIcons name="storefront" size={48} color={theme.textSecondary} />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>No Customers Found</Text>
             <Text style={[styles.emptySub, { color: theme.textSecondary }]}>

@@ -1,12 +1,13 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
 import { deleteCustomerOrder, loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll, updateCustomerOrder } from '@/lib/storage';
-import { Customer, CustomerOrder, OrderStatus, ThermalRoll } from '@/lib/types';
+import { Customer, CustomerOrder, InstallmentPayment, OrderStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -52,18 +53,25 @@ export default function AddOrEditCustomerOrderScreen() {
   const [originalOrder, setOriginalOrder] = useState<CustomerOrder | null>(null);
   const [loading, setLoading] = useState(false);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
+  const [isInstallment, setIsInstallment] = useState(false);
+  const [installmentAmount, setInstallmentAmount] = useState('');
+  const [detailLoading, setDetailLoading] = useState(true);
   // const [selectedRoll, setSelectedRoll] = useState<ThermalRoll | null>(null);
 
   const fetchDetail = async () => {
-    if (!customerId) return;
-    const customer = await loadSingleCustomer(customerId);
+    try {
+      if (!customerId) return;
+      const customer = await loadSingleCustomer(customerId);
 
-    setCustomers(customer);
-    if (customer && !selectedCustomerId) {
-      setSelectedCustomerId(customer.id);
+      setCustomers(customer);
+      if (customer && !selectedCustomerId) {
+        setSelectedCustomerId(customer.id);
+      }
+      const allRolls = await loadRolls();
+      setRolls(allRolls);
+    } finally {
+      setDetailLoading(false);
     }
-    const allRolls = await loadRolls();
-    setRolls(allRolls);
     // if (allRolls.length > 0) {
     //   const matched = allRolls.find((r) =>
     //     customer ? r.title.toLowerCase().includes(customer.rollType.toLowerCase()) : false
@@ -90,6 +98,7 @@ export default function AddOrEditCustomerOrderScreen() {
         setUnitCostRate(data.unitCostRate.toString());
         setUnitSaleRate(data.unitSaleRate.toString());
         setStatus(data.status);
+        setIsInstallment(Boolean(data.isInstallment));
       }
     });
   }, [id, isEditMode, isViewMode]);
@@ -165,6 +174,8 @@ export default function AddOrEditCustomerOrderScreen() {
         profit,
         status,
         orderDate: originalOrder?.orderDate || new Date().toISOString(),
+        isInstallment,
+        installments: originalOrder?.installments || [],
       };
 
       const updatedRolls = isEditMode && originalOrder
@@ -199,6 +210,38 @@ export default function AddOrEditCustomerOrderScreen() {
       setLoading(false);
       console.error(e);
       Alert.alert('Error', 'Failed to save order.');
+    }
+  };
+
+  const paidAmount = (originalOrder?.installments || []).reduce((sum, payment) => sum + payment.amount, 0);
+  const remainingAmount = Math.max(0, totalSale - paidAmount);
+
+  const handleAddInstallment = async () => {
+    const amount = Number(installmentAmount);
+    if (!originalOrder || !isInstallment || amount <= 0 || amount > remainingAmount) {
+      Alert.alert('Invalid payment', `Enter an amount between 1 and ₨${remainingAmount.toFixed(0)}.`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const payment: InstallmentPayment = {
+        id: `payment-${Date.now()}`,
+        amount,
+        paidAt: new Date().toISOString(),
+      };
+      const updatedOrder: CustomerOrder = {
+        ...originalOrder,
+        installments: [...(originalOrder.installments || []), payment],
+      };
+      await updateCustomerOrder(updatedOrder);
+      setOriginalOrder(updatedOrder);
+      setInstallmentAmount('');
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', 'Failed to save installment payment.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -239,6 +282,12 @@ export default function AddOrEditCustomerOrderScreen() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        {detailLoading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color={theme.tint} />
+            <Text style={[styles.loadingText, { color: theme.textSecondary }]}>Loading order...</Text>
+          </View>
+        ) : <>
         {/* Header */}
         <View style={styles.headerRow}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -465,6 +514,57 @@ export default function AddOrEditCustomerOrderScreen() {
           </View>
         </View>
 
+        {/* Section 5: Installments */}
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }] }>
+          <View style={styles.installmentHeader}>
+            <Text style={[styles.sectionHeader, { color: theme.tint, marginBottom: 0 }]}>Installment Payments</Text>
+            <TouchableOpacity
+              disabled={isViewMode}
+              onPress={() => setIsInstallment((value) => !value)}
+              style={styles.checkboxRow}
+            >
+              <Ionicons
+                name={isInstallment ? 'checkbox' : 'square-outline'}
+                size={22}
+                color={isInstallment ? theme.tint : theme.textSecondary}
+              />
+              <Text style={[styles.checkboxLabel, { color: theme.text }]}>Enable</Text>
+            </TouchableOpacity>
+          </View>
+
+          {isInstallment && (
+            <>
+              <View style={[styles.balanceBox, { backgroundColor: theme.surface }]}>
+                <Text style={{ color: theme.textSecondary }}>Paid: ₨{paidAmount.toFixed(0)}</Text>
+                <Text style={{ color: remainingAmount > 0 ? Palette.warning : Palette.success, fontWeight: '700' }}>
+                  Remaining: ₨{remainingAmount.toFixed(0)}
+                </Text>
+              </View>
+              {!isViewMode && remainingAmount > 0 && (
+                <View style={styles.paymentRow}>
+                  <TextInput
+                    style={[styles.input, styles.paymentInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.surface }]}
+                    placeholder="Payment amount"
+                    placeholderTextColor={theme.textSecondary}
+                    keyboardType="numeric"
+                    value={installmentAmount}
+                    onChangeText={setInstallmentAmount}
+                  />
+                  <TouchableOpacity style={[styles.addPaymentBtn, { backgroundColor: theme.tint }]} onPress={handleAddInstallment} disabled={loading}>
+                    <Text style={styles.saveBtnText}>{loading ? 'Saving...' : 'Add Payment'}</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+              {(originalOrder?.installments || []).map((payment) => (
+                <View key={payment.id} style={[styles.historyRow, { borderBottomColor: theme.border }]}>
+                  <Text style={{ color: theme.text }}>{new Date(payment.paidAt).toLocaleDateString()}</Text>
+                  <Text style={{ color: Palette.success, fontWeight: '700' }}>₨{payment.amount.toFixed(0)}</Text>
+                </View>
+              ))}
+            </>
+          )}
+        </View>
+
         {/* Save Button */}
         {!isViewMode && <TouchableOpacity
           style={[
@@ -479,6 +579,7 @@ export default function AddOrEditCustomerOrderScreen() {
             {loading ? 'Saving...' : isEditMode ? 'Update Order' : 'Create Order'}
           </Text>
         </TouchableOpacity>}
+        </>}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -559,5 +660,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  loadingBox: { flex: 1, minHeight: 400, alignItems: 'center', justifyContent: 'center' },
+  loadingText: { marginTop: 10, fontSize: 14 },
+  installmentHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  checkboxRow: { flexDirection: 'row', alignItems: 'center' },
+  checkboxLabel: { marginLeft: 6, fontWeight: '600' },
+  balanceBox: { flexDirection: 'row', justifyContent: 'space-between', padding: 10, borderRadius: 8, marginTop: 12 },
+  paymentRow: { flexDirection: 'row', alignItems: 'center', marginTop: 10 },
+  paymentInput: { flex: 1, marginRight: 8 },
+  addPaymentBtn: { height: 44, paddingHorizontal: 12, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  historyRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1 },
 
 });

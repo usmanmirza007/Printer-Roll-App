@@ -6,6 +6,7 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
@@ -24,15 +25,19 @@ export default function RollsInventoryScreen() {
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchRollsData = async () => {
     try {
+      setLoading(true);
       const data = await loadRolls();
       const customers = await loadCustomers();
       setRolls(data);
       await generateAutomaticNotifications(customers, data);
     } catch (e) {
       console.error('Failed to load rolls:', e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -232,7 +237,10 @@ export default function RollsInventoryScreen() {
         contentContainerStyle={styles.listPadding}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
-          <View style={styles.emptyBox}>
+          loading ? <View style={styles.emptyBox}>
+            <ActivityIndicator size="large" color={theme.tint} />
+            <Text style={[styles.emptySub, { color: theme.textSecondary }]}>Loading rolls...</Text>
+          </View> : <View style={styles.emptyBox}>
             <MaterialCommunityIcons name="receipt-text-minus" size={48} color={theme.textSecondary} />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>No Thermal Rolls Found</Text>
             <Text style={[styles.emptySub, { color: theme.textSecondary }]}>

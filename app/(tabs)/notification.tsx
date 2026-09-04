@@ -16,6 +16,7 @@ import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Pressable,
@@ -35,15 +36,19 @@ export default function NotificationsScreen() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [activeFilter, setActiveFilter] = useState<'All' | 'visit_reminder' | 'stock_alert'>('All');
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchNotifs = async () => {
     try {
+      setLoading(true);
       const custs = await loadCustomers();
       const rolls = await loadRolls();
       const data = await generateAutomaticNotifications(custs, rolls);
       setNotifications(data);
     } catch (e) {
       console.error('Failed to load notifications:', e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -283,7 +288,10 @@ export default function NotificationsScreen() {
         contentContainerStyle={styles.listPadding}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
-          <View style={styles.emptyBox}>
+          loading ? <View style={styles.emptyBox}>
+            <ActivityIndicator size="large" color={theme.tint} />
+            <Text style={[styles.emptySub, { color: theme.textSecondary }]}>Loading notifications...</Text>
+          </View> : <View style={styles.emptyBox}>
             <Ionicons name="notifications-off-outline" size={48} color={theme.textSecondary} />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>No Notifications</Text>
             <Text style={[styles.emptySub, { color: theme.textSecondary }]}>

@@ -4,7 +4,7 @@ export enum Environment {
 }
 
 // ✅ FIXED: Added type annotation
-export const env: Environment = Environment.PRODUCTION;
+export const env: Environment = Environment.STAGING;
 
 export const STAGING = 'staging';
 export const PROD = 'production';

@@ -22,6 +22,12 @@ export type OrderStatus =
   | 'Delivered'           // Successfully delivered
   | 'Cancelled';          // Cancelled
 
+export interface InstallmentPayment {
+  id: string;
+  amount: number;
+  paidAt: string;
+}
+
 export interface Customer {
   id: string;
   name: string;             // Customer / Contact Person Name
@@ -57,6 +63,8 @@ export interface CustomerOrder {
   profit: number;
   status: OrderStatus;
   orderDate: string; // ISO String format date
+  isInstallment?: boolean;
+  installments?: InstallmentPayment[];
 }
 
 export type InvestmentTransactionType = 'Investment' | 'Withdrawal';

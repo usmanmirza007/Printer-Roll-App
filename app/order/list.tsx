@@ -8,6 +8,7 @@ import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Pressable,
   RefreshControl,
@@ -19,8 +20,9 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const STATUS_FILTERS: (OrderStatus | 'All')[] = [
+const STATUS_FILTERS: (OrderStatus | 'All' | 'Debit')[] = [
   'All',
+  'Debit',
   'Pending',            // Just created
   'In Progress',        // Being processed
   'Delivered',          // Successfully delivered
@@ -37,15 +39,19 @@ export default function OrderListScreen() {
 
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All'>('All');
+  const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All' | 'Debit'>('All');
   const [refreshing, setRefreshing] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
     try {
+      setLoading(true);
       const data = await getCustomerOrdersFromFirestore(customerId || '');
       setOrders(data);
     } catch (e) {
       console.error('Failed to load orders:', e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -63,6 +69,8 @@ export default function OrderListScreen() {
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
+      const paidAmount = (order.installments || []).reduce((sum, payment) => sum + payment.amount, 0);
+      const isDebit = Boolean(order.isInstallment) && paidAmount < order.totalSale;
       const query = searchQuery.trim().toLowerCase();
 
       const matchesSearch =
@@ -73,7 +81,7 @@ export default function OrderListScreen() {
         order.id.toLowerCase().includes(query);
 
       const matchesStatus =
-        selectedStatus === 'All' || order.status === selectedStatus;
+        selectedStatus === 'All' || (selectedStatus === 'Debit' ? isDebit : order.status === selectedStatus);
 
       return matchesSearch && matchesStatus;
     });
@@ -101,6 +109,8 @@ export default function OrderListScreen() {
   const renderOrderCard = ({ item }: { item: CustomerOrder }) => {
     const statusStyle = getOrderStatusStyle(item.status, isDark);
     const margin = item.profit;
+    const paidAmount = (item.installments || []).reduce((sum, payment) => sum + payment.amount, 0);
+    const isDebit = Boolean(item.isInstallment) && paidAmount < item.totalSale;
 
     return (
       <TouchableOpacity
@@ -127,7 +137,7 @@ export default function OrderListScreen() {
 
           <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg }]}>
             <Text style={[styles.statusText, { color: statusStyle.text }]}>
-              {item.status}
+              {isDebit ? 'Debit' : item.status}
             </Text>
           </View>
         </View>
@@ -305,7 +315,10 @@ export default function OrderListScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          <View style={styles.emptyBox}>
+          loading ? <View style={styles.emptyBox}>
+            <ActivityIndicator size="large" color={theme.tint} />
+            <Text style={[styles.emptySub, { color: theme.textSecondary }]}>Loading orders...</Text>
+          </View> : <View style={styles.emptyBox}>
             <MaterialIcons name="receipt-long" size={48} color={theme.textSecondary} />
             <Text style={[styles.emptyTitle, { color: theme.text }]}>No Orders Found</Text>
             <Text style={[styles.emptySub, { color: theme.textSecondary }]}>
