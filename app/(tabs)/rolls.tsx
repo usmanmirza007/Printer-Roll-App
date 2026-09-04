@@ -30,8 +30,7 @@ export default function RollsInventoryScreen() {
   const fetchRollsData = async () => {
     try {
       setLoading(true);
-      const data = await loadRolls();
-      const customers = await loadCustomers();
+      const [data, customers] = await Promise.all([loadRolls(), loadCustomers()]);
       setRolls(data);
       await generateAutomaticNotifications(customers, data);
     } catch (e) {

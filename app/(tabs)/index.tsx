@@ -85,8 +85,7 @@ export default function CustomersScreen() {
   const fetchCustomerData = async () => {
     try {
       setLoading(true);
-      const data = await loadCustomers();
-      const rolls = await loadRolls();
+      const [data, rolls] = await Promise.all([loadCustomers(), loadRolls()]);
       setCustomers(data);
       await generateAutomaticNotifications(data, rolls);
     } catch (e) {

@@ -41,8 +41,7 @@ export default function NotificationsScreen() {
   const fetchNotifs = async () => {
     try {
       setLoading(true);
-      const custs = await loadCustomers();
-      const rolls = await loadRolls();
+      const [custs, rolls] = await Promise.all([loadCustomers(), loadRolls()]);
       const data = await generateAutomaticNotifications(custs, rolls);
       setNotifications(data);
     } catch (e) {
