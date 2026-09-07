@@ -113,7 +113,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="rolls"
         options={{
-          title: 'Stock Rolls',
+          title: 'Stock',
           headerTitle: 'Roll Stock Catalog',
           tabBarIcon: ({ color, focused }) => (
             <MaterialCommunityIcons
