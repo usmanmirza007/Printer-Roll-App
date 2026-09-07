@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Printer Roll</string>
+  <string name="app_name">Printer Roll</string>
+  <string name="expo_runtime_version">1.0.5</string>
 </resources>
