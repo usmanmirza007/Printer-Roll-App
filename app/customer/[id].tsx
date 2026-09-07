@@ -1,0 +1,447 @@
+import { useColorScheme } from '@/components/useColorScheme';
+import Colors, { Palette } from '@/constants/Colors';
+import {
+  deleteCustomer,
+  getTodayDateString,
+  loadCustomers,
+  recordCustomerVisit
+} from '@/lib/storage';
+import { Customer } from '@/lib/types';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { router, useLocalSearchParams } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+  Alert,
+  Linking,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+export default function CustomerDetailScreen() {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const theme = Colors[isDark ? 'dark' : 'light'];
+
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { top } = useSafeAreaInsets();
+  const [customer, setCustomer] = useState<Customer | null>(null);
+  const [whatsappModalVisible, setWhatsappModalVisible] = useState(false);
+  const [selectedWhatsAppData, setSelectedWhatsAppData] = useState<{
+    phone: string;
+    rollType: string;
+    shopName: string;
+    name: string
+  } | null>(null);
+
+  const fetchDetail = async () => {
+    if (!id) return;
+    const allCustomers = await loadCustomers();
+    const found = allCustomers.find((c) => c.id === id);
+    setCustomer(found || null);
+  };
+
+  useEffect(() => {
+    fetchDetail();
+  }, [id]);
+
+  if (!customer) {
+    return (
+      <View style={[styles.container, styles.center, { backgroundColor: theme.background }]}>
+        <Text style={{ color: theme.text }}>Customer not found.</Text>
+      </View>
+    );
+  }
+
+  const margin = customer.saleRate - customer.purchaseRate;
+  const todayStr = getTodayDateString(0);
+  const isVisitDue = customer.nextVisitDate && customer.nextVisitDate <= todayStr;
+
+  const handleCall = () => {
+    Linking.openURL(`tel:${customer.phone}`);
+  };
+
+  const openWhatsAppModal = () => {
+    setSelectedWhatsAppData({ phone: customer.phone, rollType: customer.rollType, shopName: customer.shopName, name: customer.name });
+    setWhatsappModalVisible(true);
+  };
+
+
+  const openWhatsApp = async (type: 'whatsapp' | 'business') => {
+    if (!selectedWhatsAppData) return;
+
+    setWhatsappModalVisible(false);
+
+    const { phone, rollType, shopName, name } = selectedWhatsAppData;
+
+    let cleanPhone = phone.replace(/[^0-9]/g, '');
+    if (cleanPhone.startsWith('0')) {
+      cleanPhone = '92' + cleanPhone.slice(1);
+    }
+    const ownerName = name == 'Unknown' ? '' : name
+
+    const msg = `Hello! ${ownerName}👋
+  Contacting regarding *Thermal Roll & BarCode Stickers* supply (${rollType}) for *${shopName}*.
+  If you need stock, please reply.
+  Thank you!`;
+
+    const encodedMsg = encodeURIComponent(msg);
+    const url = `https://wa.me/${cleanPhone}?text=${encodedMsg}`;
+    const whatsappScheme = `whatsapp://send?phone=${cleanPhone}&text=${encodedMsg}`;
+
+    try {
+      if (type === 'whatsapp') {
+        const canOpen = await Linking.canOpenURL(whatsappScheme);
+        if (canOpen) {
+          await Linking.openURL(whatsappScheme);
+        } else {
+          await Linking.openURL(url);
+        }
+      } else {
+        // Business
+        await Linking.openURL(url);
+      }
+    } catch (error) {
+      Alert.alert('WhatsApp', 'Could not open WhatsApp.');
+    }
+  };
+  const handleLogVisit = async () => {
+    const result = await recordCustomerVisit(customer.id);
+    const updated = result.customers.find((c) => c.id === customer.id);
+    if (updated) setCustomer(updated);
+    Alert.alert('Visit Logged', `Visit completed today. Next visit scheduled for ${updated?.nextVisitDate}!`);
+  };
+
+  const handleDelete = () => {
+    Alert.alert('Delete Customer', `Are you sure you want to delete ${customer.shopName}?`, [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          await deleteCustomer(customer.id);
+          router.back();
+        },
+      },
+    ]);
+  };
+
+  return (
+    <ScrollView
+      style={[styles.container, { marginTop: top, backgroundColor: theme.background }]}
+      contentContainerStyle={styles.scrollContent}
+    >
+      {/* Top Header */}
+      <View style={styles.navRow}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
+        </TouchableOpacity>
+        <Text style={[styles.navTitle, { color: theme.text }]}>Customer Details</Text>
+        <View style={{ flexDirection: 'row' }}>
+          <TouchableOpacity
+            style={{ marginRight: 14 }}
+            onPress={() => router.push(`/customer/add?id=${customer.id}`)}
+          >
+            <Feather name="edit-2" size={20} color={theme.tint} />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDelete}>
+            <Ionicons name="trash-outline" size={20} color={Palette.danger} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Main Info Card */}
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <View style={styles.headerTop}>
+          <View style={[styles.avatar, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.avatarText, { color: theme.tint }]}>
+              {customer.shopName.charAt(0)}
+            </Text>
+          </View>
+          <View style={{ flex: 1, marginLeft: 12 }}>
+            <Text style={[styles.shopName, { color: theme.text }]}>{customer.shopName}</Text>
+            <Text style={[styles.ownerName, { color: theme.textSecondary }]}>
+              {customer.name} • {customer.location}
+            </Text>
+            <View style={styles.tagRow}>
+              <View style={[styles.catTag, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.catTagText, { color: theme.textSecondary }]}>
+                  {customer.category}
+                </Text>
+              </View>
+              <View style={[styles.statusTag, { backgroundColor: theme.surface }]}>
+                <Text style={[styles.statusTagText, { color: theme.tint }]}>
+                  {customer.status}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.contactBar}>
+          <TouchableOpacity style={[styles.contactBtn, { backgroundColor: theme.surface }]} onPress={handleCall}>
+            <Ionicons name="call-outline" size={16} color={theme.text} />
+            <Text style={[styles.contactBtnText, { color: theme.text }]}>Call</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.contactBtn, { backgroundColor: theme.surface }]} onPress={openWhatsAppModal}>
+            <Ionicons name="logo-whatsapp" size={16} color="#16A34A" />
+            <Text style={[styles.contactBtnText, { color: theme.text }]}>WhatsApp</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Rates & Profit Card */}
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Text style={[styles.cardSectionTitle, { color: theme.tint }]}>Rates & Financial Breakdown</Text>
+
+        <View style={styles.rateGrid}>
+          <View style={styles.rateBox}>
+            <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Roll Required</Text>
+            <Text style={[styles.rateValue, { color: theme.text }]}>{customer.rollType}</Text>
+          </View>
+
+
+          <View style={styles.rateBox}>
+            <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Sale Rate</Text>
+            <Text style={[styles.rateValue, { color: theme.text }]}>₨{customer.saleRate}</Text>
+          </View>
+          <View style={styles.rateBox}>
+            <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Order Count</Text>
+            <Text style={[styles.rateValue, { color: theme.text }]}>{customer?.orderCount}</Text>
+          </View>
+        </View>
+
+        {/* <View style={[styles.marginBanner, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <Text style={[styles.marginTitle, { color: margin >= 0 ? Palette.success : Palette.danger }]}>
+            Profit Margin: <Text style={{ fontWeight: '700' }}>₨{margin}</Text> per roll
+          </Text>
+          <Text style={[styles.marginSub, { color: theme.textSecondary }]}>
+            Est. profit on 50 rolls = <Text style={{ fontWeight: '700', color: theme.text }}>₨{margin * 50}</Text>
+          </Text>
+        </View> */}
+      </View>
+
+      {/* Visit Schedule Card */}
+      <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <View style={styles.rowBetween}>
+          <Text style={[styles.cardSectionTitle, { color: theme.tint }]}>Re-visit Schedule</Text>
+          {isVisitDue && (
+            <View style={[styles.dueAlertBadge, { backgroundColor: isDark ? '#78350F' : '#FFFBEB' }]}>
+              <Text style={styles.dueAlertText}>Visit Due Today</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.scheduleRow}>
+          <View style={styles.schedBox}>
+            <Text style={[styles.schedLabel, { color: theme.textSecondary }]}>Feedback Cycle</Text>
+            <Text style={[styles.schedValue, { color: theme.text }]}>Every {customer.revisitDays} Days</Text>
+          </View>
+
+          <View style={styles.schedBox}>
+            <Text style={[styles.schedLabel, { color: theme.textSecondary }]}>Next Scheduled Visit</Text>
+            <Text style={[styles.schedValue, { color: isVisitDue ? Palette.warning : Palette.success }]}>
+              {customer.nextVisitDate}
+            </Text>
+          </View>
+        </View>
+
+        {customer.notes ? (
+          <View style={[styles.notesBox, { backgroundColor: theme.surface }]}>
+            <Text style={[styles.notesLabel, { color: theme.textSecondary }]}>Customer Notes:</Text>
+            <Text style={[styles.notesText, { color: theme.text }]}>{customer.notes}</Text>
+          </View>
+        ) : null}
+
+        <TouchableOpacity style={[styles.visitLogBtn, { backgroundColor: theme.tint }]} onPress={handleLogVisit}>
+          <Text style={styles.visitLogBtnText}>Log Visit Completed Today</Text>
+        </TouchableOpacity>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]} onPress={() => router.push(`/order/list?customerId=${id}&businessName=${customer.shopName}`)}>
+          <Text style={styles.processOrderBtnText}>View Order List</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.processOrderBtn, { backgroundColor: theme.tint }]}
+          onPress={() => router.push(`/order/add?customerId=${id}`)}>
+          <Text style={styles.processOrderBtnText}>Create Order</Text>
+        </TouchableOpacity>
+      </View>
+      {/* WhatsApp Selection Modal */}
+      <Modal
+        visible={whatsappModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setWhatsappModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContainer, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Open with</Text>
+
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => openWhatsApp('whatsapp')}
+            >
+              <Ionicons name="logo-whatsapp" size={22} color="#16A34A" />
+              <Text style={[styles.modalOptionText, { color: theme.text }]}>
+                WhatsApp
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalOption}
+              onPress={() => openWhatsApp('business')}
+            >
+              <Ionicons name="logo-whatsapp" size={22} color="#128C7E" />
+              <Text style={[styles.modalOptionText, { color: theme.text }]}>
+                WhatsApp Business
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalCancel}
+              onPress={() => setWhatsappModalVisible(false)}
+            >
+              <Text style={[styles.modalCancelText, { color: theme.textSecondary }]}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  scrollContent: { padding: 16, paddingBottom: 40 },
+  navRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+    marginTop: 4,
+  },
+  backBtn: { padding: 4 },
+  navTitle: { fontSize: 18, fontWeight: '700' },
+  card: {
+    borderRadius: 10,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+  },
+  headerTop: { flexDirection: 'row', alignItems: 'center' },
+  avatar: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  avatarText: { fontSize: 20, fontWeight: '700' },
+  shopName: { fontSize: 17, fontWeight: '700' },
+  ownerName: { fontSize: 13, marginTop: 2 },
+  tagRow: { flexDirection: 'row', marginTop: 6 },
+  catTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, marginRight: 6 },
+  catTagText: { fontSize: 11, fontWeight: '600' },
+  statusTag: { paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6 },
+  statusTagText: { fontSize: 11, fontWeight: '600' },
+  contactBar: { flexDirection: 'row', marginTop: 12 },
+  contactBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginHorizontal: 3,
+  },
+  contactBtnText: { fontSize: 13, fontWeight: '600', marginLeft: 6 },
+  cardSectionTitle: { fontSize: 14, fontWeight: '700', marginBottom: 10 },
+  rateGrid: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 10 },
+  rateBox: { flex: 1, alignItems: 'center' },
+  rateLabel: { fontSize: 11, marginBottom: 2 },
+  rateValue: { fontSize: 15, fontWeight: '700' },
+  marginBanner: { padding: 10, borderRadius: 8, borderWidth: 1 },
+  marginTitle: { fontSize: 13, fontWeight: '700' },
+  marginSub: { fontSize: 12, marginTop: 2 },
+  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  dueAlertBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  dueAlertText: { color: '#B45309', fontSize: 11, fontWeight: '700' },
+  scheduleRow: { flexDirection: 'row', justifyContent: 'space-between', marginVertical: 6 },
+  schedBox: { flex: 1 },
+  schedLabel: { fontSize: 11 },
+  schedValue: { fontSize: 13, fontWeight: '700', marginTop: 2 },
+  notesBox: { padding: 8, borderRadius: 6, marginVertical: 6 },
+  notesLabel: { fontSize: 11, fontWeight: '600' },
+  notesText: { fontSize: 12, marginTop: 2 },
+  visitLogBtn: {
+    height: 42,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  visitLogBtnText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+  inputLabel: { fontSize: 12, fontWeight: '600', marginBottom: 6 },
+  rollPill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8, marginRight: 6, borderWidth: 1 },
+  orderInputRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 4 },
+  qtyInput: { height: 42, borderWidth: 1, borderRadius: 8, paddingHorizontal: 10, fontSize: 14 },
+  processOrderBtn: {
+    height: 42,
+    width: '48%',
+    gap: 12,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  processOrderBtnText: { color: '#FFF', fontSize: 13, fontWeight: '700' },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    width: '80%',
+    borderRadius: 14,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
+    gap: 12,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  modalCancel: {
+    marginTop: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  modalCancelText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+});
