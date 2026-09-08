@@ -23,10 +23,10 @@ const STATUS_FILTERS: (OrderStatus | 'All' | 'Debit')[] = [
   'All',
   'Debit',
   'In Progress',
-  'Pending',
-  'Delivered',
+  // 'Pending',
   'Invoiced',
-  'Cancelled'
+  'Delivered',
+  // 'Cancelled'
 ];
 
 export default function OrdersScreen({ initialFilter = 'All' }: { initialFilter?: 'All' | 'Debit' }) {
@@ -85,10 +85,10 @@ export default function OrdersScreen({ initialFilter = 'All' }: { initialFilter?
   }, [orders, searchQuery, selectedStatus]);
 
   const totalCount = orders.length;
-  const pendingCount = orders.filter((o) => o.status === 'Pending').length;
+  // const pendingCount = orders.filter((o) => o.status === 'Pending').length;
   const inProgressCount = orders.filter((o) => o.status === 'In Progress').length;
   const deliveredCount = orders.filter((o) => o.status === 'Delivered').length;
-  const cancelledCount = orders.filter((o) => o.status === 'Cancelled').length;
+  // const cancelledCount = orders.filter((o) => o.status === 'Cancelled').length;
   const invoicedCount = orders.filter((o) => o.status === 'Invoiced').length;
 
   const formatDate = (iso: string) => {
@@ -248,11 +248,11 @@ export default function OrdersScreen({ initialFilter = 'All' }: { initialFilter?
         {/* KPI Metrics */}
         <OrderMetrics
           totalCount={totalCount}
-          pendingCount={pendingCount}
+          // pendingCount={pendingCount}
           inProgressCount={inProgressCount}
           invoicedCount={invoicedCount}
           deliveredCount={deliveredCount}
-          cancelledCount={cancelledCount}
+          // cancelledCount={cancelledCount}
         />
 
         {/* Status Filters */}

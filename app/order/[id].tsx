@@ -21,10 +21,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STATUSES: OrderStatus[] = [
   'In Progress',
-  'Pending',
-  'Delivered',
+  // 'Pending',
   'Invoiced',
-  'Cancelled',
+  'Delivered',
+  // 'Cancelled',
 ];
 
 export default function AddOrEditCustomerOrderScreen() {
@@ -49,7 +49,7 @@ export default function AddOrEditCustomerOrderScreen() {
   const [quantity, setQuantity] = useState('1');
   const [unitCostRate, setUnitCostRate] = useState('120');
   const [unitSaleRate, setUnitSaleRate] = useState('135');
-  const [status, setStatus] = useState<OrderStatus>('Pending');
+  const [status, setStatus] = useState<OrderStatus>('In Progress');
   const [originalOrder, setOriginalOrder] = useState<CustomerOrder | null>(null);
   const [loading, setLoading] = useState(false);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);

@@ -10,20 +10,20 @@ import {
 
 type OrderMetricsProps = {
   totalCount: number;
-  pendingCount: number;
+  // pendingCount: number;
   inProgressCount: number;
   invoicedCount: number;
   deliveredCount: number;
-  cancelledCount: number;
+  // cancelledCount: number;
 };
 
 export default function OrderMetrics({
   totalCount,
-  pendingCount,
+  // pendingCount,
   inProgressCount,
   invoicedCount,
   deliveredCount,
-  cancelledCount,
+  // cancelledCount,
 }: OrderMetricsProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -35,11 +35,11 @@ export default function OrderMetrics({
       value: totalCount,
       color: theme.text,
     },
-    {
-      label: 'Pending',
-      value: pendingCount,
-      color: Palette.warning,
-    },
+    // {
+    //   label: 'Pending',
+    //   value: pendingCount,
+    //   color: Palette.warning,
+    // },
     {
       label: 'In Progress',
       value: inProgressCount,
@@ -55,18 +55,18 @@ export default function OrderMetrics({
       value: deliveredCount,
       color: Palette.success,
     },
-    {
-      label: 'Cancelled',
-      value: cancelledCount,
-      color: Palette.danger,
-    },
+    // {
+    //   label: 'Cancelled',
+    //   value: cancelledCount,
+    //   color: Palette.danger,
+    // },
   ];
 
   return (
-    <ScrollView
-      horizontal={true}
-      showsHorizontalScrollIndicator={false}
-    >
+    // <ScrollView
+    //   horizontal={true}
+    //   showsHorizontalScrollIndicator={false}
+    // >
       <View style={styles.metricsRow}>
         {metrics.map((item) => (
           <View
@@ -90,13 +90,14 @@ export default function OrderMetrics({
           </View>
         ))}
       </View>
-    </ScrollView>
+    // </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   metricsRow: {
     flexDirection: 'row',
+    justifyContent: 'center',
     paddingVertical: 10,
     gap: 5,
   },

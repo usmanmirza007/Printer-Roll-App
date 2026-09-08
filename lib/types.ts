@@ -16,11 +16,11 @@ export type CustomerStatus =
   | 'Blocked';            // Optional
 
 export type OrderStatus =
-  | 'Pending'             // Just created
+  // | 'Pending'             // Just created
   | 'In Progress'         // Being processed
   | 'Invoiced'            // Invoice generated
   | 'Delivered'           // Successfully delivered
-  | 'Cancelled';          // Cancelled
+  // | 'Cancelled';          // Cancelled
 
 export interface InstallmentPayment {
   id: string;
