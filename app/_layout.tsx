@@ -6,7 +6,6 @@ import { useFonts } from 'expo-font';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
 import 'react-native-reanimated';
 export { ErrorBoundary } from 'expo-router';
 SplashScreen.preventAutoHideAsync();
@@ -20,30 +19,27 @@ export default function RootLayout() {
     if (error) throw error;
   }, [error]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  // ✅ Early return hata diya — hamesha same structure
   return (
     <AuthProvider>
-      {!loaded ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <ActivityIndicator size="large" />
-        </View>
-      ) : (
-        <MainContent />
-      )}
+      <MainContent fontsLoaded={loaded} fontError={error} />
     </AuthProvider>
   );
 }
 
-function MainContent() {
+function MainContent({ fontsLoaded, fontError }: { fontsLoaded: boolean; fontError: Error | null }) {
   const { user, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
+
+  useEffect(() => {
+    if (fontError) throw fontError;
+  }, [fontError]);
+
+  useEffect(() => {
+    if (!fontsLoaded || loading) return;
+
+    SplashScreen.hideAsync();
+  }, [fontsLoaded, loading]);
 
   // useEffect(() => {
   //   async function initChannel() {
@@ -84,13 +80,8 @@ function MainContent() {
   //   };
   // }, [user]);
 
-  // Auth loading ke time bhi same component tree rakho
-  if (loading) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" />
-      </View>
-    );
+  if (!fontsLoaded || loading) {
+    return null;
   }
 
   return <RootLayoutNav />;

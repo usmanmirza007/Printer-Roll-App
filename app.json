@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Printer Roll",
+    "name": "Nexus Invoice",
     "slug": "printerrollcom",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/icon.jpeg",
     "scheme": "printerroll.com",
     "userInterfaceStyle": "automatic",
     "ios": {
@@ -31,7 +31,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/nexus-invoice-splash.jpg",
+          "image": "./assets/images/invoice_splash.jpeg",
           "resizeMode": "cover",
           "backgroundColor": "#06142f",
           "enableFullScreenImage_legacy": true,
