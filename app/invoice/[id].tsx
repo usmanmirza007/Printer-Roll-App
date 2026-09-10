@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ============ STATIC COMPANY DETAILS ============
 const COMPANY = {
-  name: 'MUGHAL',
+  name: 'ThermalAxis',
   subtitle: 'THERMAL PRINTER ROLL',
   tagline: 'PREMIUM QUALITY THERMAL ROLLS FOR EVERY PRINTING NEED',
   phone1: '0335-0604017',
@@ -227,7 +227,7 @@ export default function InvoiceScreen() {
       <div class="container">
         <div class="header">
           <div class="brand">
-            <h1>MUGHAL</h1>
+            <h1>ThermalAxis</h1>
             <div class="subtitle">THERMAL PRINTER ROLL</div>
             <div class="tagline">★ PREMIUM QUALITY THERMAL ROLLS ★<br>FOR EVERY PRINTING NEED</div>
           </div>
@@ -284,7 +284,7 @@ export default function InvoiceScreen() {
         <div style="margin:20px 0;padding:12px;background:#fff8e1;border-radius:8px;border-left:4px solid #c9a227;">
           <strong>NOTE:</strong><br>
           Thank you for your business!<br>
-          We appreciate your trust in Mughal Thermal Printer Roll.
+          We appreciate your trust in ThermalAxis Thermal Printer Roll.
         </div>
 
         <div class="footer">

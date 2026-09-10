@@ -17,6 +17,22 @@ import {
   where,
 } from 'firebase/firestore';
 
+const newestFirst = <T extends { id: string }>(items: T[], dateKeys: string[]) =>
+  [...items].sort((a, b) => {
+    const getTime = (item: T) => {
+      for (const key of dateKeys) {
+        const value = (item as T & Record<string, unknown>)[key];
+        if (typeof value === 'string' || typeof value === 'number') {
+          const time = new Date(value).getTime();
+          if (!Number.isNaN(time)) return time;
+        }
+      }
+      return 0;
+    };
+
+    return getTime(b) - getTime(a) || b.id.localeCompare(a.id);
+  });
+
 /**
  * Fetch all customers from Firestore.
  */
@@ -58,7 +74,7 @@ export async function getCustomersFromFirestore(): Promise<Customer[]> {
       } as Customer;
     });
 
-    return customers;
+    return newestFirst(customers, ['createdDate']);
   } catch (error) {
     console.error(
       '❌ Error fetching customers from Firestore:',
@@ -103,7 +119,7 @@ export async function getCustomerByIdFromFirestore(
     });
 
     // 3. Attach orders
-    customerData.orderHistory = orderHistory;
+    customerData.orderHistory = newestFirst(orderHistory, ['orderDate']);
 
     return customerData;
   } catch (error) {
@@ -151,7 +167,7 @@ export async function getCustomerOrdersFromFirestore(
       } as CustomerOrder);
     });
 
-    return orders;
+    return newestFirst(orders, ['orderDate']);
   } catch (error) {
     console.error('❌ Error fetching customer orders:', error);
     return [];
@@ -179,7 +195,7 @@ export async function getOrdersFromFirestore(): Promise<CustomerOrder[]> {
       } as CustomerOrder);
     });
 
-    return customers;
+    return newestFirst(customers, ['orderDate']);
   } catch (error) {
     console.error('❌ Error fetching customers from Firestore:', error);
     return []; // ← return default orders on error

@@ -275,7 +275,7 @@ export default function AddOrEditCustomerOrderScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView
         style={[styles.container, { marginTop: top, backgroundColor: theme.background }]}

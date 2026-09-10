@@ -7,6 +7,8 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -81,10 +83,15 @@ export default function RollDetailScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, {marginTop: top, backgroundColor: theme.background }]}
-      contentContainerStyle={styles.scrollContent}
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <ScrollView
+        style={[styles.container, { marginTop: top, backgroundColor: theme.background }]}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
       {/* Header */}
       <View style={styles.navRow}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
@@ -177,7 +184,8 @@ export default function RollDetailScreen() {
           </TouchableOpacity>
         </View>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
