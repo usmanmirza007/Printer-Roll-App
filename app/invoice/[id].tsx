@@ -1,6 +1,7 @@
 import { loadSingleCustomer } from '@/lib/storage';
 import { Customer } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
+import { File, Paths } from 'expo-file-system';
 import * as Print from 'expo-print';
 import { useLocalSearchParams } from 'expo-router';
 import * as Sharing from 'expo-sharing';
@@ -9,6 +10,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,7 +26,8 @@ const COMPANY = {
   tagline: 'PREMIUM QUALITY THERMAL ROLLS FOR EVERY PRINTING NEED',
   phone1: '0335-0604017',
   phone2: '0337-0495656',
-  address: 'Lahore, Punjab, Pakistan',
+  address1: 'Lahore, Punjab, Pakistan',
+  address2: 'Gujranwala, Punjab, Pakistan',
 };
 
 const BANK_ACCOUNTS = [
@@ -290,7 +293,7 @@ export default function InvoiceScreen() {
         <div class="footer">
           <div>📞 CONTACT US<br>${COMPANY.phone1}<br>${COMPANY.phone2}</div>
           <div>👤 Owner<br>${order.salesUsman}<br>${order.salesBilal}</div>
-          <div>📍 ADDRESS<br>${COMPANY.address}</div>
+          <div>📍 ADDRESS<br>${COMPANY.address1}<br>${COMPANY.address2}</div>
         </div>
       </div>
     </body>
@@ -306,11 +309,25 @@ export default function InvoiceScreen() {
 
     try {
       setSharing(true);
+
       const html = generateHTML();
-      const { uri } = await Print.printToFileAsync({ html, base64: false });
+
+      // 1. Generate PDF
+      const { base64 } = await Print.printToFileAsync({
+        html,
+        base64: true,
+      });
+
+      if (!base64) {
+        throw new Error('PDF data was not generated');
+      }
+
+      // Write a fresh cache file so expo-sharing can grant external read access.
+      const pdfFile = new File(Paths.cache, `Invoice_${Date.now()}.pdf`);
+      pdfFile.write(base64, { encoding: 'base64' });
 
       if (await Sharing.isAvailableAsync()) {
-        await Sharing.shareAsync(uri, {
+        await Sharing.shareAsync(pdfFile.uri, {
           mimeType: 'application/pdf',
           dialogTitle: 'Share Invoice',
           UTI: 'com.adobe.pdf',
@@ -319,8 +336,8 @@ export default function InvoiceScreen() {
         Alert.alert('Success', 'Invoice PDF generated successfully!');
       }
     } catch (error) {
-      console.log(error);
-      Alert.alert('Error', 'Failed to generate invoice');
+      console.log('Share Error →', error);
+      Alert.alert('Error', 'Failed to generate or share invoice');
     } finally {
       setSharing(false);
     }
