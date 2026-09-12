@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // ============ STATIC COMPANY DETAILS ============
 const COMPANY = {
-  name: 'ThermalAxis',
+  name: 'EcoMark',
   subtitle: 'THERMAL PRINTER ROLL',
   tagline: 'PREMIUM QUALITY THERMAL ROLLS FOR EVERY PRINTING NEED',
   phone1: '0335-0604017',
@@ -41,13 +41,19 @@ const BANK_ACCOUNTS = [
   },
   {
     id: 'bilal',
-    owner: 'Muhammad Bilal',
-    bankName: 'Meezan Bank',
+    owner: 'Muhammad Bilal Mirza',
+    bankName: 'Allied Bank',
     accountTitle: 'Muhammad Bilal Mirza',
-    accountNo: '9876543210987',
-    iban: 'PK00MEZN000000000000000',
+    accountNo: '63896790029',
+    iban: 'PK80ABPA0010063896790029',
   },
 ] as const;
+
+const formatCurrency = (value: number) =>
+  `Rs. ${value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
 
 type OrderItem = {
   no: string;
@@ -88,6 +94,7 @@ export default function InvoiceScreen() {
   const [shipping, setShipping] = useState<number>(0);
   const [total, setTotal] = useState<number>(0);
   const [includeBankDetails, setIncludeBankDetails] = useState(false);
+  const [includeDiscountNote, setIncludeDiscountNote] = useState(false);
   const [selectedBankId, setSelectedBankId] = useState<(typeof BANK_ACCOUNTS)[number]['id']>('usman');
   const { top } = useSafeAreaInsets();
 
@@ -192,8 +199,8 @@ export default function InvoiceScreen() {
         <td style="padding:10px;border:1px solid #1a237e;text-align:center;">${item.no}</td>
         <td style="padding:10px;border:1px solid #1a237e;">${item.description}</td>
         <td style="padding:10px;border:1px solid #1a237e;text-align:center;">${item.qty}</td>
-        <td style="padding:10px;border:1px solid #1a237e;text-align:right;">Rs. ${item.unitPrice.toFixed(2)}</td>
-        <td style="padding:10px;border:1px solid #1a237e;text-align:right;">Rs. ${item.amount.toFixed(2)}</td>
+        <td style="padding:10px;border:1px solid #1a237e;text-align:right;white-space:nowrap;">${formatCurrency(item.unitPrice)}</td>
+        <td style="padding:10px;border:1px solid #1a237e;text-align:right;white-space:nowrap;">${formatCurrency(item.amount)}</td>
       </tr>
     `
       )
@@ -218,10 +225,19 @@ export default function InvoiceScreen() {
         .info-row { display: flex; justify-content: space-between; margin: 25px 0; }
         .customer-box { background: #f8f9fc; padding: 15px; border-radius: 10px; border-left: 4px solid #c9a227; }
         .meta-box { text-align: right; font-size: 13px; line-height: 1.8; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; table-layout: fixed; }
+        .items-table col.item-no { width: 10%; }
+        .items-table col.description { width: 38%; }
+        .items-table col.qty { width: 10%; }
+        .items-table col.unit-price { width: 20%; }
+        .items-table col.amount { width: 20%; }
+        .items-table th, .items-table td { overflow-wrap: break-word; }
         th { background: #0d1b4c; color: white; padding: 12px; font-size: 13px; }
         .totals { margin-left: auto; width: 280px; }
-        .totals td { padding: 8px 12px; }
+        .totals col.label { width: 38%; }
+        .totals col.value { width: 62%; }
+        .totals td { padding: 8px 12px; white-space: nowrap; }
+        .totals td:last-child { text-align: right; }
         .total-row { background: #0d1b4c; color: white; font-weight: 700; }
         .footer { background: #0d1b4c; color: white; padding: 20px; border-radius: 12px; display: flex; justify-content: space-between; font-size: 12px; }
       </style>
@@ -230,7 +246,7 @@ export default function InvoiceScreen() {
       <div class="container">
         <div class="header">
           <div class="brand">
-            <h1>ThermalAxis</h1>
+            <h1>EcoMark</h1>
             <div class="subtitle">THERMAL PRINTER ROLL</div>
             <div class="tagline">★ PREMIUM QUALITY THERMAL ROLLS ★<br>FOR EVERY PRINTING NEED</div>
           </div>
@@ -252,7 +268,6 @@ export default function InvoiceScreen() {
             ${includeBankDetails && selectedBank ? `
             <div style="margin-top:0px;text-align:left;background:#f8f9fc;padding:12px;border-radius:8px;border-left:4px solid #c9a227;line-height:1.7;">
               <strong>BANK DETAILS</strong><br>
-              Account Owner: ${selectedBank.owner}<br>
               Bank Name: ${selectedBank.bankName}<br>
               Account Title: ${selectedBank.accountTitle}<br>
               Account No: ${selectedBank.accountNo}<br>
@@ -262,7 +277,14 @@ export default function InvoiceScreen() {
           </div>
         </div>
 
-        <table>
+        <table class="items-table">
+          <colgroup>
+            <col class="item-no">
+            <col class="description">
+            <col class="qty">
+            <col class="unit-price">
+            <col class="amount">
+          </colgroup>
           <thead>
             <tr>
               <th>ITEM NO.</th>
@@ -278,16 +300,23 @@ export default function InvoiceScreen() {
         </table>
 
         <table class="totals">
-          <tr><td>SUBTOTAL</td><td style="text-align:right">Rs. ${order.subtotal.toLocaleString()}.00</td></tr>
-          <tr><td>DISCOUNT</td><td style="text-align:right">Rs. ${order.discount.toLocaleString()}.00</td></tr>
-          <tr><td>SHIPPING</td><td style="text-align:right">Rs. ${order.shipping.toLocaleString()}.00</td></tr>
-          <tr class="total-row"><td>TOTAL</td><td style="text-align:right">Rs. ${order.total.toLocaleString()}.00</td></tr>
+          <colgroup>
+            <col class="label">
+            <col class="value">
+          </colgroup>
+          <tr><td>SUBTOTAL</td><td style="text-align:right">${formatCurrency(order.subtotal)}</td></tr>
+          <tr><td>DISCOUNT</td><td style="text-align:right">${formatCurrency(order.discount)}</td></tr>
+          <tr><td>SHIPPING</td><td style="text-align:right">${formatCurrency(order.shipping)}</td></tr>
+          <tr class="total-row"><td>TOTAL</td><td style="text-align:right">${formatCurrency(order.total)}</td></tr>
         </table>
 
         <div style="margin:20px 0;padding:12px;background:#fff8e1;border-radius:8px;border-left:4px solid #c9a227;">
           <strong>NOTE:</strong><br>
           Thank you for your business!<br>
-          We appreciate your trust in ThermalAxis Thermal Printer Roll.
+          We appreciate your trust in EcoMark Thermal Printer Roll.${includeDiscountNote ? `
+          <div style="margin-top:10px;padding:8px 10px;background:#fff1a8;border:1px solid #c9a227;border-radius:5px;color:#0d1b4c;font-weight:700;">
+            Discount: 2% on 50 quantity
+          </div>` : ''}
         </div>
 
         <div class="footer">
@@ -379,6 +408,21 @@ export default function InvoiceScreen() {
             </View>
           </Pressable>
 
+          <Pressable
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: includeDiscountNote }}
+            style={styles.optionRow}
+            onPress={() => setIncludeDiscountNote((current) => !current)}
+          >
+            <View style={[styles.checkbox, includeDiscountNote && styles.checkboxSelected]}>
+              {includeDiscountNote && <Ionicons name="checkmark" size={16} color="#fff" />}
+            </View>
+            <View>
+              <Text style={styles.optionTitle}>Show discount note on invoice</Text>
+              <Text style={styles.optionHint}>Adds highlighted text: Discount: 2% on 50 quantity</Text>
+            </View>
+          </Pressable>
+
           {includeBankDetails && (
             <View style={styles.accountList}>
               <Text style={styles.accountLabel}>Select account owner</Text>
@@ -405,6 +449,11 @@ export default function InvoiceScreen() {
           {includeBankDetails && selectedBank && (
             <Text style={styles.previewNote}>
               {selectedBank.owner}'s bank details will appear in the PDF.
+            </Text>
+          )}
+          {includeDiscountNote && (
+            <Text style={styles.discountPreviewNote}>
+              Highlighted note will appear in the PDF: Discount: 2% on 50 quantity
             </Text>
           )}
         </View>
@@ -481,6 +530,16 @@ const styles = StyleSheet.create({
   },
   radioInner: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#0d1b4c' },
   previewNote: { color: '#0d1b4c', fontSize: 12, marginTop: 8 },
+  discountPreviewNote: {
+    color: '#0d1b4c',
+    backgroundColor: '#fff1a8',
+    borderLeftWidth: 4,
+    borderLeftColor: '#c9a227',
+    padding: 8,
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 8,
+  },
   footer: { padding: 16, borderTopWidth: 1, borderColor: '#eee' },
   btn: {
     flexDirection: 'row',
