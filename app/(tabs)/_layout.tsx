@@ -94,7 +94,7 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="debit"
         options={{
           title: 'Debit',
@@ -107,7 +107,7 @@ export default function TabLayout() {
             />
           ),
         }}
-      />
+      /> */}
 
       {/* 2. Rolls Inventory Tab */}
       <Tabs.Screen
