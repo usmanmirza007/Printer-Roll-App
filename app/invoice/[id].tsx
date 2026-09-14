@@ -1,6 +1,7 @@
 import { loadSingleCustomer } from '@/lib/storage';
 import { Customer } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
+import { Asset } from 'expo-asset';
 import { File, Paths } from 'expo-file-system';
 import * as Print from 'expo-print';
 import { useLocalSearchParams } from 'expo-router';
@@ -191,7 +192,11 @@ export default function InvoiceScreen() {
 
   const selectedBank = BANK_ACCOUNTS.find((account) => account.id === selectedBankId);
 
-  const generateHTML = () => {
+  const generateHTML = async () => {
+    const [logoAsset] = await Asset.loadAsync(require('../../assets/images/logo.jpg'));
+    const logoFile = new File(logoAsset.localUri || logoAsset.uri);
+    const logoBase64 = await logoFile.base64();
+
     const itemsRows = order.items
       .map(
         (item) => `
@@ -216,7 +221,7 @@ export default function InvoiceScreen() {
         body { font-family: 'Poppins', sans-serif; margin: 0; padding: 0; background: #fff; color: #1a237e; }
         .container { padding: 30px; max-width: 800px; margin: 0 auto; }
         .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px; }
-        .brand h1 { font-family: 'Playfair Display', serif; font-size: 42px; margin: 0; color: #0d1b4c; letter-spacing: 2px; }
+        .brand-logo { width: 320px; height: auto; display: block; }
         .brand .subtitle { color: #c9a227; font-size: 14px; font-weight: 600; letter-spacing: 1px; }
         .brand .tagline { font-size: 11px; color: #666; margin-top: 8px; }
         .invoice-title { text-align: right; }
@@ -246,7 +251,7 @@ export default function InvoiceScreen() {
       <div class="container">
         <div class="header">
           <div class="brand">
-            <h1>EcoMark</h1>
+            <img class="brand-logo" src="data:image/jpeg;base64,${logoBase64}" alt="EcoMark" />
             <div class="subtitle">THERMAL PRINTER ROLL</div>
             <div class="tagline">★ PREMIUM QUALITY THERMAL ROLLS ★<br>FOR EVERY PRINTING NEED</div>
           </div>
@@ -339,7 +344,7 @@ export default function InvoiceScreen() {
     try {
       setSharing(true);
 
-      const html = generateHTML();
+      const html = await generateHTML();
 
       // 1. Generate PDF
       const { base64 } = await Print.printToFileAsync({
