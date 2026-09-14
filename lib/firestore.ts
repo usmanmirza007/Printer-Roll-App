@@ -240,14 +240,6 @@ export async function getRollsFromFirestore(): Promise<ThermalRoll[]> {
     const colRef = collection(db, ROLLS_COLLECTION);
     const snapshot = await getDocs(colRef);
 
-    if (snapshot.empty) {
-      console.log('⚡ Firestore rolls collection empty. Seeding defaults... rolls');
-      for (const roll of DEFAULT_ROLLS) {
-        await setDoc(doc(db, ROLLS_COLLECTION, roll.id), roll);
-      }
-      return DEFAULT_ROLLS;
-    }
-
     const rolls: ThermalRoll[] = [];
     snapshot.forEach((d) => {
       rolls.push({ id: d.id, ...d.data() } as ThermalRoll);
@@ -389,15 +381,15 @@ export async function saveNotificationToFirestore(notif: AppNotification): Promi
  */
 export async function seedInitialFirestoreData(): Promise<void> {
   try {
-    for (const cust of DEFAULT_CUSTOMERS) {
-      await setDoc(doc(db, CUSTOMERS_COLLECTION, cust.id), cust);
-    }
-    for (const roll of DEFAULT_ROLLS) {
-      await setDoc(doc(db, ROLLS_COLLECTION, roll.id), roll);
-    }
-    for (const notif of DEFAULT_NOTIFICATIONS) {
-      await setDoc(doc(db, NOTIFICATIONS_COLLECTION, notif.id), notif);
-    }
+    // for (const cust of DEFAULT_CUSTOMERS) {
+    //   await setDoc(doc(db, CUSTOMERS_COLLECTION, cust.id), cust);
+    // }
+    // for (const roll of DEFAULT_ROLLS) {
+    //   await setDoc(doc(db, ROLLS_COLLECTION, roll.id), roll);
+    // }
+    // for (const notif of DEFAULT_NOTIFICATIONS) {
+    //   await setDoc(doc(db, NOTIFICATIONS_COLLECTION, notif.id), notif);
+    // }
     console.log('✅ Firestore initial data seed complete!');
   } catch (error) {
     console.error('❌ Error seeding initial Firestore data:', error);
