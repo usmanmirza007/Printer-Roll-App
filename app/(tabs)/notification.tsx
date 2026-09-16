@@ -87,8 +87,8 @@ export default function NotificationsScreen() {
   };
 
   const handleToggleRead = async (id: string) => {
-    const updated = await markNotificationRead(id);
-    setNotifications(updated);
+    await markNotificationRead(id);
+    fetchNotifs()
   };
 
   const handleClearNotif = async (id: string) => {
@@ -129,7 +129,7 @@ export default function NotificationsScreen() {
       const updatedCustomers = await updateCustomerReminderDate(selectedNotification.customerId, nextVisitDate);
       const updatedNotifications = await markNotificationRead(selectedNotification.id);
       // setCustomers(updatedCustomers);
-      setNotifications(updatedNotifications);
+      // setNotifications(updatedNotifications);
       setShowDatePicker(false);
       setSelectedNotification(null);
       setNotificationLoading(false)

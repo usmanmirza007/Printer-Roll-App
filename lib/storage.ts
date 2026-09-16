@@ -11,6 +11,7 @@ import {
   getInvestmentsFromFirestore,
   getNotificationsFromFirestore,
   getRollsFromFirestore,
+  markNotificationAsRead,
   saveCustomerToFirestore,
   saveInvestmentToFirestore,
   saveNotificationToFirestore,
@@ -337,11 +338,8 @@ export const saveNotifications = async (notifications: AppNotification[]): Promi
 };
 
 // Mark Notification as read
-export const markNotificationRead = async (id: string): Promise<AppNotification[]> => {
-  const notifs = await loadNotifications();
-  const updated = notifs.map((n) => (n.id === id ? { ...n, isRead: true } : n));
-  await saveNotifications(updated);
-  return updated;
+export const markNotificationRead = async (id: string) => {
+  await markNotificationAsRead(id);
 };
 
 // Mark all as read

@@ -402,6 +402,32 @@ export async function saveNotificationToFirestore(notif: AppNotification): Promi
 }
 
 /**
+ * Mark a single notification as read
+ * @param notificationId - The ID of the notification
+ */
+export async function markNotificationAsRead(
+  notificationId: string
+): Promise<boolean> {
+  try {
+    if (!notificationId) {
+      throw new Error('Notification ID is required');
+    }
+
+    const docRef = doc(db, NOTIFICATIONS_COLLECTION, notificationId);
+
+    await updateDoc(docRef, {
+      isRead: true,
+      updatedAt: new Date().toISOString(), // optional but recommended
+    });
+
+    return true;
+  } catch (error) {
+    console.error('❌ Error marking notification as read:', error);
+    return false;
+  }
+}
+
+/**
  * Force re-seed default data into Firestore.
  */
 export async function seedInitialFirestoreData(): Promise<void> {
