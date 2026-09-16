@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -50,8 +51,8 @@ export default function AuthScreen() {
         setLoading(true);
         try {
             if (isSignUp) {
-                await signUp(email.trim(), password, name.trim());
-                Alert.alert('Account Created', 'Welcome to Thermal Roll Direct Sales!');
+                // await signUp(email.trim(), password, name.trim());
+                Alert.alert('Sign Up Disabled', 'Sign up functionality is currently disabled. Please contact support.');
             } else {
                 await signIn(email.trim(), password);
             }
@@ -90,6 +91,11 @@ export default function AuthScreen() {
                         <MaterialCommunityIcons name="printer-pos" size={38} color="#FFFFFF" />
                     </View>
                     <Text style={[styles.appTitle, { color: theme.text }]}>Thermal Roll Manager</Text>
+                    {/* <Image
+                        source={require('../../assets/images/logo.jpg')}
+                        style={styles.appImage}
+                        resizeMode='contain'
+                    /> */}
                     <Text style={[styles.appSub, { color: theme.textSecondary }]}>
                         {isSignUp
                             ? 'Create an account to start managing shop visits & inventory'
@@ -210,7 +216,7 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
     container: { flex: 1 },
     scrollContent: { padding: 20, paddingTop: 40, paddingBottom: 40 },
-    heroSection: { alignItems: 'center', marginBottom: 24 },
+    heroSection: { alignItems: 'center', marginTop: 50, marginBottom: 24 },
     logoBadge: {
         width: 72,
         height: 72,
@@ -257,4 +263,8 @@ const styles = StyleSheet.create({
     submitBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
     toggleFooter: { marginTop: 24, alignItems: 'center' },
     footerText: { fontSize: 14 },
+    appImage: {
+        width: 300,
+        height: 200,
+    }
 });
