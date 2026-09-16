@@ -44,6 +44,8 @@ export default function NotificationsScreen() {
   const [customers, setCustomers] = useState<Awaited<ReturnType<typeof loadCustomers>>>([]);
   const [selectedNotification, setSelectedNotification] = useState<AppNotification | null>(null);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [notificationLoading, setNotificationLoading] = useState(false);
+
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const fetchNotifs = async () => {
@@ -116,6 +118,7 @@ export default function NotificationsScreen() {
   };
 
   const handleSaveReminderDate = async () => {
+    setNotificationLoading(true)
     if (!selectedNotification?.customerId) return;
 
     const nextVisitDate = [selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate()]
@@ -129,9 +132,10 @@ export default function NotificationsScreen() {
       setNotifications(updatedNotifications);
       setShowDatePicker(false);
       setSelectedNotification(null);
+      setNotificationLoading(false)
     } catch (error) {
       console.log('fofofo', error);
-      
+      setNotificationLoading(false);
       console.error('Failed to update reminder date:', error);
       Alert.alert('Error', 'Failed to update the customer reminder date.');
     }
@@ -389,7 +393,11 @@ export default function NotificationsScreen() {
                 <Text style={[styles.modalButtonText, { color: theme.textSecondary }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.modalButton, { backgroundColor: theme.tint }]} onPress={handleSaveReminderDate}>
-                <Text style={[styles.modalButtonText, { color: '#FFF' }]}>Save date</Text>
+                {notificationLoading ? (
+                  <ActivityIndicator size="small" color={'#fff'} />
+                ) : (
+                  <Text style={[styles.modalButtonText, { color: '#FFF' }]}>Save</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -432,6 +440,6 @@ const styles = StyleSheet.create({
   dateChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 8, padding: 10, marginTop: 16 },
   dateChipText: { marginLeft: 8, fontWeight: '600' },
   modalActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 },
-  modalButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginLeft: 8 },
+  modalButton: { alignItems: 'center', width: 120, paddingVertical: 10, borderRadius: 8, marginLeft: 8 },
   modalButtonText: { fontWeight: '700' },
 });

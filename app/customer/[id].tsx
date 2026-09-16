@@ -7,10 +7,11 @@ import {
   recordCustomerVisit
 } from '@/lib/storage';
 import { Customer } from '@/lib/types';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Modal,
@@ -37,23 +38,31 @@ export default function CustomerDetailScreen() {
     shopName: string;
     name: string
   } | null>(null);
+  const [loading, setLoading] = useState(false);
+
 
   const fetchDetail = async () => {
+    setLoading(true);
     if (!id) return;
     const allCustomers = await loadCustomers();
     const found = allCustomers.find((c) => c.id === id);
     setCustomer(found || null);
+    setLoading(false);
   };
 
   useEffect(() => {
     fetchDetail();
   }, [id]);
 
-  if (!customer) {
+  if (loading || customer == null) {
     return (
-      <View style={[styles.container, styles.center, { backgroundColor: theme.background }]}>
-        <Text style={{ color: theme.text }}>Customer not found.</Text>
-      </View>
+      loading ? <View style={styles.emptyBox}>
+        <ActivityIndicator size="large" color={theme.tint} />
+        <Text style={[styles.emptySub, { color: theme.textSecondary }]}>Loading customer...</Text>
+      </View> : customer == null ? <View style={styles.emptyBox}>
+        <MaterialIcons name="storefront" size={48} color={theme.textSecondary} />
+        <Text style={[styles.emptyTitle, { color: theme.text }]}>No Customers Found</Text>
+      </View> : null
     );
   }
 
@@ -444,4 +453,8 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '500',
   },
+
+  emptyBox: { flex: 1, alignItems: 'center', justifyContent: 'center'},
+  emptyTitle: { fontSize: 16, fontWeight: '700', marginTop: 10 },
+  emptySub: { fontSize: 13, textAlign: 'center', marginTop: 4, paddingHorizontal: 30 },
 });
