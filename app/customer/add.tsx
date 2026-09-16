@@ -27,7 +27,7 @@ const CATEGORIES: MarketCategory[] = [
   'Cloth Brand',
   'Supermarket',
   'General Store',
-  'Electronics',
+  'Hospital',
   'Bakery',
   'Other',
 ];

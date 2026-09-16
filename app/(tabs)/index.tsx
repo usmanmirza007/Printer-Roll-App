@@ -36,7 +36,7 @@ const MARKET_CATEGORIES: (MarketCategory | 'All')[] = [
   'Cloth Brand',
   'Supermarket',
   'General Store',
-  'Electronics',
+  'Hospital',
   'Bakery',
   'Other',
 ];

@@ -4,8 +4,8 @@ export type MarketCategory =
   | 'Fast Food'
   | 'Cloth Brand'
   | 'Supermarket'
+  | 'Hospital'
   | 'General Store'
-  | 'Electronics'
   | 'Bakery'
   | 'Other';
 
