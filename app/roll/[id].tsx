@@ -79,7 +79,7 @@ export default function RollDetailScreen() {
     };
     await saveRoll(updated);
     setRoll(updated);
-    Alert.alert('Stock Updated', `Added ${addQty} rolls to ${roll.title}. New stock: ${updated.stockCount} items!`);
+    // Alert.alert('Stock Updated', `Added ${addQty} rolls to ${roll.title}. New stock: ${updated.stockCount} items!`);
   };
 
   return (

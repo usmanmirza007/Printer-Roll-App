@@ -14,7 +14,7 @@ type OrderMetricsProps = {
   inProgressCount: number;
   invoicedCount: number;
   deliveredCount: number;
-  // cancelledCount: number;
+  cancelledCount?: number;
 };
 
 export default function OrderMetrics({
@@ -23,7 +23,7 @@ export default function OrderMetrics({
   inProgressCount,
   invoicedCount,
   deliveredCount,
-  // cancelledCount,
+  cancelledCount = 0,
 }: OrderMetricsProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
@@ -55,11 +55,11 @@ export default function OrderMetrics({
       value: deliveredCount,
       color: Palette.success,
     },
-    // {
-    //   label: 'Cancelled',
-    //   value: cancelledCount,
-    //   color: Palette.danger,
-    // },
+    {
+      label: 'Cancelled',
+      value: cancelledCount,
+      color: Palette.danger,
+    },
   ];
 
   return (

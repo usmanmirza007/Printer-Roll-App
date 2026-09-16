@@ -20,7 +20,7 @@ export type OrderStatus =
   | 'In Progress'         // Being processed
   | 'Invoiced'            // Invoice generated
   | 'Delivered'           // Successfully delivered
-  // | 'Cancelled';          // Cancelled
+  | 'Cancelled';          // Cancelled
 
 export interface InstallmentPayment {
   id: string;

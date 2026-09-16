@@ -27,7 +27,7 @@ const STATUS_FILTERS: (OrderStatus | 'All' | 'Debit')[] = [
   'In Progress',        // Being processed
   'Delivered',          // Successfully delivered
   'Invoiced',           // Invoice generated
-  // 'Cancelled'
+  'Cancelled'
 ];
 
 export default function OrderListScreen() {
@@ -91,7 +91,7 @@ export default function OrderListScreen() {
   // const pendingCount = orders.filter((o) => o.status === 'Pending').length;
   const inProgressCount = orders.filter((o) => o.status === 'In Progress').length;
   const deliveredCount = orders.filter((o) => o.status === 'Delivered').length;
-  // const cancelledCount = orders.filter((o) => o.status === 'Cancelled').length;
+  const cancelledCount = orders.filter((o) => o.status === 'Cancelled').length;
   const invoicedCount = orders.filter((o) => o.status === 'Invoiced').length;
 
   const formatDate = (iso: string) => {
@@ -265,7 +265,7 @@ export default function OrderListScreen() {
           inProgressCount={inProgressCount}
           invoicedCount={invoicedCount}
           deliveredCount={deliveredCount}
-          // cancelledCount={cancelledCount}
+          cancelledCount={cancelledCount}
         />
 
         {/* Status Filters */}

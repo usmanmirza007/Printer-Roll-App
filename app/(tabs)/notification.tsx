@@ -10,15 +10,19 @@ import {
   markNotificationRead,
   recordCustomerVisit,
   saveNotifications,
+  updateCustomerReminderDate,
 } from '@/lib/storage';
 import { AppNotification } from '@/lib/types';
 import { Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Modal,
+  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -37,12 +41,17 @@ export default function NotificationsScreen() {
   const [activeFilter, setActiveFilter] = useState<'All' | 'visit_reminder' | 'stock_alert'>('All');
   const [refreshing, setRefreshing] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState<Awaited<ReturnType<typeof loadCustomers>>>([]);
+  const [selectedNotification, setSelectedNotification] = useState<AppNotification | null>(null);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   const fetchNotifs = async () => {
     try {
       setLoading(true);
       const [custs, rolls] = await Promise.all([loadCustomers(), loadRolls()]);
       const data = await generateAutomaticNotifications(custs, rolls);
+      setCustomers(custs);
       setNotifications(data);
     } catch (e) {
       console.error('Failed to load notifications:', e);
@@ -94,6 +103,40 @@ export default function NotificationsScreen() {
     Alert.alert('Visit Logged!', 'Shop visit marked complete and next reminder scheduled.');
   };
 
+  const handleOpenNotification = (notification: AppNotification) => {
+    if (!notification.customerId) {
+      if (!notification.isRead) handleToggleRead(notification.id);
+      return;
+    }
+
+    const customer = customers.find((item) => item.id === notification.customerId);
+    setSelectedNotification(notification);
+    setSelectedDate(customer?.nextVisitDate ? new Date(`${customer.nextVisitDate}T12:00:00`) : new Date());
+    setShowDatePicker(false);
+  };
+
+  const handleSaveReminderDate = async () => {
+    if (!selectedNotification?.customerId) return;
+
+    const nextVisitDate = [selectedDate.getFullYear(), selectedDate.getMonth() + 1, selectedDate.getDate()]
+      .map((part) => String(part).padStart(2, '0'))
+      .join('-');
+
+    try {
+      const updatedCustomers = await updateCustomerReminderDate(selectedNotification.customerId, nextVisitDate);
+      const updatedNotifications = await markNotificationRead(selectedNotification.id);
+      // setCustomers(updatedCustomers);
+      setNotifications(updatedNotifications);
+      setShowDatePicker(false);
+      setSelectedNotification(null);
+    } catch (error) {
+      console.log('fofofo', error);
+      
+      console.error('Failed to update reminder date:', error);
+      Alert.alert('Error', 'Failed to update the customer reminder date.');
+    }
+  };
+
   const handleTestPushNotification = async () => {
     const token = (user as any)?.stsTokenManager?.accessToken;
     const nextDate = new Date().toISOString().split('T')[0];
@@ -108,9 +151,10 @@ export default function NotificationsScreen() {
 
   const renderNotifCard = ({ item }: { item: AppNotification }) => {
     const isVisit = item.type === 'visit_reminder';
-
+    
     return (
-      <View
+      <Pressable
+        onPress={() => handleOpenNotification(item)}
         style={[
           styles.card,
           {
@@ -198,7 +242,7 @@ export default function NotificationsScreen() {
             </TouchableOpacity>
           )}
         </View>
-      </View>
+      </Pressable>
     );
   };
 
@@ -299,6 +343,58 @@ export default function NotificationsScreen() {
           </View>
         }
       />
+
+      <Modal
+        visible={Boolean(selectedNotification)}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowDatePicker(false);
+          setSelectedNotification(null);
+        }}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={[styles.modalCard, { backgroundColor: theme.card }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Update visit reminder</Text>
+            <Text style={[styles.modalCustomer, { color: theme.textSecondary }]}>
+              {customers.find((item) => item.id === selectedNotification?.customerId)?.shopName || 'Customer'}
+            </Text>
+            <TouchableOpacity
+              style={[styles.dateChip, { backgroundColor: theme.surface, borderColor: theme.border }]}
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons name="calendar-outline" size={18} color={theme.tint} />
+              <Text style={[styles.dateChipText, { color: theme.text }]}>{selectedDate.toLocaleDateString()}</Text>
+            </TouchableOpacity>
+            {showDatePicker && (
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'inline' : 'calendar'}
+                onChange={(_, date) => {
+                  if (date) setSelectedDate(date);
+                  setShowDatePicker(false);
+                }}
+                minimumDate={new Date()}
+              />
+            )}
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={[styles.modalButton, { backgroundColor: theme.surface }]}
+                onPress={() => {
+                  setShowDatePicker(false);
+                  setSelectedNotification(null);
+                }}
+              >
+                <Text style={[styles.modalButtonText, { color: theme.textSecondary }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.modalButton, { backgroundColor: theme.tint }]} onPress={handleSaveReminderDate}>
+                <Text style={[styles.modalButtonText, { color: '#FFF' }]}>Save date</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -329,4 +425,13 @@ const styles = StyleSheet.create({
   emptyBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
   emptyTitle: { fontSize: 16, fontWeight: '700', marginTop: 10 },
   emptySub: { fontSize: 13, textAlign: 'center', marginTop: 4, paddingHorizontal: 30 },
+  modalBackdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.45)' },
+  modalCard: { padding: 20, borderTopLeftRadius: 18, borderTopRightRadius: 18 },
+  modalTitle: { fontSize: 18, fontWeight: '700' },
+  modalCustomer: { fontSize: 13, marginTop: 4 },
+  dateChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderRadius: 8, padding: 10, marginTop: 16 },
+  dateChipText: { marginLeft: 8, fontWeight: '600' },
+  modalActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 },
+  modalButton: { paddingHorizontal: 16, paddingVertical: 10, borderRadius: 8, marginLeft: 8 },
+  modalButtonText: { fontWeight: '700' },
 });

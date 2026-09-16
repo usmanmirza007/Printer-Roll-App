@@ -16,6 +16,7 @@ import {
   saveNotificationToFirestore,
   saveRollOrderToFirestore,
   saveRollToFirestore,
+  updateCustomerRemiderToFirestore,
   updateRollOrderToFirestore,
 } from '@/lib/firestore';
 import { AppNotification, Customer, CustomerOrder, Investment, ThermalRoll } from './types';
@@ -349,6 +350,16 @@ export const markAllNotificationsRead = async (): Promise<AppNotification[]> => 
   const updated = notifs.map((n) => ({ ...n, isRead: true }));
   await saveNotifications(updated);
   return updated;
+};
+
+export const updateCustomerReminderDate = async (
+  customerId: string,
+  nextVisitDate: string,
+): Promise<boolean> => {
+
+  const updatedCustomers = await updateCustomerRemiderToFirestore(customerId, nextVisitDate);
+
+  return updatedCustomers;
 };
 
 // Record visit completed for a customer -> updates nextVisitDate & triggers Push Notification!

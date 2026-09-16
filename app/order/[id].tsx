@@ -21,10 +21,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const STATUSES: OrderStatus[] = [
   'In Progress',
-  // 'Pending',
   'Invoiced',
   'Delivered',
-  // 'Cancelled',
+  'Cancelled',
 ];
 
 export default function AddOrEditCustomerOrderScreen() {
@@ -123,8 +122,12 @@ export default function AddOrEditCustomerOrderScreen() {
             roll.title.replaceAll('Thermal Roll', '').trim() === originalOrder.rollType
         )
       : undefined;
+    const previousReservedQuantity = originalOrder && originalOrder.status !== 'Cancelled'
+      ? originalOrder.quantity
+      : 0;
+    const nextReservedQuantity = status === 'Cancelled' ? 0 : qty;
     const availableStock = filterRoll && previousRoll?.id === filterRoll.id
-      ? filterRoll.stockCount + (originalOrder?.quantity || 0)
+      ? filterRoll.stockCount + previousReservedQuantity
       : filterRoll?.stockCount || 0;
 
     if (!selectedCustomerId) {
@@ -149,7 +152,7 @@ export default function AddOrEditCustomerOrderScreen() {
       return;
     }
 
-    if (filterRoll && availableStock < qty) {
+    if (filterRoll && availableStock < nextReservedQuantity) {
       Alert.alert(
         'Insufficient Stock',
         `Current available stock for ${filterRoll.title} is ${availableStock} rolls.`
@@ -181,14 +184,17 @@ export default function AddOrEditCustomerOrderScreen() {
       const updatedRolls = isEditMode && originalOrder
         ? rolls
             .filter((roll) => roll.id === previousRoll?.id || roll.id === filterRoll.id)
-            .map((roll) => ({
-              ...roll,
-              stockCount: roll.id === previousRoll?.id
-                ? roll.stockCount + originalOrder.quantity - (roll.id === filterRoll.id ? qty : 0)
-                : roll.stockCount - qty,
-            }))
+            .map((roll) => {
+              if (roll.id === previousRoll?.id && roll.id === filterRoll.id) {
+                return { ...roll, stockCount: roll.stockCount + previousReservedQuantity - nextReservedQuantity };
+              }
+              if (roll.id === previousRoll?.id) {
+                return { ...roll, stockCount: roll.stockCount + previousReservedQuantity };
+              }
+              return { ...roll, stockCount: roll.stockCount - nextReservedQuantity };
+            })
         : filterRoll
-          ? [{ ...filterRoll, stockCount: filterRoll.stockCount - qty }]
+          ? [{ ...filterRoll, stockCount: filterRoll.stockCount - nextReservedQuantity }]
           : [];
 
       if (isEditMode) {

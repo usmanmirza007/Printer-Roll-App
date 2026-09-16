@@ -14,6 +14,7 @@ import {
   getDocs,
   query,
   setDoc,
+  updateDoc,
   where,
 } from 'firebase/firestore';
 
@@ -214,6 +215,30 @@ export async function saveCustomerToFirestore(customer: Customer): Promise<Custo
   } catch (error) {
     console.error('❌ Error saving customer to Firestore:', error);
     return [];
+  }
+}
+
+// Update only the reminder date of a customer
+export async function updateCustomerRemiderToFirestore(
+  customerId: string,
+  reminderDate: string | Date | null
+): Promise<boolean> {
+  try {
+    if (!customerId) {
+      throw new Error('Customer ID is required');
+    }
+
+    const docRef = doc(db, CUSTOMERS_COLLECTION, customerId);
+
+    const customer = await updateDoc(docRef, {
+      nextVisitDate: reminderDate,
+      updatedAt: new Date().toISOString(),
+    });
+
+    return true;
+  } catch (error) {
+    console.error('❌ Error updating customer reminder date:', error);
+    return false;
   }
 }
 
