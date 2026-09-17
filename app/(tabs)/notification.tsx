@@ -4,7 +4,6 @@ import { useAuth } from '@/context/AuthContext';
 import {
   generateAutomaticNotifications,
   loadCustomers,
-  loadNotifications,
   loadRolls,
   markAllNotificationsRead,
   markNotificationRead,
@@ -126,10 +125,9 @@ export default function NotificationsScreen() {
       .join('-');
 
     try {
-      const updatedCustomers = await updateCustomerReminderDate(selectedNotification.customerId, nextVisitDate);
-      const updatedNotifications = await markNotificationRead(selectedNotification.id);
-      // setCustomers(updatedCustomers);
-      // setNotifications(updatedNotifications);
+      await updateCustomerReminderDate(selectedNotification.customerId, nextVisitDate);
+      await markNotificationRead(selectedNotification.id);
+      fetchNotifs()
       setShowDatePicker(false);
       setSelectedNotification(null);
       setNotificationLoading(false)
@@ -155,7 +153,7 @@ export default function NotificationsScreen() {
 
   const renderNotifCard = ({ item }: { item: AppNotification }) => {
     const isVisit = item.type === 'visit_reminder';
-    
+
     return (
       <Pressable
         onPress={() => handleOpenNotification(item)}

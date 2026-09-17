@@ -23,7 +23,7 @@ export const getCustomerStatusStyle = (status: CustomerStatus, isDark: boolean =
     case 'Active':
       return { bg: isDark ? '#064E3B' : '#ECFDF5', text: isDark ? '#A7F3D0' : '#047857' };
 
-    case 'Follow-up Required':
+    case 'Follow-Up':
       return { bg: isDark ? '#78350F' : '#FFFBEB', text: isDark ? '#FDE68A' : '#B45309' };
 
     case 'Inactive':

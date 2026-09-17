@@ -1,12 +1,11 @@
-// import { triggerVisitEndPushNotification } from '@/constants/NotificationService';
 import {
+  createOrderAndUpdateCustomerCount,
   deleteCustomerFromFirestore,
   deleteInvestmentFromFirestore,
   deleteRollFromFirestore,
-  deleteRollOrderFromFirestore,
+  deleteOrderFromFirestore,
   getCustomerByIdFromFirestore,
-  getCustomerOrderByIdFromFirestore,
-  getCustomerOrdersFromFirestore,
+  getOrdersFromFirestore,
   getCustomersFromFirestore,
   getInvestmentsFromFirestore,
   getNotificationsFromFirestore,
@@ -15,18 +14,12 @@ import {
   saveCustomerToFirestore,
   saveInvestmentToFirestore,
   saveNotificationToFirestore,
-  saveRollOrderToFirestore,
   saveRollToFirestore,
   updateCustomerRemiderToFirestore,
-  updateRollOrderToFirestore,
+  updateOrderToFirestore,
+  getOrderByIdFromFirestore,
 } from '@/lib/firestore';
-import { AppNotification, Customer, CustomerOrder, Investment, ThermalRoll } from './types';
-
-const CUSTOMERS_KEY = '@thermal_roll_customers_v1';
-const CUSTOMERS_ORDER_KEY = '@thermal_roll_customers_orders_v1';
-const ROLLS_KEY = '@thermal_roll_rolls_v1';
-const NOTIFICATIONS_KEY = '@thermal_roll_notifications_v1';
-const INVESTMENTS_KEY = '@thermal_roll_investments_v1';
+import { AppNotification, Customer, Order, Investment, ThermalRoll } from './types';
 
 // Helper to get formatted date string (YYYY-MM-DD)
 export const getTodayDateString = (offsetDays: number = 0): string => {
@@ -47,50 +40,6 @@ export const DEFAULT_ROLLS: ThermalRoll[] = [
     stockCount: 50,
     minStockAlert: 15,
     description: 'High sensitivity thermal paper roll for POS receipt printers.',
-  },
-  {
-    id: 'roll-13m',
-    title: '13 Meter Thermal Roll',
-    meterLength: 13,
-    paperWidth: '80mm Standard POS',
-    purchaseRate: 45,
-    wholesaleRate: 60,
-    stockCount: 50,
-    minStockAlert: 10,
-    description: 'High sensitivity thermal paper roll for POS receipt printers.',
-  },
-  {
-    id: 'roll-50m',
-    title: '50 Meter Thermal Roll',
-    meterLength: 50,
-    paperWidth: '80mm Premium POS',
-    purchaseRate: 150,
-    wholesaleRate: 175,
-    stockCount: 40,
-    minStockAlert: 10,
-    description: 'Premium quality 50m thermal paper roll with clear dark image quality.',
-  },
-  {
-    id: 'roll-60m',
-    title: '60 Meter Thermal Roll',
-    meterLength: 60,
-    paperWidth: '80mm Heavy Duty',
-    purchaseRate: 180,
-    wholesaleRate: 210,
-    stockCount: 35,
-    minStockAlert: 10,
-    description: 'Heavy duty 60m paper roll for high volume retail checkout counters.',
-  },
-  {
-    id: 'roll-80m',
-    title: '80 Meter Thermal Roll',
-    meterLength: 80,
-    paperWidth: '80mm Jumbo Roll',
-    purchaseRate: 240,
-    wholesaleRate: 280,
-    stockCount: 30,
-    minStockAlert: 8,
-    description: 'Jumbo 80m thermal roll for busy restaurants and supermarket terminals.',
   },
   {
     id: 'barcode-38x28',
@@ -131,9 +80,9 @@ export const DEFAULT_CUSTOMERS: Customer[] = [
     notes: 'Requires 25 rolls every week. Prefers morning deliveries.',
     totalRollsOrdered: 50,
   },
-  
+
 ];
-export const DEFAULT_CUSTOMERS_ORDERS: CustomerOrder[] = [
+export const DEFAULT_CUSTOMERS_ORDERS: Order[] = [
   {
     id: 'cust-1',
     customerId: 'cust-1',
@@ -148,7 +97,7 @@ export const DEFAULT_CUSTOMERS_ORDERS: CustomerOrder[] = [
     totalSale: 3375,
     unitCostRate: 120,
     unitSaleRate: 135,
-  },  
+  },
 ];
 
 // Initial notifications
@@ -186,9 +135,9 @@ export const loadSingleCustomer = async (id: string): Promise<Customer | null> =
   }
 };
 
-export const loadSingleOrder = async (orderId: string): Promise<CustomerOrder | null> => {
+export const loadSingleOrder = async (orderId: string): Promise<Order | null> => {
   try {
-    const firestoreData = await getCustomerOrderByIdFromFirestore(orderId);
+    const firestoreData = await getOrderByIdFromFirestore(orderId);
     return firestoreData;
   } catch (error) {
     console.error('Error loading single customer order:', error);
@@ -207,19 +156,30 @@ export const loadInvestments = async (): Promise<Investment[]> => {
 };
 
 export const saveInvestment = async (investment: Investment): Promise<Investment[]> => {
-  const investments = await saveInvestmentToFirestore(investment);
-  return investments;
+  try {
+    const investments = await saveInvestmentToFirestore(investment);
+    return investments;
+  } catch (error) {
+    console.error('Error loading investments:', error);
+    return [];
+
+  }
 };
 
 export const deleteInvestment = async (id: string): Promise<Investment[]> => {
-  const investments = await deleteInvestmentFromFirestore(id);
-  return investments;
+  try {
+    const investments = await deleteInvestmentFromFirestore(id);
+    return investments;
+  } catch (error) {
+    console.error('Error loading investments:', error);
+    return [];
+  }
 };
 
 // Load customers from Firestore with AsyncStorage cache fallback
-export const loadCustomersOrder = async (customerId: string): Promise<CustomerOrder[]> => {
+export const loadOrder = async (): Promise<Order[]> => {
   try {
-    const firestoreData = await getCustomerOrdersFromFirestore(customerId);
+    const firestoreData = await getOrdersFromFirestore();
     return firestoreData;
   } catch (error) {
     console.error('Error loading customers:', error);
@@ -275,28 +235,25 @@ export const saveRoll = async (roll: ThermalRoll): Promise<ThermalRoll[]> => {
 };
 
 // Save Thermal Roll in Firestore
-export const saveCustomerOrder = async (customerOrder: CustomerOrder): Promise<CustomerOrder[]> => {
+export const saveOrder = async (customerOrder: Order): Promise<Order[]> => {
   try {
-    const order = await saveRollOrderToFirestore(customerOrder);
+    const order = await createOrderAndUpdateCustomerCount(customerOrder);
     return order;
   } catch (error) {
     console.error('Error saving roll:', error);
-    return await loadCustomersOrder(customerOrder.customerId);
+    return await loadOrder();
   }
 };
 
-export const updateCustomerOrder = async (customerOrder: CustomerOrder): Promise<CustomerOrder[]> => {
-  const orders = await updateRollOrderToFirestore(customerOrder);
+export const updateOrder = async (customerOrder: Order): Promise<Order[]> => {
+  const orders = await updateOrderToFirestore(customerOrder);
   return orders;
 };
 
 // Delete customer order in Firestore
-export const deleteCustomerOrder = async (
-  id: string,
-  customerId: string
-): Promise<CustomerOrder[]> => {
+export const deleteOrder = async (id: string, customerId: string): Promise<Order[]> => {
   try {
-    const updated = await deleteRollOrderFromFirestore(id, customerId);
+    const updated = await deleteOrderFromFirestore(id, customerId);
     return updated;
   } catch (error) {
     console.error('Error deleting customer order:', error);

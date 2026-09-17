@@ -465,7 +465,7 @@ const InvestmentsScreen = () => {
           styles.searchContainer,
           {
             backgroundColor: theme.card,
-            borderColor: theme.border,
+            borderColor: search.length ? Palette.warning : theme.border,
           },
         ]}
       >
@@ -489,7 +489,7 @@ const InvestmentsScreen = () => {
         />
 
         {search.length > 0 && (
-          <TouchableOpacity onPress={() => setSearch('')}>
+          <TouchableOpacity hitSlop={20} onPress={() => setSearch('')}>
             <Ionicons
               name="close-circle"
               size={20}

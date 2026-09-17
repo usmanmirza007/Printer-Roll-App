@@ -222,7 +222,7 @@ export default function CustomerDetailScreen() {
           </View>
           <View style={styles.rateBox}>
             <Text style={[styles.rateLabel, { color: theme.textSecondary }]}>Order Count</Text>
-            <Text style={[styles.rateValue, { color: theme.text }]}>{customer?.orderCount}</Text>
+            <Text style={[styles.rateValue, { color: theme.text }]}>{customer?.orderCount ? customer?.orderCount : 0}</Text>
           </View>
         </View>
 

@@ -1,8 +1,8 @@
 import OrderMetrics from '@/components/OrderMatric';
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { getCustomerOrdersFromFirestore } from '@/lib/firestore';
-import { CustomerOrder, OrderStatus } from '@/lib/types';
+import { getOrdersByCustomerIdFromFirestore } from '@/lib/firestore';
+import { Order, OrderStatus } from '@/lib/types';
 import { getOrderStatusStyle } from '@/utils/statusStyle';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
@@ -37,7 +37,7 @@ export default function OrderListScreen() {
   const { customerId, businessName } = useLocalSearchParams<{ customerId?: string, businessName?: string }>();
   const { top } = useSafeAreaInsets();
 
-  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All' | 'Debit'>('All');
   const [refreshing, setRefreshing] = useState(false);
@@ -46,7 +46,7 @@ export default function OrderListScreen() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const data = await getCustomerOrdersFromFirestore(customerId || '');
+      const data = await getOrdersByCustomerIdFromFirestore(customerId || '');
       setOrders(data);
     } catch (e) {
       console.error('Failed to load orders:', e);
@@ -106,7 +106,7 @@ export default function OrderListScreen() {
     }
   };
 
-  const renderOrderCard = ({ item }: { item: CustomerOrder }) => {
+  const renderOrderCard = ({ item }: { item: Order }) => {
     const statusStyle = getOrderStatusStyle(item.status, isDark);
     const margin = item.profit;
     const paidAmount = (item.installments || []).reduce((sum, payment) => sum + payment.amount, 0);

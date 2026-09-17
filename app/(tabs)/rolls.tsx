@@ -193,7 +193,7 @@ export default function RollsInventoryScreen() {
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Header Search & Metrics */}
       <View style={[styles.headerBox, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: searchQuery.length ? Palette.warning : theme.border }]}>
           <Ionicons name="search" size={18} color={theme.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}

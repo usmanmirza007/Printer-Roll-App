@@ -1,9 +1,9 @@
-import { getCustomerOrdersFromFirestore } from '@/lib/firestore';
-import { CustomerOrder } from '@/lib/types';
+import { getOrdersByCustomerIdFromFirestore } from '@/lib/firestore';
+import { Order } from '@/lib/types';
 import { useCallback, useEffect, useState } from 'react';
 
 export const useCustomerOrders = (customerId?: string) => {
-  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -17,7 +17,7 @@ export const useCustomerOrders = (customerId?: string) => {
       setLoading(true);
       setError(null);
 
-      const data = await getCustomerOrdersFromFirestore(customerId);
+      const data = await getOrdersByCustomerIdFromFirestore(customerId);
 
       setOrders(data);
     } catch (err: any) {

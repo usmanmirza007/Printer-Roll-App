@@ -43,12 +43,12 @@ export default function OrderMetrics({
     {
       label: 'In Progress',
       value: inProgressCount,
-      color: theme.tint,
+      color: Palette.primary,
     },
     {
       label: 'Invoice',
       value: invoicedCount,
-      color: Palette.primary,
+      color: theme.tint,
     },
     {
       label: 'Delivered',

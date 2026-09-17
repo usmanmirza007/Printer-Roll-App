@@ -1,7 +1,7 @@
 import { useColorScheme } from '@/components/useColorScheme';
 import Colors, { Palette } from '@/constants/Colors';
-import { deleteCustomerOrder, loadRolls, loadSingleCustomer, loadSingleOrder, saveCustomerOrder, saveRoll, updateCustomerOrder } from '@/lib/storage';
-import { Customer, CustomerOrder, InstallmentPayment, OrderStatus, ThermalRoll } from '@/lib/types';
+import { deleteOrder, loadRolls, loadSingleCustomer, loadSingleOrder, saveOrder, saveRoll, updateOrder } from '@/lib/storage';
+import { Customer, Order, InstallmentPayment, OrderStatus, ThermalRoll } from '@/lib/types';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams, usePathname } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -49,7 +49,7 @@ export default function AddOrEditCustomerOrderScreen() {
   const [unitCostRate, setUnitCostRate] = useState('120');
   const [unitSaleRate, setUnitSaleRate] = useState('135');
   const [status, setStatus] = useState<OrderStatus>('In Progress');
-  const [originalOrder, setOriginalOrder] = useState<CustomerOrder | null>(null);
+  const [originalOrder, setOriginalOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(false);
   const [rolls, setRolls] = useState<ThermalRoll[]>([]);
   const [isInstallment, setIsInstallment] = useState(false);
@@ -90,7 +90,7 @@ export default function AddOrEditCustomerOrderScreen() {
 
     loadSingleOrder(id).then((data: any) => {
       if (data) {
-        setOriginalOrder(data as CustomerOrder);
+        setOriginalOrder(data as Order);
         setSelectedCustomerId(data.customerId);
         setRollType(data.rollType);
         setQuantity(data.quantity.toString());
@@ -163,7 +163,7 @@ export default function AddOrEditCustomerOrderScreen() {
     setLoading(true);
 
     try {
-      const orderData: CustomerOrder = {
+      const orderData: Order = {
         id: isEditMode && id ? id : `order-${Date.now()}`,
         customerId: selectedCustomerId,
         rollId: `roll-${rollType.replace(/\s/g, '-').toLowerCase()}`,
@@ -198,9 +198,9 @@ export default function AddOrEditCustomerOrderScreen() {
           : [];
 
       if (isEditMode) {
-        await updateCustomerOrder(orderData);
+        await updateOrder(orderData);
       } else {
-        await saveCustomerOrder(orderData);
+        await saveOrder(orderData);
       }
       for (const updatedRoll of updatedRolls) {
         await saveRoll(updatedRoll);
@@ -236,11 +236,11 @@ export default function AddOrEditCustomerOrderScreen() {
         amount,
         paidAt: new Date().toISOString(),
       };
-      const updatedOrder: CustomerOrder = {
+      const updatedOrder: Order = {
         ...originalOrder,
         installments: [...(originalOrder.installments || []), payment],
       };
-      await updateCustomerOrder(updatedOrder);
+      await updateOrder(updatedOrder);
       setOriginalOrder(updatedOrder);
       setInstallmentAmount('');
     } catch (error) {
@@ -265,7 +265,7 @@ export default function AddOrEditCustomerOrderScreen() {
           onPress: async () => {
             setLoading(true);
             try {
-              await deleteCustomerOrder(id, selectedCustomerId || customerId);
+              await deleteOrder(id, selectedCustomerId || customerId);
               router.back();
             } catch (error) {
               console.error(error);

@@ -34,9 +34,9 @@ const CATEGORIES: MarketCategory[] = [
 
 const STATUSES: CustomerStatus[] = [
   'Active',
+  'Follow-Up',
   'Inactive',
   'Blocked',
-  'Follow-up Required',
 ];
 
 const REVISIT_OPTIONS = [
@@ -71,7 +71,7 @@ export default function AddOrEditCustomerScreen() {
   const [rollType, setRollType] = useState('40 Meter');
   const [purchaseRate, setPurchaseRate] = useState('120');
   const [saleRate, setSaleRate] = useState('135');
-  const [status, setStatus] = useState<CustomerStatus>('Active');
+  const [status, setStatus] = useState<CustomerStatus>('Follow-Up');
   const [revisitDays, setRevisitDays] = useState<number>(7);
   const [customRevisitDays, setCustomRevisitDays] = useState('');
   const [customDate, setCustomDate] = useState<Date | null>(null);

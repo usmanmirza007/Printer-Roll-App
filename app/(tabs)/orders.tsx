@@ -1,8 +1,8 @@
 import OrderMetrics from '@/components/OrderMatric';
 import { useColorScheme } from '@/components/useColorScheme';
-import Colors from '@/constants/Colors';
+import Colors, { Palette } from '@/constants/Colors';
 import { getOrdersFromFirestore } from '@/lib/firestore';
-import { CustomerOrder, OrderStatus } from '@/lib/types';
+import { Order, OrderStatus } from '@/lib/types';
 import { getOrderStatusStyle } from '@/utils/statusStyle';
 import { Feather, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
@@ -34,7 +34,7 @@ export default function OrdersScreen({ initialFilter = 'All' }: { initialFilter?
   const isDark = colorScheme === 'dark';
   const theme = Colors[isDark ? 'dark' : 'light'];
 
-  const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus | 'All' | 'Debit'>(initialFilter);
   const [refreshing, setRefreshing] = useState(false);
@@ -103,7 +103,7 @@ export default function OrdersScreen({ initialFilter = 'All' }: { initialFilter?
     }
   };
 
-  const renderOrderCard = ({ item }: { item: CustomerOrder }) => {
+  const renderOrderCard = ({ item }: { item: Order }) => {
     const statusStyle = getOrderStatusStyle(item.status, isDark);
     const margin = item.profit;
     const paidAmount = (item.installments || []).reduce((sum, payment) => sum + payment.amount, 0);
@@ -227,7 +227,7 @@ export default function OrdersScreen({ initialFilter = 'All' }: { initialFilter?
         <View
           style={[
             styles.searchBar,
-            { backgroundColor: theme.surface, borderColor: theme.border },
+            { backgroundColor: theme.surface, borderColor: searchQuery.length ? Palette.warning : theme.border },
           ]}
         >
           <Ionicons name="search" size={18} color={theme.textSecondary} />

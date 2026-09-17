@@ -1,21 +1,18 @@
 import { CUSTOMERS_COLLECTION, CUSTOMERS_ORDER_COLLECTION, INVESTMENTS_COLLECTION, NOTIFICATIONS_COLLECTION, ROLLS_COLLECTION } from '@/constants/environment';
 import { db } from '@/lib/firebase';
-import {
-  DEFAULT_CUSTOMERS,
-  DEFAULT_NOTIFICATIONS,
-  DEFAULT_ROLLS
-} from '@/lib/storage';
-import { AppNotification, Customer, CustomerOrder, Investment, ThermalRoll } from '@/lib/types';
+import { AppNotification, Customer, Order, Investment, ThermalRoll } from '@/lib/types';
 import {
   collection,
   deleteDoc,
   doc,
   getDoc,
   getDocs,
+  increment,
   query,
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from 'firebase/firestore';
 
 const newestFirst = <T extends { id: string }>(items: T[], dateKeys: string[]) =>
@@ -48,30 +45,11 @@ export async function getCustomersFromFirestore(): Promise<Customer[]> {
       return [];
     }
 
-    // Get all orders
-    const ordersRef = collection(db, CUSTOMERS_ORDER_COLLECTION);
-    const ordersSnapshot = await getDocs(ordersRef);
-
-    // Count orders by customer ID
-    const orderCounts: Record<string, number> = {};
-
-    ordersSnapshot.forEach((orderDoc) => {
-      const order = orderDoc.data();
-
-      if (order.customerId) {
-        orderCounts[order.customerId] =
-          (orderCounts[order.customerId] || 0) + 1;
-      }
-    });
-
-    // Add orderCount to every customer
     const customers: Customer[] = customersSnapshot.docs.map((doc) => {
       const customer = doc.data();
-
       return {
         id: doc.id,
         ...customer,
-        orderCount: orderCounts[doc.id] || 0,
       } as Customer;
     });
 
@@ -86,9 +64,7 @@ export async function getCustomersFromFirestore(): Promise<Customer[]> {
   }
 }
 
-export async function getCustomerByIdFromFirestore(
-  customerId: string
-): Promise<Customer | null> {
+export async function getCustomerByIdFromFirestore(customerId: string): Promise<Customer | null> {
   try {
     // 1. Get Customer
     const docRef = doc(db, CUSTOMERS_COLLECTION, customerId);
@@ -111,12 +87,12 @@ export async function getCustomerByIdFromFirestore(
 
     const ordersSnapshot = await getDocs(q);
 
-    const orderHistory: CustomerOrder[] = [];
+    const orderHistory: Order[] = [];
     ordersSnapshot.forEach((d) => {
       orderHistory.push({
         id: d.id,
         ...d.data(),
-      } as CustomerOrder);
+      } as Order);
     });
 
     // 3. Attach orders
@@ -128,15 +104,15 @@ export async function getCustomerByIdFromFirestore(
     return null;
   }
 }
-export async function getCustomerOrderByIdFromFirestore(customerOrderId: string): Promise<CustomerOrder | null> {
+export async function getOrderByIdFromFirestore(orderId: string): Promise<Order | null> {
   try {
-    if (!customerOrderId.trim()) return null;
+    if (!orderId.trim()) return null;
 
-    const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrderId);
+    const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, orderId);
     const snapshot = await getDoc(docRef);
 
     if (snapshot.exists()) {
-      return { id: snapshot.id, ...snapshot.data() } as CustomerOrder;
+      return { id: snapshot.id, ...snapshot.data() } as Order;
     }
     return null; // Customer order not found
   } catch (error) {
@@ -147,9 +123,9 @@ export async function getCustomerOrderByIdFromFirestore(customerOrderId: string)
 /**
  * Fetch all customer orders from Firestore.
  */
-export async function getCustomerOrdersFromFirestore(
+export async function getOrdersByCustomerIdFromFirestore(
   customerId: string
-): Promise<CustomerOrder[]> {
+): Promise<Order[]> {
   try {
     if (!customerId) return [];
 
@@ -160,12 +136,12 @@ export async function getCustomerOrdersFromFirestore(
 
     const snapshot = await getDocs(q);
 
-    const orders: CustomerOrder[] = [];
+    const orders: Order[] = [];
     snapshot.forEach((d) => {
       orders.push({
         id: d.id,
         ...d.data(),
-      } as CustomerOrder);
+      } as Order);
     });
 
     return newestFirst(orders, ['orderDate']);
@@ -176,7 +152,7 @@ export async function getCustomerOrdersFromFirestore(
 }
 
 // Fetch all orders from Firestore (for admin view)
-export async function getOrdersFromFirestore(): Promise<CustomerOrder[]> {
+export async function getOrdersFromFirestore(): Promise<Order[]> {
   try {
     const colRef = collection(db, CUSTOMERS_ORDER_COLLECTION); // ← now using customers orders collection
     const snapshot = await getDocs(colRef);
@@ -188,12 +164,12 @@ export async function getOrdersFromFirestore(): Promise<CustomerOrder[]> {
     }
 
     // Collection has data
-    const customers: CustomerOrder[] = [];
+    const customers: Order[] = [];
     snapshot.forEach((d) => {
       customers.push({
         id: d.id,
         ...d.data(),
-      } as CustomerOrder);
+      } as Order);
     });
 
     return newestFirst(customers, ['orderDate']);
@@ -309,23 +285,40 @@ export async function saveRollToFirestore(roll: ThermalRoll): Promise<ThermalRol
 /**
  * Save or update a thermal roll order record in Firestore.
  */
-export async function saveRollOrderToFirestore(customerOrder: CustomerOrder): Promise<CustomerOrder[]> {
+  export async function createOrderAndUpdateCustomerCount(order: Order): Promise<Order[]> {
   try {
-    const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrder.id);
-    await setDoc(docRef, customerOrder, { merge: true });
-    return await getCustomerOrdersFromFirestore(customerOrder.customerId);
+    const batch = writeBatch(db);
+
+    // 1. Save order
+    const orderRef = doc(db, CUSTOMERS_ORDER_COLLECTION, order.id);
+    batch.set(orderRef, order, { merge: true });
+
+    // 2. Increase orderCount
+    if (order.customerId) {
+      const customerRef = doc(db, CUSTOMERS_COLLECTION, order.customerId);
+      batch.update(customerRef, {
+        orderCount: increment(1),
+        status: 'Active',
+        updatedAt: new Date().toISOString(),
+      });
+    }
+
+    await batch.commit();
+    return await getOrdersByCustomerIdFromFirestore(order.customerId);
+
   } catch (error) {
-    console.error('❌ Error saving roll order to Firestore:', error);
+    console.error('❌ Error creating order and updating count:', error);
     return [];
   }
 }
+// }
 
 /** Update an existing customer order in Firestore. */
-export async function updateRollOrderToFirestore(customerOrder: CustomerOrder): Promise<CustomerOrder[]> {
+export async function updateOrderToFirestore(customerOrder: Order): Promise<Order[]> {
   try {
     const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, customerOrder.id);
     await setDoc(docRef, customerOrder, { merge: true });
-    return await getCustomerOrdersFromFirestore(customerOrder.customerId);
+    return await getOrdersByCustomerIdFromFirestore(customerOrder.customerId);
   } catch (error) {
     console.error('❌ Error updating roll order in Firestore:', error);
     throw error;
@@ -335,14 +328,14 @@ export async function updateRollOrderToFirestore(customerOrder: CustomerOrder): 
 /**
  * Delete a customer order from Firestore.
  */
-export async function deleteRollOrderFromFirestore(
+export async function deleteOrderFromFirestore(
   id: string,
   customerId: string
-): Promise<CustomerOrder[]> {
+): Promise<Order[]> {
   try {
     const docRef = doc(db, CUSTOMERS_ORDER_COLLECTION, id);
     await deleteDoc(docRef);
-    return await getCustomerOrdersFromFirestore(customerId);
+    return await getOrdersByCustomerIdFromFirestore(customerId);
   } catch (error) {
     console.error('❌ Error deleting roll order from Firestore:', error);
     return [];

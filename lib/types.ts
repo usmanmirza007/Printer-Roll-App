@@ -11,7 +11,7 @@ export type MarketCategory =
 
 export type CustomerStatus =
   | 'Active'              // Normal active customer
-  | 'Follow-up Required'  // Needs visit / follow-up
+  | 'Follow-Up'  // Needs visit / follow-up
   | 'Inactive'            // Not ordering anymore
   | 'Blocked';            // Optional
 
@@ -46,10 +46,10 @@ export interface Customer {
   lastVisitDate?: string;   // Last visited date YYYY-MM-DD
   notes?: string;           // Customer notes / feedback
   totalRollsOrdered?: number; // Total quantity ordered by this customer
-  orderHistory?: CustomerOrder[]; // Optional: List of past orders for this customer
+  orderHistory?: Order[]; // Optional: List of past orders for this customer
 }
 
-export interface CustomerOrder {
+export interface Order {
   id: string;
   customerId: string;
   rollId: string;

@@ -44,7 +44,7 @@ const MARKET_CATEGORIES: (MarketCategory | 'All')[] = [
 const STATUS_FILTERS: (CustomerStatus | 'All')[] = [
   'All',
   'Active',
-  'Follow-up Required',
+  'Follow-Up',
   'Inactive',
   'Blocked'
 ];
@@ -321,7 +321,7 @@ Thank you!`;
     <View style={[styles.container, { backgroundColor: theme.background }]}>
       {/* Top Search & Filter Bar */}
       <View style={[styles.headerBox, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
-        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.searchBar, { backgroundColor: theme.surface, borderColor: searchQuery.length ? Palette.warning : theme.border }]}>
           <Ionicons name="search" size={18} color={theme.textSecondary} />
           <TextInput
             style={[styles.searchInput, { color: theme.text }]}
