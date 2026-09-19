@@ -193,7 +193,7 @@ export default function InvoiceScreen() {
   const selectedBank = BANK_ACCOUNTS.find((account) => account.id === selectedBankId);
 
   const generateHTML = async () => {
-    const [logoAsset] = await Asset.loadAsync(require('../../assets/images/logo.jpg'));
+    const [logoAsset] = await Asset.loadAsync(require('../../assets/images/logo.png'));
     const logoFile = new File(logoAsset.localUri || logoAsset.uri);
     const logoBase64 = await logoFile.base64();
 
